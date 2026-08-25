@@ -1,0 +1,45 @@
+---
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import { atmosphereConfig, siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type { WidgetComponentConfig } from "@/types/config";
+import { pickDailyQuote } from "@/utils/atmosphere-utils";
+
+interface Props {
+	class?: string;
+	style?: string;
+	widgetConfig?: WidgetComponentConfig;
+}
+
+const { class: className, style, widgetConfig } = Astro.props;
+const showTitle = widgetConfig?.showTitle !== false;
+const quote = pickDailyQuote(
+	atmosphereConfig.hitokoto.quotes,
+	new Date(),
+	siteConfig.timezone || "Asia/Shanghai",
+);
+---
+
+{
+	quote && (
+		<WidgetLayout
+			name={i18n(I18nKey.hitokoto)}
+			showTitle={showTitle}
+			id="hitokoto"
+			class={className}
+			style={style}
+		>
+			<blockquote class="m-0 text-neutral-700 dark:text-neutral-200 leading-relaxed">
+				{quote.text}
+			</blockquote>
+			{
+				quote.author && (
+					<p class="mt-2 mb-0 text-right text-sm text-neutral-500 dark:text-neutral-400">
+						—— {quote.author}
+					</p>
+				)
+			}
+		</WidgetLayout>
+	)
+}

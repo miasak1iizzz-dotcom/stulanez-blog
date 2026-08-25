@@ -1,0 +1,130 @@
+---
+import { atmosphereConfig } from "@/config";
+
+const enabled = atmosphereConfig.cursor.enable;
+---
+
+{
+	enabled && (
+		<>
+			<div id="custom-cursor-dot" class="custom-cursor-dot" hidden></div>
+			<div id="custom-cursor-ring" class="custom-cursor-ring" hidden></div>
+			<script is:inline>
+				(function initCustomCursor() {
+					if (window.__stulanezCursorInit) return;
+					window.__stulanezCursorInit = true;
+					const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+					const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+					const dot = document.getElementById("custom-cursor-dot");
+					const ring = document.getElementById("custom-cursor-ring");
+					if (!dot || !ring) return;
+
+					let x = 0;
+					let y = 0;
+					let ringX = 0;
+					let ringY = 0;
+					let rafId = 0;
+					let active = false;
+
+					function canEnable() {
+						return finePointer.matches && !reducedMotion.matches;
+					}
+
+					function stop() {
+						active = false;
+						document.documentElement.classList.remove("custom-cursor-enabled");
+						dot.hidden = true;
+						ring.hidden = true;
+						if (rafId) cancelAnimationFrame(rafId);
+						rafId = 0;
+					}
+
+					function tick() {
+						if (!active) return;
+						ringX += (x - ringX) * 0.22;
+						ringY += (y - ringY) * 0.22;
+						dot.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+						ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+						rafId = requestAnimationFrame(tick);
+					}
+
+					function start() {
+						if (active || !canEnable()) return;
+						active = true;
+						document.documentElement.classList.add("custom-cursor-enabled");
+						dot.hidden = false;
+						ring.hidden = false;
+						tick();
+					}
+
+					function onMove(event) {
+						x = event.clientX;
+						y = event.clientY;
+						if (!active) start();
+					}
+
+					function onOver(event) {
+						const target = event.target;
+						if (!(target instanceof Element)) return;
+						const interactive = target.closest(
+							"a, button, input, textarea, select, [role='button'], [role='link']",
+						);
+						document.documentElement.classList.toggle("custom-cursor-pointer", !!interactive);
+					}
+
+					finePointer.addEventListener("change", () => {
+						if (canEnable()) start();
+						else stop();
+					});
+					reducedMotion.addEventListener("change", () => {
+						if (canEnable()) start();
+						else stop();
+					});
+					window.addEventListener("pointermove", onMove, { passive: true });
+					document.addEventListener("pointerover", onOver, { passive: true });
+					if (canEnable()) start();
+				})();
+			</script>
+			<style is:global>
+				.custom-cursor-dot,
+				.custom-cursor-ring {
+					position: fixed;
+					top: 0;
+					left: 0;
+					pointer-events: none;
+					z-index: 80;
+					border-radius: 9999px;
+					will-change: transform;
+				}
+				.custom-cursor-dot {
+					width: 6px;
+					height: 6px;
+					margin: -3px 0 0 -3px;
+					background: var(--primary);
+				}
+				.custom-cursor-ring {
+					width: 28px;
+					height: 28px;
+					margin: -14px 0 0 -14px;
+					border: 1px solid color-mix(in oklch, var(--primary) 70%, transparent);
+					transition: width 0.16s ease, height 0.16s ease, margin 0.16s ease, opacity 0.16s ease;
+				}
+				html.custom-cursor-enabled,
+				html.custom-cursor-enabled * {
+					cursor: none !important;
+				}
+				html.custom-cursor-enabled input,
+				html.custom-cursor-enabled textarea,
+				html.custom-cursor-enabled select {
+					cursor: text !important;
+				}
+				html.custom-cursor-pointer .custom-cursor-ring {
+					width: 40px;
+					height: 40px;
+					margin: -20px 0 0 -20px;
+					opacity: 0.7;
+				}
+			</style>
+		</>
+	)
+}

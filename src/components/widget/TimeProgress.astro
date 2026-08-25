@@ -1,0 +1,261 @@
+---
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import { atmosphereConfig, siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type { WidgetComponentConfig } from "@/types/config";
+import { getTimeProgress } from "@/utils/atmosphere-utils";
+
+interface Props {
+	class?: string;
+	style?: string;
+	widgetConfig?: WidgetComponentConfig;
+}
+
+const { class: className, style, widgetConfig } = Astro.props;
+const showTitle = widgetConfig?.showTitle !== false;
+const timeZone = siteConfig.timezone || "Asia/Shanghai";
+const snapshot = getTimeProgress(
+	new Date(),
+	timeZone,
+	atmosphereConfig.timeProgress.milestones,
+);
+const labels = {
+	year: i18n(I18nKey.timeProgressYear),
+	month: i18n(I18nKey.timeProgressMonth),
+	week: i18n(I18nKey.timeProgressWeek),
+	yearLeft: i18n(I18nKey.timeProgressYearLeft),
+	monthLeft: i18n(I18nKey.timeProgressMonthLeft),
+	weekLeft: i18n(I18nKey.timeProgressWeekLeft),
+	next: i18n(I18nKey.timeProgressNext),
+	days: i18n(I18nKey.timeProgressDays),
+};
+---
+
+<WidgetLayout
+	name={i18n(I18nKey.timeProgress)}
+	showTitle={showTitle}
+	id="time-progress"
+	class={className}
+	style={style}
+>
+	<div class="flex flex-col gap-3" data-time-progress-root>
+		<div data-progress-row="year">
+			<div class="mb-1 flex items-center justify-between text-sm">
+				<span class="text-neutral-700 dark:text-neutral-300">{labels.year}</span>
+				<span class="tabular-nums font-medium text-neutral-900 dark:text-neutral-100" data-progress-percent>
+					{Math.round(snapshot.year.percent)}%
+				</span>
+			</div>
+			<div class="h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+				<div
+					class="h-full rounded-full bg-(--primary) transition-[width] duration-500"
+					data-progress-bar
+					style={`width: ${snapshot.year.percent}%`}
+				>
+				</div>
+			</div>
+			<p class="mt-1 mb-0 text-xs text-neutral-500 dark:text-neutral-400" data-progress-left>
+				{labels.yearLeft.replace("{days}", String(snapshot.year.remainingDays))}
+			</p>
+		</div>
+		<div data-progress-row="month">
+			<div class="mb-1 flex items-center justify-between text-sm">
+				<span class="text-neutral-700 dark:text-neutral-300">{labels.month}</span>
+				<span class="tabular-nums font-medium text-neutral-900 dark:text-neutral-100" data-progress-percent>
+					{Math.round(snapshot.month.percent)}%
+				</span>
+			</div>
+			<div class="h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+				<div
+					class="h-full rounded-full bg-(--primary) transition-[width] duration-500"
+					data-progress-bar
+					style={`width: ${snapshot.month.percent}%`}
+				>
+				</div>
+			</div>
+			<p class="mt-1 mb-0 text-xs text-neutral-500 dark:text-neutral-400" data-progress-left>
+				{labels.monthLeft.replace("{days}", String(snapshot.month.remainingDays))}
+			</p>
+		</div>
+		<div data-progress-row="week">
+			<div class="mb-1 flex items-center justify-between text-sm">
+				<span class="text-neutral-700 dark:text-neutral-300">{labels.week}</span>
+				<span class="tabular-nums font-medium text-neutral-900 dark:text-neutral-100" data-progress-percent>
+					{Math.round(snapshot.week.percent)}%
+				</span>
+			</div>
+			<div class="h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+				<div
+					class="h-full rounded-full bg-(--primary) transition-[width] duration-500"
+					data-progress-bar
+					style={`width: ${snapshot.week.percent}%`}
+				>
+				</div>
+			</div>
+			<p class="mt-1 mb-0 text-xs text-neutral-500 dark:text-neutral-400" data-progress-left>
+				{labels.weekLeft.replace("{days}", String(snapshot.week.remainingDays))}
+			</p>
+		</div>
+		<div
+			class="rounded-xl bg-black/5 px-3 py-2 dark:bg-white/10"
+			data-progress-next
+			hidden={!snapshot.next}
+		>
+			<p class="m-0 text-xs text-neutral-500 dark:text-neutral-400">
+				{labels.next}
+				<span data-progress-next-name>{snapshot.next?.name ?? ""}</span>
+			</p>
+			<p class="m-0 mt-1 text-lg font-bold tabular-nums text-neutral-900 dark:text-neutral-100">
+				<span data-progress-next-days>{snapshot.next?.remainingDays ?? "--"}</span>
+				<span class="ml-1 text-sm font-medium text-neutral-500 dark:text-neutral-400">{labels.days}</span>
+			</p>
+			<p class="m-0 mt-0.5 text-xs tabular-nums text-neutral-500 dark:text-neutral-400" data-progress-next-date>
+				{snapshot.next?.dateLabel ?? ""}
+			</p>
+		</div>
+	</div>
+</WidgetLayout>
+
+<script
+	is:inline
+	define:vars={{
+		timeZone,
+		milestones: atmosphereConfig.timeProgress.milestones,
+		labels,
+	}}
+>
+	function getZonedParts(date) {
+		const parts = new Intl.DateTimeFormat("en-US", {
+			timeZone,
+			weekday: "short",
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+			hourCycle: "h23",
+		}).formatToParts(date);
+		const get = (type) => parts.find((part) => part.type === type)?.value || "";
+		const weekdayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+		return {
+			year: Number(get("year")),
+			month: Number(get("month")),
+			day: Number(get("day")),
+			hour: Number(get("hour")),
+			minute: Number(get("minute")),
+			second: Number(get("second")),
+			weekday: weekdayMap[get("weekday")] ?? 0,
+		};
+	}
+
+	function getOffset(date) {
+		const zoned = getZonedParts(date);
+		const asUtc = Date.UTC(zoned.year, zoned.month - 1, zoned.day, zoned.hour, zoned.minute, zoned.second);
+		return asUtc - date.getTime();
+	}
+
+	function zonedLocalToDate(year, month, day, hour, minute, second) {
+		let utc = Date.UTC(year, month - 1, day, hour, minute, second);
+		for (let i = 0; i < 3; i += 1) {
+			utc = Date.UTC(year, month - 1, day, hour, minute, second) - getOffset(new Date(utc));
+		}
+		return new Date(utc);
+	}
+
+	function remainingDays(nowMs, endMs) {
+		return Math.max(0, Math.ceil((endMs - nowMs) / 86400000));
+	}
+
+	function makeSlice(nowMs, startMs, endMs) {
+		const span = Math.max(1, endMs - startMs);
+		const percent = Math.min(100, Math.max(0, ((nowMs - startMs) / span) * 100));
+		return { percent, remainingDays: remainingDays(nowMs, endMs) };
+	}
+
+	function getSnapshot(date) {
+		const parts = getZonedParts(date);
+		const nowMs = date.getTime();
+		const yearStart = zonedLocalToDate(parts.year, 1, 1, 0, 0, 0);
+		const yearEnd = zonedLocalToDate(parts.year + 1, 1, 1, 0, 0, 0);
+		const monthStart = zonedLocalToDate(parts.year, parts.month, 1, 0, 0, 0);
+		const nextMonth =
+			parts.month === 12
+				? zonedLocalToDate(parts.year + 1, 1, 1, 0, 0, 0)
+				: zonedLocalToDate(parts.year, parts.month + 1, 1, 0, 0, 0);
+		const daysFromMonday = (parts.weekday + 6) % 7;
+		const weekStart = zonedLocalToDate(parts.year, parts.month, parts.day - daysFromMonday, 0, 0, 0);
+		const weekEnd = new Date(weekStart.getTime() + 7 * 86400000);
+		let next = null;
+		for (const milestone of milestones) {
+			const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(milestone.date);
+			if (!match) continue;
+			const start = zonedLocalToDate(Number(match[1]), Number(match[2]), Number(match[3]), 0, 0, 0);
+			if (start.getTime() < nowMs) continue;
+			next = {
+				name: milestone.name,
+				remainingDays: remainingDays(nowMs, start.getTime()),
+				dateLabel: milestone.date,
+			};
+			break;
+		}
+		return {
+			year: makeSlice(nowMs, yearStart.getTime(), yearEnd.getTime()),
+			month: makeSlice(nowMs, monthStart.getTime(), nextMonth.getTime()),
+			week: makeSlice(nowMs, weekStart.getTime(), weekEnd.getTime()),
+			next,
+		};
+	}
+
+	function renderRow(root, key, slice, leftTemplate) {
+		const row = root.querySelector(`[data-progress-row="${key}"]`);
+		if (!row) return;
+		const percentEl = row.querySelector("[data-progress-percent]");
+		const barEl = row.querySelector("[data-progress-bar]");
+		const leftEl = row.querySelector("[data-progress-left]");
+		if (percentEl) percentEl.textContent = `${Math.round(slice.percent)}%`;
+		if (barEl) barEl.style.width = `${slice.percent}%`;
+		if (leftEl) leftEl.textContent = leftTemplate.replace("{days}", String(slice.remainingDays));
+	}
+
+	function renderProgress() {
+		const roots = document.querySelectorAll("[data-time-progress-root]");
+		if (!roots.length) return;
+		const snapshot = getSnapshot(new Date());
+		roots.forEach((root) => {
+			renderRow(root, "year", snapshot.year, labels.yearLeft);
+			renderRow(root, "month", snapshot.month, labels.monthLeft);
+			renderRow(root, "week", snapshot.week, labels.weekLeft);
+			const nextEl = root.querySelector("[data-progress-next]");
+			if (!nextEl) return;
+			if (!snapshot.next) {
+				nextEl.hidden = true;
+				return;
+			}
+			nextEl.hidden = false;
+			const nameEl = nextEl.querySelector("[data-progress-next-name]");
+			const daysEl = nextEl.querySelector("[data-progress-next-days]");
+			const dateEl = nextEl.querySelector("[data-progress-next-date]");
+			if (nameEl) nameEl.textContent = snapshot.next.name;
+			if (daysEl) daysEl.textContent = String(snapshot.next.remainingDays);
+			if (dateEl) dateEl.textContent = snapshot.next.dateLabel;
+		});
+	}
+
+	function startProgress() {
+		renderProgress();
+		if (window.__stulanezProgressTimer) {
+			clearInterval(window.__stulanezProgressTimer);
+		}
+		window.__stulanezProgressTimer = setInterval(renderProgress, 60000);
+	}
+
+	startProgress();
+	if (!window.__stulanezProgressInit) {
+		window.__stulanezProgressInit = true;
+		document.addEventListener("swup:contentReplaced", () => {
+			setTimeout(startProgress, 50);
+		});
+	}
+</script>

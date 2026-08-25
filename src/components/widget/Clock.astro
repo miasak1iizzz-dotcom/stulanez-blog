@@ -1,0 +1,149 @@
+---
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type { WidgetComponentConfig } from "@/types/config";
+
+interface Props {
+	class?: string;
+	style?: string;
+	widgetConfig?: WidgetComponentConfig;
+}
+
+const { class: className, style, widgetConfig } = Astro.props;
+const showTitle = widgetConfig?.showTitle !== false;
+const timeZone = siteConfig.timezone || "Asia/Shanghai";
+const locale =
+	siteConfig.lang === "zh_CN"
+		? "zh-CN"
+		: siteConfig.lang === "zh_TW"
+			? "zh-TW"
+			: siteConfig.lang === "ja"
+				? "ja-JP"
+				: siteConfig.lang === "ko"
+					? "ko-KR"
+					: siteConfig.lang === "ru"
+						? "ru-RU"
+						: "en-US";
+const greetings = {
+	morning: i18n(I18nKey.greetingMorning),
+	noon: i18n(I18nKey.greetingNoon),
+	afternoon: i18n(I18nKey.greetingAfternoon),
+	evening: i18n(I18nKey.greetingEvening),
+	night: i18n(I18nKey.greetingNight),
+};
+---
+
+<WidgetLayout
+	name={i18n(I18nKey.clock)}
+	showTitle={showTitle}
+	id="sidebar-clock"
+	class={className}
+	style={style}
+>
+	<div class="flex flex-col items-center py-1 text-center" data-clock-root>
+		<p
+			class="m-0 text-sm text-neutral-500 dark:text-neutral-400"
+			data-clock-greeting
+		>
+			{i18n(I18nKey.clockFetching)}
+		</p>
+		<p
+			class="m-0 mt-1 font-bold text-3xl tabular-nums tracking-wide text-neutral-900 dark:text-neutral-100"
+			data-clock-time
+		>
+			--:--:--
+		</p>
+		<p
+			class="m-0 mt-1 text-sm text-neutral-600 dark:text-neutral-300"
+			data-clock-weekday
+		>
+			---
+		</p>
+		<p
+			class="m-0 mt-0.5 text-sm tabular-nums text-neutral-500 dark:text-neutral-400"
+			data-clock-date
+		>
+			--/--
+		</p>
+	</div>
+</WidgetLayout>
+
+<script is:inline define:vars={{ timeZone, locale, greetings }}>
+	function getClockPeriod(hour) {
+		if (hour >= 5 && hour < 11) return "morning";
+		if (hour >= 11 && hour < 14) return "noon";
+		if (hour >= 14 && hour < 18) return "afternoon";
+		if (hour >= 18 && hour < 23) return "evening";
+		return "night";
+	}
+
+	function readZonedParts(date) {
+		const parts = new Intl.DateTimeFormat("en-US", {
+			timeZone,
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+			hourCycle: "h23",
+		}).formatToParts(date);
+		const get = (type) => parts.find((part) => part.type === type)?.value || "";
+		return {
+			hour: Number(get("hour")),
+			minute: Number(get("minute")),
+			second: Number(get("second")),
+			month: Number(get("month")),
+			day: Number(get("day")),
+		};
+	}
+
+	function pad(value) {
+		return String(value).padStart(2, "0");
+	}
+
+	function renderClock() {
+		const roots = document.querySelectorAll("[data-clock-root]");
+		if (!roots.length) return;
+		const now = new Date();
+		const parts = readZonedParts(now);
+		const time = `${pad(parts.hour)}:${pad(parts.minute)}:${pad(parts.second)}`;
+		const date = `${pad(parts.month)}/${pad(parts.day)}`;
+		const greeting = greetings[getClockPeriod(parts.hour)] || "";
+		const weekday = new Intl.DateTimeFormat(locale, {
+			timeZone,
+			weekday: "long",
+		}).format(now);
+		roots.forEach((root) => {
+			const greetingEl = root.querySelector("[data-clock-greeting]");
+			const timeEl = root.querySelector("[data-clock-time]");
+			const weekdayEl = root.querySelector("[data-clock-weekday]");
+			const dateEl = root.querySelector("[data-clock-date]");
+			if (greetingEl) greetingEl.textContent = greeting;
+			if (timeEl) timeEl.textContent = time;
+			if (weekdayEl) weekdayEl.textContent = weekday;
+			if (dateEl) dateEl.textContent = date;
+		});
+	}
+
+	function startClock() {
+		renderClock();
+		if (window.__stulanezClockTimer) {
+			clearInterval(window.__stulanezClockTimer);
+		}
+		window.__stulanezClockTimer = setInterval(renderClock, 1000);
+	}
+
+	startClock();
+	if (!window.__stulanezClockInit) {
+		window.__stulanezClockInit = true;
+		document.addEventListener("swup:contentReplaced", () => {
+			setTimeout(startClock, 50);
+		});
+		document.addEventListener("visibilitychange", () => {
+			if (!document.hidden) renderClock();
+		});
+	}
+</script>
