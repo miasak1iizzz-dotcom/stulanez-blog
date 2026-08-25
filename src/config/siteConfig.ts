@@ -49,17 +49,11 @@ export const siteConfig: SiteConfig = {
 	site_url: "https://stulanez.com",
 
 	// 站点描述
-	description: "永恒欲望是 Saki 的个人站点，用来慢慢写下代码、生活和还想继续做的事。",
+	description:
+		"永恒欲望是 Saki 的个人站点，用来慢慢写下代码、生活和还想继续做的事。",
 
 	// 站点关键词
-	keywords: [
-		"永恒欲望",
-		"stulanez",
-		"Saki",
-		"博客",
-		"Astro",
-		"Firefly",
-	],
+	keywords: ["永恒欲望", "stulanez", "Saki", "博客", "Astro", "Firefly"],
 
 	// 主题色
 	themeColor: {

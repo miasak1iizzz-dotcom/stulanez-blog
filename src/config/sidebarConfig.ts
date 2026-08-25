@@ -59,6 +59,13 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			showOnPostPage: true,
 		},
 		{
+			// 组件类型：今日一言
+			type: "hitokoto",
+			enable: true,
+			position: "top",
+			showOnPostPage: true,
+		},
+		{
 			// 组件类型：音乐播放器
 			type: "music",
 			// 是否启用该组件
@@ -103,10 +110,17 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 	// 右侧边栏组件配置列表
 	rightComponents: [
 		{
+			// 组件类型：实时时钟
+			type: "clock",
+			enable: true,
+			position: "top",
+			showOnPostPage: true,
+		},
+		{
 			// 组件类型：最新动态组件
 			type: "dynamic",
 			// 是否启用该组件
-			enable: true,
+			enable: false,
 			// 组件位置
 			position: "top",
 			// 是否在文章详情页显示
@@ -176,6 +190,13 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			showOnPostPage: true,
 			// 是否在非文章详情页隐藏
 			hideOnNonPostPage: true,
+		},
+		{
+			// 组件类型：时间进度
+			type: "timeProgress",
+			enable: true,
+			position: "sticky",
+			showOnPostPage: true,
 		},
 		{
 			// 组件类型：广告栏组件 1
@@ -255,6 +276,12 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			showOnPostPage: true,
 		},
 		{
+			// 组件类型：今日一言
+			type: "hitokoto",
+			enable: true,
+			showOnPostPage: true,
+		},
+		{
 			// 组件类型：分类组件
 			type: "categories",
 			// 是否启用该组件
@@ -284,7 +311,7 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			// 组件类型：最新动态组件
 			type: "dynamic",
 			// 是否启用该组件
-			enable: true,
+			enable: false,
 			// 是否在文章详情页显示
 			showOnPostPage: true,
 			// 组件专属配置
@@ -296,11 +323,23 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			},
 		},
 		{
+			// 组件类型：实时时钟
+			type: "clock",
+			enable: true,
+			showOnPostPage: true,
+		},
+		{
 			// 组件类型：站点统计组件
 			type: "stats",
 			// 是否启用该组件
 			enable: true,
 			// 是否在文章详情页显示
+			showOnPostPage: true,
+		},
+		{
+			// 组件类型：时间进度
+			type: "timeProgress",
+			enable: true,
 			showOnPostPage: true,
 		},
 		{

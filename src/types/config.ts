@@ -1,5 +1,10 @@
 export type { AnalyticsConfig } from "./analyticsConfig";
 export type { AnnouncementConfig } from "./announcementConfig";
+export type {
+	AtmosphereConfig,
+	HitokotoQuote,
+	TimeProgressMilestone,
+} from "./atmosphereConfig";
 export type { BackgroundWallpaperConfig } from "./backgroundWallpaper";
 export type {
 	BooknavFaviconConfig,

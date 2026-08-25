@@ -3,6 +3,11 @@
 
 // 类型导出
 export type {
+	AtmosphereConfig,
+	HitokotoQuote,
+	TimeProgressMilestone,
+} from "../types/atmosphereConfig";
+export type {
 	AdConfig,
 	AnalyticsConfig,
 	AnnouncementConfig,
@@ -43,6 +48,7 @@ export type {
 } from "../types/fontConfig"; // 字体类型定义
 export { analyticsConfig } from "./analyticsConfig"; // 统计分析配置
 export { announcementConfig } from "./announcementConfig"; // 公告配置
+export { atmosphereConfig } from "./atmosphereConfig"; // 侧栏一言/时钟/进度与欢迎、光标
 // 样式配置
 export { backgroundWallpaper } from "./backgroundWallpaper"; // 背景壁纸配置
 export { booknavConfig, booknavPageConfig } from "./booknavConfig"; // 书签导航配置

@@ -1,0 +1,179 @@
+---
+import { atmosphereConfig, siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import { url } from "@/utils/url-utils";
+
+const enabled = atmosphereConfig.welcomeToast.enable;
+const timeZone = siteConfig.timezone || "Asia/Shanghai";
+const aboutUrl = url(atmosphereConfig.welcomeToast.aboutUrl);
+const timeoutMs = atmosphereConfig.welcomeToast.locationTimeoutMs;
+const greetings = {
+	morning: i18n(I18nKey.greetingMorning),
+	noon: i18n(I18nKey.greetingNoon),
+	afternoon: i18n(I18nKey.greetingAfternoon),
+	evening: i18n(I18nKey.greetingEvening),
+	night: i18n(I18nKey.greetingNight),
+};
+const copy = {
+	label: i18n(I18nKey.welcomeToastLabel),
+	hello: i18n(I18nKey.welcomeToastHello),
+	helloCity: i18n(I18nKey.welcomeToastHelloCity),
+	body: i18n(I18nKey.welcomeToastBody),
+	more: i18n(I18nKey.welcomeToastMore),
+	close: i18n(I18nKey.welcomeToastClose),
+};
+---
+
+{
+	enabled && (
+		<div
+			id="welcome-toast"
+			class="pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4 opacity-0"
+			hidden
+		>
+			<aside
+				class="pointer-events-auto card-base relative w-full max-w-md px-5 py-4 shadow-lg"
+				role="dialog"
+				aria-labelledby="welcome-toast-title"
+				aria-describedby="welcome-toast-body"
+			>
+				<p
+					id="welcome-toast-title"
+					class="m-0 text-xs tracking-[0.2em] text-(--primary)"
+				>
+					{copy.label}
+				</p>
+				<p
+					class="mt-2 mb-0 text-base font-medium text-neutral-900 dark:text-neutral-100"
+					data-welcome-hello
+				>
+				</p>
+				<p
+					id="welcome-toast-body"
+					class="mt-1 mb-3 text-sm text-neutral-600 dark:text-neutral-300"
+				>
+					{copy.body}
+				</p>
+				<div class="flex items-center justify-between gap-3">
+					<a
+						href={aboutUrl}
+						class="btn-regular rounded-lg px-3 py-1.5 text-sm font-medium"
+					>
+						{copy.more}
+					</a>
+					<button
+						type="button"
+						class="btn-regular rounded-lg h-8 w-8"
+						aria-label={copy.close}
+						data-welcome-close
+					>
+						×
+					</button>
+				</div>
+			</aside>
+		</div>
+	)
+}
+
+{
+	enabled && (
+		<script
+			is:inline
+			define:vars={{ timeZone, timeoutMs, greetings, copy }}
+		>
+			const STORAGE_KEY = "stulanez.welcome.shown";
+
+			function getPeriod(hour) {
+				if (hour >= 5 && hour < 11) return "morning";
+				if (hour >= 11 && hour < 14) return "noon";
+				if (hour >= 14 && hour < 18) return "afternoon";
+				if (hour >= 18 && hour < 23) return "evening";
+				return "night";
+			}
+
+			function getHour() {
+				const parts = new Intl.DateTimeFormat("en-US", {
+					timeZone,
+					hour: "2-digit",
+					hourCycle: "h23",
+				}).formatToParts(new Date());
+				return Number(parts.find((part) => part.type === "hour")?.value || "0");
+			}
+
+			function hasShown() {
+				try {
+					return sessionStorage.getItem(STORAGE_KEY) === "1";
+				} catch {
+					return true;
+				}
+			}
+
+			function markShown() {
+				try {
+					sessionStorage.setItem(STORAGE_KEY, "1");
+				} catch {
+					// private mode: skip persistence, still close for this page
+				}
+			}
+
+			async function fetchCity() {
+				const controller = new AbortController();
+				const timer = setTimeout(() => controller.abort(), timeoutMs);
+				try {
+					const response = await fetch("https://ipapi.co/json/", {
+						signal: controller.signal,
+					});
+					if (!response.ok) return "";
+					const data = await response.json();
+					return typeof data.city === "string" ? data.city.trim() : "";
+				} catch {
+					return "";
+				} finally {
+					clearTimeout(timer);
+				}
+			}
+
+			function hideToast(root) {
+				root.classList.add("opacity-0");
+				window.setTimeout(() => {
+					root.hidden = true;
+				}, 200);
+			}
+
+			async function showWelcome() {
+				if (window.__stulanezWelcomeInit) return;
+				window.__stulanezWelcomeInit = true;
+				if (hasShown()) return;
+				const root = document.getElementById("welcome-toast");
+				if (!root) return;
+				const greeting = greetings[getPeriod(getHour())] || "";
+				const city = await fetchCity();
+				const helloEl = root.querySelector("[data-welcome-hello]");
+				if (helloEl) {
+					helloEl.textContent = city
+						? copy.helloCity.replace("{greeting}", greeting).replace("{city}", city)
+						: copy.hello.replace("{greeting}", greeting);
+				}
+				root.hidden = false;
+				requestAnimationFrame(() => {
+					root.classList.remove("opacity-0");
+					root.classList.add("transition-opacity", "duration-300");
+				});
+				markShown();
+				root.querySelector("[data-welcome-close]")?.addEventListener(
+					"click",
+					() => hideToast(root),
+				);
+			}
+
+			if (document.readyState === "loading") {
+				document.addEventListener("DOMContentLoaded", () => {
+					void showWelcome();
+				});
+			} else {
+				void showWelcome();
+			}
+		</script>
+	)
+}
