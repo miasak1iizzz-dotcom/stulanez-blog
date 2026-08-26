@@ -8,7 +8,18 @@ export type TimeProgressMilestone = {
 	date: string; // YYYY-MM-DD
 };
 
-export type SplashStyleId = "logo" | "petal" | "wash";
+export type SplashPortrait = {
+	id: string;
+	name: string;
+	image: string;
+	badge?: string;
+};
+
+export type SplashBanner = {
+	id: string;
+	name?: string;
+	image: string;
+};
 
 export type AtmosphereConfig = {
 	hitokoto: {
@@ -27,7 +38,12 @@ export type AtmosphereConfig = {
 	};
 	splash: {
 		enable: boolean;
-		defaultStyle: SplashStyleId;
 		durationMs: number;
+		defaultPortrait: string;
+		defaultUpper: string;
+		defaultLower: string;
+		portraits: SplashPortrait[];
+		upperBanners: SplashBanner[];
+		lowerBanners: SplashBanner[];
 	};
 };

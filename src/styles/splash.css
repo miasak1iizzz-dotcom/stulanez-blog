@@ -1,4 +1,4 @@
-/* 开屏遮罩：自有徽标/花瓣/色晕，不引用外部角色图 */
+/* 开屏：角色居中 + 上下横幅，用站点自己的图 */
 
 html[data-splash-pending] {
 	overflow: hidden;
@@ -8,9 +8,9 @@ html[data-splash-pending] {
 	position: fixed;
 	inset: 0;
 	z-index: 200;
-	display: grid;
-	place-items: center;
-	background: oklch(0.16 0.04 var(--hue));
+	display: flex;
+	flex-direction: column;
+	background: oklch(0.18 0.04 var(--hue));
 	color: white;
 	pointer-events: none;
 }
@@ -24,112 +24,101 @@ html[data-splash-pending] {
 	transition: opacity 0.4s ease;
 }
 
-.splash-stage {
-	position: relative;
+.splash-upper,
+.splash-lower {
+	display: block;
+	width: 100%;
+	height: 22vh;
+	object-fit: cover;
+	opacity: 0;
+}
+
+.splash-hero {
+	flex: 1;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 0.75rem;
+	justify-content: center;
+	gap: 0.9rem;
 }
 
-.splash-logo {
-	width: 5.5rem;
-	height: 5.5rem;
+.splash-character {
+	width: min(42vw, 16rem);
+	height: min(42vw, 16rem);
 	object-fit: contain;
+	object-position: center 18%;
+	border-radius: 50%;
+	border: 3px solid oklch(0.92 0.05 var(--hue));
+	background: oklch(0.26 0.06 var(--hue));
 	opacity: 0;
+	transform: scale(0.92);
 }
 
 .splash-title {
 	margin: 0;
-	font-size: 1.35rem;
-	letter-spacing: 0.18em;
+	font-size: 1.45rem;
+	letter-spacing: 0.22em;
 	opacity: 0;
 }
 
-.splash-petals {
-	position: absolute;
-	inset: -4rem -6rem;
-	pointer-events: none;
-	opacity: 0;
+.splash-screen.is-playing .splash-upper {
+	animation: splash-in-top 0.7s ease forwards;
 }
 
-.splash-petals span {
-	position: absolute;
-	width: 0.7rem;
-	height: 1rem;
-	border-radius: 70% 0 70% 0;
-	background: oklch(0.86 0.12 var(--hue));
+.splash-screen.is-playing .splash-lower {
+	animation: splash-in-bottom 0.7s ease forwards;
 }
 
-.splash-petals span:nth-child(1) { left: 8%; top: 12%; }
-.splash-petals span:nth-child(2) { left: 28%; top: 4%; }
-.splash-petals span:nth-child(3) { left: 52%; top: 10%; }
-.splash-petals span:nth-child(4) { left: 74%; top: 6%; }
-.splash-petals span:nth-child(5) { left: 12%; top: 58%; }
-.splash-petals span:nth-child(6) { left: 40%; top: 64%; }
-.splash-petals span:nth-child(7) { left: 66%; top: 54%; }
-.splash-petals span:nth-child(8) { left: 86%; top: 62%; }
-
-html[data-splash-style="logo"] .splash-logo,
-html[data-splash-style="logo"] .splash-title {
-	animation: splash-rise 0.7s ease forwards;
+.splash-screen.is-playing .splash-character {
+	animation: splash-in-scale 0.75s 0.12s ease forwards;
 }
 
-html[data-splash-style="logo"] .splash-title {
-	animation-delay: 0.18s;
+.splash-screen.is-playing .splash-title {
+	animation: splash-in-scale 0.6s 0.28s ease forwards;
 }
 
-html[data-splash-style="petal"] .splash-logo,
-html[data-splash-style="petal"] .splash-title,
-html[data-splash-style="petal"] .splash-petals {
-	opacity: 1;
-}
-
-html[data-splash-style="petal"] .splash-petals span {
-	animation: splash-fall 1.6s linear infinite;
-}
-
-html[data-splash-style="petal"] .splash-petals span:nth-child(odd) {
-	animation-duration: 1.9s;
-}
-
-html[data-splash-style="wash"] .splash-screen {
-	background: oklch(0.72 0.16 var(--hue));
-}
-
-html[data-splash-style="wash"] .splash-logo,
-html[data-splash-style="wash"] .splash-title {
-	opacity: 1;
-}
-
-@keyframes splash-rise {
+@keyframes splash-in-top {
 	from {
 		opacity: 0;
-		transform: translateY(10px) scale(0.92);
+		transform: translateY(-18px);
 	}
 	to {
 		opacity: 1;
-		transform: translateY(0) scale(1);
+		transform: translateY(0);
 	}
 }
 
-@keyframes splash-fall {
+@keyframes splash-in-bottom {
 	from {
-		transform: translateY(-12px) rotate(0deg);
-		opacity: 0.2;
+		opacity: 0;
+		transform: translateY(18px);
 	}
 	to {
-		transform: translateY(28px) rotate(40deg);
-		opacity: 0.85;
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes splash-in-scale {
+	from {
+		opacity: 0;
+		transform: scale(0.92);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.splash-screen,
-	.splash-logo,
-	.splash-title,
-	.splash-petals span {
+	.splash-upper,
+	.splash-lower,
+	.splash-character,
+	.splash-title {
 		animation: none !important;
 		transition: none !important;
+		opacity: 1;
+		transform: none;
 	}
 }

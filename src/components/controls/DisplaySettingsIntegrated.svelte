@@ -19,7 +19,9 @@ import {
 	getDefaultOverlayOpacity,
 	getDefaultSakuraEnabled,
 	getDefaultSplashEnabled,
-	getDefaultSplashStyle,
+	getDefaultSplashLower,
+	getDefaultSplashPortrait,
+	getDefaultSplashUpper,
 	getDefaultWavesEnabled,
 	getHue,
 	getStoredBannerCarouselEnabled,
@@ -33,7 +35,9 @@ import {
 	getStoredOverlayOpacity,
 	getStoredSakuraEnabled,
 	getStoredSplashEnabled,
-	getStoredSplashStyle,
+	getStoredSplashLower,
+	getStoredSplashPortrait,
+	getStoredSplashUpper,
 	getStoredWallpaperMode,
 	getStoredWavesEnabled,
 	setBannerCarouselEnabled,
@@ -48,7 +52,9 @@ import {
 	setOverlayOpacity,
 	setSakuraEnabled,
 	setSplashEnabled,
-	setSplashStyle,
+	setSplashLower,
+	setSplashPortrait,
+	setSplashUpper,
 	setWallpaperMode,
 	setWavesEnabled,
 } from "@utils/setting-utils";
@@ -61,7 +67,6 @@ import {
 	displaySettingsConfig,
 	siteConfig,
 } from "@/config";
-import type { SplashStyleId } from "@/types/atmosphereConfig";
 import type { WALLPAPER_MODE } from "@/types/config";
 import { getWallpaperPickerItems } from "@/utils/wallpaper-picker-utils";
 
@@ -111,8 +116,12 @@ let selectedWallpaperIndex: number | null = $state(null);
 const wallpaperPickerItems = getWallpaperPickerItems();
 let splashEnabled = $state(true);
 const defaultSplashEnabled = getDefaultSplashEnabled();
-let splashStyle: SplashStyleId = $state(getDefaultSplashStyle());
-const defaultSplashStyle = getDefaultSplashStyle();
+let splashPortrait = $state(getDefaultSplashPortrait());
+const defaultSplashPortrait = getDefaultSplashPortrait();
+let splashUpper = $state(getDefaultSplashUpper());
+const defaultSplashUpper = getDefaultSplashUpper();
+let splashLower = $state(getDefaultSplashLower());
+const defaultSplashLower = getDefaultSplashLower();
 let sakuraEnabled = $state(true);
 const defaultSakuraEnabled = getDefaultSakuraEnabled();
 let overlayOpacity = $state(getDefaultOverlayOpacity());
@@ -198,7 +207,10 @@ let bannerSettingsIsDefault = $derived(
 			bannerCarouselEnabled === defaultBannerCarouselEnabled),
 );
 let splashSettingsIsDefault = $derived(
-	splashEnabled === defaultSplashEnabled && splashStyle === defaultSplashStyle,
+	splashEnabled === defaultSplashEnabled &&
+		splashPortrait === defaultSplashPortrait &&
+		splashUpper === defaultSplashUpper &&
+		splashLower === defaultSplashLower,
 );
 let wallpaperPickerIsDefault = $derived(selectedWallpaperIndex === null);
 let cardSettingsIsDefault = $derived(
@@ -218,20 +230,22 @@ const hasAnyContent =
 
 // --- Tab visibility ---
 const hasAppearanceTab = $derived(
-	showThemeColor || isCardBorderSwitchable || isCardFollowThemeSwitchable,
+	isSplashSwitchable || isSakuraSwitchable || allowLayoutSwitch,
 );
 const hasWallpaperTab = $derived(
-	isWallpaperSwitchable ||
-		isWallpaperPickerSwitchable ||
-		((wallpaperMode === WALLPAPER_OVERLAY ||
-			wallpaperMode === WALLPAPER_FULLSCREEN) &&
-			hasOverlaySettings) ||
+	isWallpaperPickerSwitchable ||
 		((wallpaperMode === WALLPAPER_BANNER ||
 			wallpaperMode === WALLPAPER_FULLSCREEN) &&
 			hasBannerSettings),
 );
 const hasEffectsTab = $derived(
-	isSakuraSwitchable || isSplashSwitchable || allowLayoutSwitch,
+	showThemeColor ||
+		isCardBorderSwitchable ||
+		isCardFollowThemeSwitchable ||
+		isWallpaperSwitchable ||
+		((wallpaperMode === WALLPAPER_OVERLAY ||
+			wallpaperMode === WALLPAPER_FULLSCREEN) &&
+			hasOverlaySettings),
 );
 
 let visibleTabs = $derived.by(() => {
@@ -251,7 +265,7 @@ let visibleTabs = $derived.by(() => {
 	if (hasEffectsTab)
 		tabs.push({
 			key: "effects",
-			icon: "mdi:flower-poppy",
+			icon: "material-symbols:tune",
 			label: i18n(I18nKey.settingsTabEffects),
 		});
 	return tabs;
@@ -264,17 +278,6 @@ let activeTab = $state<TabKey>("appearance");
 $effect(() => {
 	if (!visibleTabs.find((t) => t.key === activeTab) && visibleTabs.length > 0) {
 		activeTab = visibleTabs[0].key;
-	}
-});
-
-// Auto-switch to wallpaper tab when entering overlay/fullscreen mode
-$effect(() => {
-	if (
-		(wallpaperMode === WALLPAPER_OVERLAY ||
-			wallpaperMode === WALLPAPER_FULLSCREEN) &&
-		hasOverlaySettings
-	) {
-		activeTab = "wallpaper";
 	}
 });
 
@@ -403,9 +406,17 @@ function resetSplashSettings() {
 		splashEnabled = defaultSplashEnabled;
 		setSplashEnabled(defaultSplashEnabled);
 	}
-	if (splashStyle !== defaultSplashStyle) {
-		splashStyle = defaultSplashStyle;
-		setSplashStyle(defaultSplashStyle);
+	if (splashPortrait !== defaultSplashPortrait) {
+		splashPortrait = defaultSplashPortrait;
+		setSplashPortrait(defaultSplashPortrait);
+	}
+	if (splashUpper !== defaultSplashUpper) {
+		splashUpper = defaultSplashUpper;
+		setSplashUpper(defaultSplashUpper);
+	}
+	if (splashLower !== defaultSplashLower) {
+		splashLower = defaultSplashLower;
+		setSplashLower(defaultSplashLower);
 	}
 }
 
@@ -529,20 +540,20 @@ function refreshAllRangeProgress() {
 	});
 }
 
-function switchLayout() {
+function selectLayout(layout: "list" | "grid") {
 	if (!mounted || isSwitching) return;
+	if (window.innerWidth < 380 && layout === "list") return;
+	if (currentLayout === layout) return;
 
 	isSwitching = true;
-	currentLayout = currentLayout === "list" ? "grid" : "list";
+	currentLayout = layout;
 	localStorage.setItem("postListLayout", currentLayout);
 
-	// 触发自定义事件，通知页面布局已改变
 	const event = new CustomEvent("layoutChange", {
 		detail: { layout: currentLayout },
 	});
 	window.dispatchEvent(event);
 
-	// 动画完成后重置状态
 	setTimeout(() => {
 		isSwitching = false;
 	}, 500);
@@ -569,7 +580,9 @@ onMount(() => {
 
 	selectedWallpaperIndex = getStoredBannerWallpaperIndex();
 	splashEnabled = getStoredSplashEnabled();
-	splashStyle = getStoredSplashStyle();
+	splashPortrait = getStoredSplashPortrait();
+	splashUpper = getStoredSplashUpper();
+	splashLower = getStoredSplashLower();
 
 	// 从localStorage读取樱花特效状态
 	sakuraEnabled = getStoredSakuraEnabled();
@@ -686,7 +699,7 @@ $effect(() => {
 </script>
 
 {#if hasAnyContent}
-<div id="display-setting" class="float-panel float-panel-closed absolute transition-all w-[21.5rem] right-4 px-3 pt-0 pb-3 max-h-[80vh] overflow-y-auto" data-floating-panel data-floating-panel-trigger="display-settings-switch" inert aria-hidden="true">
+<div id="display-setting" class="float-panel float-panel-closed absolute transition-all w-[23rem] right-4 px-4 pt-1 pb-4 max-h-[80vh] overflow-y-auto" data-floating-panel data-floating-panel-trigger="display-settings-switch" inert aria-hidden="true">
 	<!-- Tab Bar -->
 	{#if showTabBar}
 	<div class="settings-tabs" style="grid-template-columns: repeat({visibleTabs.length}, minmax(0, 1fr))">
@@ -703,12 +716,202 @@ $effect(() => {
 	</div>
 	{/if}
 
-	<!-- Appearance Tab: Theme Color + Layout -->
 	{#if activeTab === "appearance"}
-		<!-- Theme Color Section -->
-		{#if showThemeColor}
-		<div class="">
+		{#if isSplashSwitchable}
+		<div>
 			<div class="section-title">
+				<Icon icon="material-symbols:animation" class="text-[1rem] shrink-0"></Icon>
+				{i18n(I18nKey.splashAnimation)}
+				<span class="splash-preview-badge">{i18n(I18nKey.splashPreviewBadge)}</span>
+				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90 ml-auto"
+						class:opacity-0={splashSettingsIsDefault} class:pointer-events-none={splashSettingsIsDefault}
+						disabled={splashSettingsIsDefault} aria-hidden={splashSettingsIsDefault ? "true" : undefined}
+						onclick={resetSplashSettings}>
+					<div class="text-(--btn-content)">
+						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
+					</div>
+				</button>
+			</div>
+			<SplashPicker
+				enabled={splashEnabled}
+				portrait={splashPortrait}
+				upper={splashUpper}
+				lower={splashLower}
+				onEnabledChange={(value) => {
+					splashEnabled = value;
+					setSplashEnabled(value);
+				}}
+				onPortraitChange={(value) => {
+					splashPortrait = value;
+					setSplashPortrait(value);
+				}}
+				onUpperChange={(value) => {
+					splashUpper = value;
+					setSplashUpper(value);
+				}}
+				onLowerChange={(value) => {
+					splashLower = value;
+					setSplashLower(value);
+				}}
+			/>
+		</div>
+		{/if}
+
+		{#if isSakuraSwitchable}
+		<div>
+			<div class="section-title">
+				<Icon icon="material-symbols:auto-fix-high-outline" class="text-[1rem] shrink-0"></Icon>
+				{i18n(I18nKey.effectsSettings)}
+				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
+						class:opacity-0={sakuraEnabled === defaultSakuraEnabled} class:pointer-events-none={sakuraEnabled === defaultSakuraEnabled}
+						disabled={sakuraEnabled === defaultSakuraEnabled} aria-hidden={sakuraEnabled === defaultSakuraEnabled ? "true" : undefined}
+						onclick={() => { sakuraEnabled = defaultSakuraEnabled; setSakuraEnabled(defaultSakuraEnabled); }}>
+					<div class="text-(--btn-content)">
+						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
+					</div>
+				</button>
+			</div>
+			<button type="button" class="settings-row" onclick={toggleSakuraEnabled}>
+				<Icon icon="mdi:flower-poppy" class="text-[1.25rem] shrink-0"></Icon>
+				<span class="text-sm flex-1 text-left">{i18n(I18nKey.sakuraEffect)}</span>
+				<div class="settings-switch" class:is-on={sakuraEnabled}>
+					<span class="settings-switch-knob"></span>
+				</div>
+			</button>
+		</div>
+		{/if}
+
+		{#if allowLayoutSwitch}
+		<div>
+			<div class="section-title">
+				<Icon icon="material-symbols:view-agenda-outline" class="text-[1rem] shrink-0"></Icon>
+				{i18n(I18nKey.postListLayout)}
+				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
+						class:opacity-0={currentLayout === effectiveDefaultLayout} class:pointer-events-none={currentLayout === effectiveDefaultLayout}
+						disabled={currentLayout === effectiveDefaultLayout} aria-hidden={currentLayout === effectiveDefaultLayout ? "true" : undefined} onclick={resetLayout}>
+					<div class="text-(--btn-content)">
+						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
+					</div>
+				</button>
+			</div>
+			<div class="flex gap-2">
+				<button
+					type="button"
+					aria-label={i18n(I18nKey.postListLayoutList)}
+					class="layout-choice"
+					class:is-active={currentLayout === 'list'}
+					disabled={isSwitching}
+					onclick={() => selectLayout("list")}
+					title={i18n(I18nKey.postListLayoutList)}
+				>
+					<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+						<path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+					</svg>
+					<span class="text-xs font-medium">{i18n(I18nKey.postListLayoutList)}</span>
+				</button>
+				<button
+					type="button"
+					aria-label={i18n(I18nKey.postListLayoutGrid)}
+					class="layout-choice"
+					class:is-active={currentLayout === 'grid'}
+					disabled={isSwitching}
+					onclick={() => selectLayout("grid")}
+					title={i18n(I18nKey.postListLayoutGrid)}
+				>
+					<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+						<path d="M3 3h7v7H3V3zm0 11h7v7H3v-7zm11-11h7v7h-7V3zm0 11h7v7h-7v-7z"/>
+					</svg>
+					<span class="text-xs font-medium">{i18n(I18nKey.postListLayoutGrid)}</span>
+				</button>
+			</div>
+		</div>
+		{/if}
+	{/if}
+
+	<!-- Wallpaper Tab: thumbs + banner toggles -->
+	{#if activeTab === "wallpaper"}
+		{#if isWallpaperPickerSwitchable && wallpaperMode !== WALLPAPER_NONE}
+		<div>
+			<div class="section-title">
+				<Icon icon="material-symbols:wallpaper" class="text-[1rem] shrink-0"></Icon>
+				{i18n(I18nKey.wallpaperBuiltin)}
+				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
+						class:opacity-0={wallpaperPickerIsDefault} class:pointer-events-none={wallpaperPickerIsDefault}
+						disabled={wallpaperPickerIsDefault} aria-hidden={wallpaperPickerIsDefault ? "true" : undefined} onclick={resetWallpaperPicker}>
+					<div class="text-(--btn-content)">
+						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
+					</div>
+				</button>
+			</div>
+			<WallpaperPicker
+				items={wallpaperPickerItems}
+				selectedIndex={selectedWallpaperIndex}
+				onSelect={selectWallpaper}
+			/>
+		</div>
+		{/if}
+
+		{#if (wallpaperMode === WALLPAPER_BANNER || wallpaperMode === WALLPAPER_FULLSCREEN) && hasBannerSettings}
+		<div>
+			<div class="section-title">
+				<Icon icon="material-symbols:tune" class="text-[1rem] shrink-0"></Icon>
+				{i18n(I18nKey.wallpaperSettings)}
+				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
+						class:opacity-0={bannerSettingsIsDefault} class:pointer-events-none={bannerSettingsIsDefault}
+						disabled={bannerSettingsIsDefault} aria-hidden={bannerSettingsIsDefault ? "true" : undefined} onclick={resetBannerSettings}>
+					<div class="text-(--btn-content)">
+						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
+					</div>
+				</button>
+			</div>
+			<div class="space-y-2">
+				{#if isBannerTitleSwitchable}
+				<button type="button" class="settings-row" onclick={toggleBannerTitleEnabled}>
+					<Icon icon="material-symbols:titlecase-rounded" class="text-[1.25rem] shrink-0"></Icon>
+					<span class="text-sm flex-1 text-left">{i18n(I18nKey.wallpaperTitle)}</span>
+					<div class="settings-switch" class:is-on={bannerTitleEnabled}>
+						<span class="settings-switch-knob"></span>
+					</div>
+				</button>
+				{/if}
+				{#if isBannerCarouselSwitchable}
+				<button type="button" class="settings-row" onclick={toggleBannerCarouselEnabled}>
+					<Icon icon="material-symbols:view-carousel-outline" class="text-[1.25rem] shrink-0"></Icon>
+					<span class="text-sm flex-1 text-left">{i18n(I18nKey.wallpaperCarousel)}</span>
+					<div class="settings-switch" class:is-on={bannerCarouselEnabled}>
+						<span class="settings-switch-knob"></span>
+					</div>
+				</button>
+				{/if}
+				{#if isWavesSwitchable && wallpaperMode === WALLPAPER_BANNER}
+				<button type="button" class="settings-row" onclick={toggleWavesEnabled}>
+					<Icon icon="material-symbols:airwave-rounded" class="text-[1.25rem] shrink-0"></Icon>
+					<span class="text-sm flex-1 text-left">{i18n(I18nKey.wavesAnimation)}</span>
+					<div class="settings-switch" class:is-on={wavesEnabled}>
+						<span class="settings-switch-knob"></span>
+					</div>
+				</button>
+				{/if}
+				{#if isGradientSwitchable && wallpaperMode === WALLPAPER_BANNER}
+				<button type="button" class="settings-row" onclick={toggleGradientEnabled}>
+					<Icon icon="material-symbols:gradient" class="text-[1.25rem] shrink-0"></Icon>
+					<span class="text-sm flex-1 text-left">{i18n(I18nKey.gradientTransition)}</span>
+					<div class="settings-switch" class:is-on={gradientEnabled}>
+						<span class="settings-switch-knob"></span>
+					</div>
+				</button>
+				{/if}
+			</div>
+		</div>
+		{/if}
+	{/if}
+
+	<!-- Preferences Tab: hue + cards + wallpaper mode + overlay -->
+	{#if activeTab === "effects"}
+		{#if showThemeColor}
+		<div>
+			<div class="section-title">
+				<Icon icon="material-symbols:palette" class="text-[1rem] shrink-0"></Icon>
 				{i18n(I18nKey.themeColor)}
 				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
 						class:opacity-0={hue === defaultHue} class:pointer-events-none={hue === defaultHue}
@@ -729,10 +932,10 @@ $effect(() => {
 		</div>
 		{/if}
 
-		<!-- Card Settings Section -->
 		{#if isCardBorderSwitchable || isCardFollowThemeSwitchable}
 		<div>
 			<div class="section-title">
+				<Icon icon="material-symbols:cards-outline" class="text-[1rem] shrink-0"></Icon>
 				{i18n(I18nKey.cardSettings)}
 				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
 						class:opacity-0={cardSettingsIsDefault} class:pointer-events-none={cardSettingsIsDefault}
@@ -742,72 +945,33 @@ $effect(() => {
 					</div>
 				</button>
 			</div>
-			<div class="space-y-1">
+			<div class="space-y-2">
 				{#if isCardBorderSwitchable}
-				<button
-					class="w-full btn-regular rounded-md py-2 px-3 flex items-center gap-3 text-left active:scale-95 transition-all relative overflow-hidden"
-					class:bg-(--btn-regular-bg-hover)={cardBorderEnabled}
-					onclick={toggleCardBorderEnabled}
-				>
+				<button type="button" class="settings-row" onclick={toggleCardBorderEnabled}>
 					<Icon icon="material-symbols:border-outer-rounded" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-sm flex-1">{i18n(I18nKey.cardBorder)}</span>
-					<div class="w-10 h-5 rounded-full transition-all duration-200 relative"
-						 class:bg-(--primary)={cardBorderEnabled}
-						 class:bg-(--btn-regular-bg-active)={!cardBorderEnabled}>
-						<div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200"
-							 class:left-0.5={!cardBorderEnabled}
-							 class:left-5={cardBorderEnabled}></div>
+					<span class="text-sm flex-1 text-left">{i18n(I18nKey.cardBorder)}</span>
+					<div class="settings-switch" class:is-on={cardBorderEnabled}>
+						<span class="settings-switch-knob"></span>
 					</div>
 				</button>
 				{/if}
 				{#if isCardFollowThemeSwitchable}
-				<button
-					class="w-full btn-regular rounded-md py-2 px-3 flex items-center gap-3 text-left active:scale-95 transition-all relative overflow-hidden"
-					class:bg-(--btn-regular-bg-hover)={cardFollowThemeEnabled}
-					onclick={toggleCardFollowThemeEnabled}
-				>
+				<button type="button" class="settings-row" onclick={toggleCardFollowThemeEnabled}>
 					<Icon icon="material-symbols:palette" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-sm flex-1">{i18n(I18nKey.cardFollowTheme)}</span>
-					<div class="w-10 h-5 rounded-full transition-all duration-200 relative"
-						 class:bg-(--primary)={cardFollowThemeEnabled}
-						 class:bg-(--btn-regular-bg-active)={!cardFollowThemeEnabled}>
-						<div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200"
-							 class:left-0.5={!cardFollowThemeEnabled}
-							 class:left-5={cardFollowThemeEnabled}></div>
+					<span class="text-sm flex-1 text-left">{i18n(I18nKey.cardFollowTheme)}</span>
+					<div class="settings-switch" class:is-on={cardFollowThemeEnabled}>
+						<span class="settings-switch-knob"></span>
 					</div>
 				</button>
 				{/if}
 			</div>
 		</div>
 		{/if}
-	{/if}
 
-	<!-- Wallpaper Tab: thumbs + Mode + Overlay + Banner Settings -->
-	{#if activeTab === "wallpaper"}
-		{#if isWallpaperPickerSwitchable && wallpaperMode !== WALLPAPER_NONE}
-		<div>
-			<div class="section-title">
-				{i18n(I18nKey.wallpaperBuiltin)}
-				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
-						class:opacity-0={wallpaperPickerIsDefault} class:pointer-events-none={wallpaperPickerIsDefault}
-						disabled={wallpaperPickerIsDefault} aria-hidden={wallpaperPickerIsDefault ? "true" : undefined} onclick={resetWallpaperPicker}>
-					<div class="text-(--btn-content)">
-						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
-					</div>
-				</button>
-			</div>
-			<WallpaperPicker
-				items={wallpaperPickerItems}
-				selectedIndex={selectedWallpaperIndex}
-				onSelect={selectWallpaper}
-			/>
-		</div>
-		{/if}
-
-		<!-- Wallpaper Mode Section -->
 		{#if isWallpaperSwitchable}
 		<div>
 			<div class="section-title">
+				<Icon icon="material-symbols:photo-frame-outline" class="text-[1rem] shrink-0"></Icon>
 				{i18n(I18nKey.wallpaperMode)}
 				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
 						class:opacity-0={wallpaperMode === defaultWallpaperMode} class:pointer-events-none={wallpaperMode === defaultWallpaperMode}
@@ -858,9 +1022,8 @@ $effect(() => {
 		</div>
 		{/if}
 
-		<!-- Overlay Settings Section（全屏壁纸模式也复用 overlay 的透明/模糊/卡片透明度设置） -->
 		{#if (wallpaperMode === WALLPAPER_OVERLAY || wallpaperMode === WALLPAPER_FULLSCREEN) && hasOverlaySettings && hasVisibleOverlaySlider}
-		<div class="">
+		<div>
 			<div class="section-title">
 				{i18n(I18nKey.overlaySettings)}
 				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
@@ -892,204 +1055,6 @@ $effect(() => {
 						</div>
 					{/if}
 				{/each}
-			</div>
-		</div>
-		{/if}
-
-		<!-- Banner Settings Section -->
-		{#if (wallpaperMode === WALLPAPER_BANNER || wallpaperMode === WALLPAPER_FULLSCREEN) && hasBannerSettings}
-		<div class="">
-			<div class="section-title">
-				{i18n(I18nKey.wallpaperSettings)}
-				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
-						class:opacity-0={bannerSettingsIsDefault} class:pointer-events-none={bannerSettingsIsDefault}
-						disabled={bannerSettingsIsDefault} aria-hidden={bannerSettingsIsDefault ? "true" : undefined} onclick={resetBannerSettings}>
-					<div class="text-(--btn-content)">
-						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
-					</div>
-				</button>
-			</div>
-			<div class="space-y-1">
-				<!-- Banner Title Switch -->
-				{#if isBannerTitleSwitchable}
-				<button
-					class="w-full btn-regular rounded-md py-2 px-3 flex items-center gap-3 text-left active:scale-95 transition-all relative overflow-hidden"
-					class:bg-(--btn-regular-bg-hover)={bannerTitleEnabled}
-					onclick={toggleBannerTitleEnabled}
-				>
-					<Icon icon="material-symbols:titlecase-rounded" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-sm flex-1">{i18n(I18nKey.wallpaperTitle)}</span>
-					<div class="w-10 h-5 rounded-full transition-all duration-200 relative"
-						 class:bg-(--primary)={bannerTitleEnabled}
-						 class:bg-(--btn-regular-bg-active)={!bannerTitleEnabled}>
-						<div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200"
-							 class:left-0.5={!bannerTitleEnabled}
-							 class:left-5={bannerTitleEnabled}></div>
-					</div>
-				</button>
-				{/if}
-				<!-- Banner Carousel Switch -->
-				{#if isBannerCarouselSwitchable}
-				<button
-					class="w-full btn-regular rounded-md py-2 px-3 flex items-center gap-3 text-left active:scale-95 transition-all relative overflow-hidden"
-					class:bg-(--btn-regular-bg-hover)={bannerCarouselEnabled}
-					onclick={toggleBannerCarouselEnabled}
-				>
-					<Icon icon="material-symbols:view-carousel-outline" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-sm flex-1">{i18n(I18nKey.wallpaperCarousel)}</span>
-					<div class="w-10 h-5 rounded-full transition-all duration-200 relative"
-						 class:bg-(--primary)={bannerCarouselEnabled}
-						 class:bg-(--btn-regular-bg-active)={!bannerCarouselEnabled}>
-						<div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200"
-							 class:left-0.5={!bannerCarouselEnabled}
-							 class:left-5={bannerCarouselEnabled}></div>
-					</div>
-				</button>
-				{/if}
-				<!-- Waves Animation Switch（仅横幅模式，全屏壁纸无水波纹） -->
-				{#if isWavesSwitchable && wallpaperMode === WALLPAPER_BANNER}
-				<button
-					class="w-full btn-regular rounded-md py-2 px-3 flex items-center gap-3 text-left active:scale-95 transition-all relative overflow-hidden"
-					class:bg-(--btn-regular-bg-hover)={wavesEnabled}
-					onclick={toggleWavesEnabled}
-				>
-					<Icon icon="material-symbols:airwave-rounded" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-sm flex-1">{i18n(I18nKey.wavesAnimation)}</span>
-					<div class="w-10 h-5 rounded-full transition-all duration-200 relative"
-						 class:bg-(--primary)={wavesEnabled}
-						 class:bg-(--btn-regular-bg-active)={!wavesEnabled}>
-						<div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200"
-							 class:left-0.5={!wavesEnabled}
-							 class:left-5={wavesEnabled}></div>
-					</div>
-				</button>
-				{/if}
-				<!-- Gradient Transition Switch（仅横幅模式，全屏壁纸无渐变过渡） -->
-				{#if isGradientSwitchable && wallpaperMode === WALLPAPER_BANNER}
-				<button
-					class="w-full btn-regular rounded-md py-2 px-3 flex items-center gap-3 text-left active:scale-95 transition-all relative overflow-hidden"
-					class:bg-(--btn-regular-bg-hover)={gradientEnabled}
-					onclick={toggleGradientEnabled}
-				>
-					<Icon icon="material-symbols:gradient" class="text-[1.25rem] shrink-0"></Icon>
-					<span class="text-sm flex-1">{i18n(I18nKey.gradientTransition)}</span>
-					<div class="w-10 h-5 rounded-full transition-all duration-200 relative"
-						 class:bg-(--primary)={gradientEnabled}
-						 class:bg-(--btn-regular-bg-active)={!gradientEnabled}>
-						<div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200"
-							 class:left-0.5={!gradientEnabled}
-							 class:left-5={gradientEnabled}></div>
-					</div>
-				</button>
-				{/if}
-			</div>
-		</div>
-		{/if}
-	{/if}
-
-	<!-- Preferences Tab: splash + sakura + layout -->
-	{#if activeTab === "effects"}
-		{#if isSplashSwitchable}
-		<div>
-			<div class="section-title">
-				{i18n(I18nKey.splashAnimation)}
-				<span class="splash-preview-badge">{i18n(I18nKey.splashPreviewBadge)}</span>
-				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90 ml-auto"
-						class:opacity-0={splashSettingsIsDefault} class:pointer-events-none={splashSettingsIsDefault}
-						disabled={splashSettingsIsDefault} aria-hidden={splashSettingsIsDefault ? "true" : undefined}
-						onclick={resetSplashSettings}>
-					<div class="text-(--btn-content)">
-						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
-					</div>
-				</button>
-			</div>
-			<SplashPicker
-				enabled={splashEnabled}
-				style={splashStyle}
-				onEnabledChange={(value) => {
-					splashEnabled = value;
-					setSplashEnabled(value);
-				}}
-				onStyleChange={(value) => {
-					splashStyle = value;
-					setSplashStyle(value);
-				}}
-			/>
-		</div>
-		{/if}
-
-		{#if isSakuraSwitchable}
-		<div class="">
-			<div class="section-title">
-				{i18n(I18nKey.effectsSettings)}
-				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
-						class:opacity-0={sakuraEnabled === defaultSakuraEnabled} class:pointer-events-none={sakuraEnabled === defaultSakuraEnabled}
-						disabled={sakuraEnabled === defaultSakuraEnabled} aria-hidden={sakuraEnabled === defaultSakuraEnabled ? "true" : undefined}
-						onclick={() => { sakuraEnabled = defaultSakuraEnabled; setSakuraEnabled(defaultSakuraEnabled); }}>
-					<div class="text-(--btn-content)">
-						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
-					</div>
-				</button>
-			</div>
-			<button
-				class="w-full btn-regular rounded-md py-2 px-3 flex items-center gap-3 text-left active:scale-95 transition-all relative overflow-hidden"
-				class:bg-(--btn-regular-bg-hover)={sakuraEnabled}
-				onclick={toggleSakuraEnabled}
-			>
-				<Icon icon="mdi:flower-poppy" class="text-[1.25rem] shrink-0"></Icon>
-				<span class="text-sm flex-1">{i18n(I18nKey.sakuraEffect)}</span>
-				<div class="w-10 h-5 rounded-full transition-all duration-200 relative"
-					 class:bg-(--primary)={sakuraEnabled}
-					 class:bg-(--btn-regular-bg-active)={!sakuraEnabled}>
-					<div class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200"
-						 class:left-0.5={!sakuraEnabled}
-						 class:left-5={sakuraEnabled}></div>
-				</div>
-			</button>
-		</div>
-		{/if}
-
-		{#if allowLayoutSwitch}
-		<div class="">
-			<div class="section-title">
-				{i18n(I18nKey.postListLayout)}
-				<button aria-label="Reset to Default" class="btn-regular rounded-md active:scale-90"
-						class:opacity-0={currentLayout === effectiveDefaultLayout} class:pointer-events-none={currentLayout === effectiveDefaultLayout}
-						disabled={currentLayout === effectiveDefaultLayout} aria-hidden={currentLayout === effectiveDefaultLayout ? "true" : undefined} onclick={resetLayout}>
-					<div class="text-(--btn-content)">
-						<Icon icon="fa7-solid:arrow-rotate-left" class="text-[0.75rem]"></Icon>
-					</div>
-				</button>
-			</div>
-			<div class="flex gap-2">
-				<button
-					aria-label={i18n(I18nKey.postListLayoutList)}
-					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={currentLayout !== 'list'}
-					class:bg-(--btn-regular-bg-hover)={currentLayout === 'list'}
-					disabled={isSwitching}
-					onclick={switchLayout}
-					title={i18n(I18nKey.postListLayoutList)}
-				>
-					<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-						<path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
-					</svg>
-					<span class="text-xs font-medium">{i18n(I18nKey.postListLayoutList)}</span>
-				</button>
-				<button
-					aria-label={i18n(I18nKey.postListLayoutGrid)}
-					class="flex-1 btn-regular rounded-md py-2 px-3 flex items-center justify-center gap-2 active:scale-95 transition-all relative overflow-hidden"
-					class:opacity-60={currentLayout !== 'grid'}
-					class:bg-(--btn-regular-bg-hover)={currentLayout === 'grid'}
-					disabled={isSwitching}
-					onclick={switchLayout}
-					title={i18n(I18nKey.postListLayoutGrid)}
-				>
-					<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-						<path d="M3 3h7v7H3V3zm0 11h7v7H3v-7zm11-11h7v7h-7V3zm0 11h7v7h-7v-7z"/>
-					</svg>
-					<span class="text-xs font-medium">{i18n(I18nKey.postListLayoutGrid)}</span>
-				</button>
 			</div>
 		</div>
 		{/if}

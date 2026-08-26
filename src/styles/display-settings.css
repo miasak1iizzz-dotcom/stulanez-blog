@@ -1,5 +1,11 @@
 /* 显示设置面板样式 */
 
+#display-setting.float-panel:not(.float-panel-closed) {
+	opacity: 1;
+	pointer-events: auto;
+	z-index: 60;
+}
+
 #display-setting input[type="range"] {
 	-webkit-appearance: none;
 	height: 1.5rem;
@@ -152,12 +158,7 @@
 }
 
 #display-setting .section-title::before {
-	content: "";
-	width: 0.25rem;
-	height: 1rem;
-	border-radius: 0.125rem;
-	background: var(--primary);
-	flex-shrink: 0;
+	content: none;
 }
 
 #display-setting .section-title > button {
@@ -179,11 +180,10 @@
 #display-setting .settings-tabs {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 0.25rem;
-	padding: 0.25rem;
-	margin: 0.5rem 0 0.25rem;
-	border-radius: 0.75rem;
-	background: var(--btn-regular-bg);
+	gap: 0.4rem;
+	margin: 0.65rem 0 0.35rem;
+	padding: 0;
+	background: transparent;
 }
 
 #display-setting .settings-tab {
@@ -191,14 +191,20 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 0.25rem;
+	gap: 0.28rem;
 	min-width: 0;
-	padding: 0.45rem 0.25rem;
-	border-radius: 0.55rem;
+	padding: 0.5rem 0.2rem;
+	border-radius: 0.7rem;
 	font-size: 0.75rem;
 	font-weight: 600;
-	color: var(--btn-content);
-	opacity: 0.72;
+	color: var(--primary);
+	opacity: 1;
+	background: color-mix(in oklch, var(--primary) 16%, white);
+}
+
+.dark #display-setting .settings-tab {
+	background: color-mix(in oklch, var(--primary) 22%, oklch(0.28 0.03 var(--hue)));
+	color: oklch(0.93 0.04 var(--hue));
 }
 
 #display-setting .settings-tab.is-active {
@@ -210,7 +216,7 @@
 #display-setting .wallpaper-thumb-grid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 0.4rem;
+	gap: 0.45rem;
 	max-height: 13.5rem;
 	overflow-y: auto;
 	padding: 0.1rem;
@@ -220,9 +226,9 @@
 	position: relative;
 	aspect-ratio: 16 / 10;
 	overflow: hidden;
-	border-radius: 0.45rem;
+	border-radius: 0.65rem;
 	padding: 0;
-	border: 2px solid transparent;
+	border: 2.5px solid transparent;
 	background: var(--btn-regular-bg);
 }
 
@@ -237,64 +243,200 @@
 	border-color: var(--primary);
 }
 
-#display-setting .splash-style-grid {
+#display-setting .settings-row {
+	display: flex;
+	align-items: center;
+	gap: 0.65rem;
+	width: 100%;
+	padding: 0.7rem 0.8rem;
+	border-radius: 0.85rem;
+	background: color-mix(in oklch, var(--primary) 12%, white);
+	color: var(--btn-content);
+}
+
+.dark #display-setting .settings-row {
+	background: color-mix(in oklch, var(--primary) 18%, oklch(0.26 0.03 var(--hue)));
+}
+
+#display-setting .settings-switch {
+	position: relative;
+	width: 2.5rem;
+	height: 1.25rem;
+	flex-shrink: 0;
+	border-radius: 999px;
+	background: var(--btn-regular-bg-active);
+}
+
+#display-setting .settings-switch.is-on {
+	background: var(--primary);
+}
+
+#display-setting .settings-switch-knob {
+	position: absolute;
+	top: 0.125rem;
+	left: 0.125rem;
+	width: 1rem;
+	height: 1rem;
+	border-radius: 999px;
+	background: white;
+	transition: left 0.18s ease;
+}
+
+#display-setting .settings-switch.is-on .settings-switch-knob {
+	left: 1.35rem;
+}
+
+#display-setting .settings-hint {
+	margin: 0.45rem 0.15rem 0.7rem;
+	font-size: 0.7rem;
+	line-height: 1.45;
+	color: color-mix(in oklch, var(--btn-content) 62%, transparent);
+}
+
+#display-setting .splash-portrait-grid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 0.4rem;
+	gap: 0.5rem;
 }
 
-#display-setting .splash-style-card {
+#display-setting .splash-portrait {
 	display: flex;
 	flex-direction: column;
-	gap: 0.3rem;
-	padding: 0.3rem;
-	border-radius: 0.55rem;
-	border: 2px solid transparent;
-	background: var(--btn-regular-bg);
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.4rem 0.25rem 0.45rem;
+	border-radius: 0.9rem;
+	border: 2.5px solid transparent;
+	background: color-mix(in oklch, var(--primary) 9%, white);
 }
 
-#display-setting .splash-style-card.is-selected {
+.dark #display-setting .splash-portrait {
+	background: color-mix(in oklch, var(--primary) 16%, oklch(0.26 0.03 var(--hue)));
+}
+
+#display-setting .splash-portrait.is-selected {
 	border-color: var(--primary);
 }
 
-#display-setting .splash-style-preview {
+#display-setting .splash-portrait-frame {
 	display: block;
-	height: 2.6rem;
-	border-radius: 0.35rem;
-	background: oklch(0.22 0.05 var(--hue));
-}
-
-#display-setting .splash-style-preview[data-style="logo"] {
+	width: 3.55rem;
+	height: 3.55rem;
+	overflow: hidden;
+	border-radius: 50%;
 	background:
-		radial-gradient(circle at 50% 45%, oklch(0.85 0.12 var(--hue)) 0 0.35rem, transparent 0.38rem),
-		oklch(0.2 0.05 var(--hue));
+		radial-gradient(circle at 50% 42%, color-mix(in oklch, var(--primary) 28%, white) 0 62%, transparent 64%),
+		color-mix(in oklch, var(--primary) 16%, white);
 }
 
-#display-setting .splash-style-preview[data-style="petal"] {
+.dark #display-setting .splash-portrait-frame {
 	background:
-		radial-gradient(circle at 22% 30%, oklch(0.86 0.12 var(--hue)) 0 0.22rem, transparent 0.24rem),
-		radial-gradient(circle at 70% 24%, oklch(0.82 0.1 var(--hue)) 0 0.18rem, transparent 0.2rem),
-		radial-gradient(circle at 48% 72%, oklch(0.88 0.11 var(--hue)) 0 0.2rem, transparent 0.22rem),
-		oklch(0.22 0.05 var(--hue));
+		radial-gradient(circle at 50% 42%, color-mix(in oklch, var(--primary) 32%, oklch(0.32 0.05 var(--hue))) 0 62%, transparent 64%),
+		color-mix(in oklch, var(--primary) 22%, oklch(0.24 0.04 var(--hue)));
 }
 
-#display-setting .splash-style-preview[data-style="wash"] {
-	background: oklch(0.72 0.16 var(--hue));
+#display-setting .splash-portrait-frame img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center 16%;
 }
 
-#display-setting .splash-style-label {
-	font-size: 0.7rem;
+#display-setting .splash-portrait-name {
+	font-size: 0.68rem;
 	line-height: 1.2;
 	color: var(--btn-content);
+	text-align: center;
+}
+
+#display-setting .splash-subhead {
+	margin: 0.85rem 0.1rem 0.4rem;
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: var(--btn-content);
+}
+
+#display-setting .splash-banner-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.45rem;
+}
+
+#display-setting .splash-banner-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 0.28rem;
+	padding: 0;
+	background: transparent;
+	text-align: left;
+}
+
+#display-setting .splash-banner {
+	display: block;
+	overflow: hidden;
+	padding: 0;
+	border-radius: 0.7rem;
+	border: 2.5px solid transparent;
+	background: var(--btn-regular-bg);
+	aspect-ratio: 2.35 / 1;
+}
+
+#display-setting .splash-banner img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+#display-setting .splash-banner.is-selected {
+	border-color: var(--primary);
+}
+
+#display-setting .splash-banner-name {
+	font-size: 0.66rem;
+	line-height: 1.25;
+	color: color-mix(in oklch, var(--btn-content) 78%, transparent);
+	text-align: center;
 }
 
 #display-setting .splash-preview-badge {
 	margin-left: 0.35rem;
-	padding: 0.05rem 0.4rem;
+	padding: 0.08rem 0.45rem;
 	border-radius: 999px;
-	font-size: 0.65rem;
+	font-size: 0.62rem;
 	font-weight: 500;
-	background: var(--btn-regular-bg);
+	background: color-mix(in oklch, var(--primary) 14%, white);
+	color: var(--primary);
+}
+
+.dark #display-setting .splash-preview-badge {
+	background: color-mix(in oklch, var(--primary) 22%, oklch(0.28 0.03 var(--hue)));
+}
+
+#display-setting .layout-choice {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	padding: 0.7rem 0.5rem;
+	border-radius: 0.75rem;
+	background: color-mix(in oklch, var(--primary) 10%, white);
 	color: var(--btn-content);
-	opacity: 0.8;
+}
+
+.dark #display-setting .layout-choice {
+	background: color-mix(in oklch, var(--primary) 16%, oklch(0.26 0.03 var(--hue)));
+}
+
+#display-setting .layout-choice.is-active {
+	background: var(--primary);
+	color: white;
+	font-weight: 600;
+}
+
+.dark #display-setting .layout-choice.is-active {
+	background: var(--primary);
+	color: white;
 }

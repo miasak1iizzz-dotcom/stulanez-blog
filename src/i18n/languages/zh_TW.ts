@@ -376,11 +376,11 @@ export const zh_TW: Translation = {
 	[Key.wallpaperBuiltin]: "內建壁紙",
 	[Key.splashAnimation]: "開屏動畫",
 	[Key.splashPlayOnHome]: "進入首頁時播放",
-	[Key.splashPreviewHint]: "切換樣式會立刻預覽。",
+	[Key.splashPreviewHint]: "在首頁切換角色或橫幅，會立即播放一次動畫預覽。",
 	[Key.splashPreviewBadge]: "首頁切換可預覽",
-	[Key.splashStyleLogo]: "徽標",
-	[Key.splashStylePetal]: "花瓣",
-	[Key.splashStyleWash]: "色暈",
+	[Key.splashSelectCharacter]: "選擇開屏角色",
+	[Key.splashUpperBanner]: "上半幅橫幅",
+	[Key.splashLowerBanner]: "下半幅橫幅",
 
 	// 卡片樣式
 	[Key.cardSettings]: "卡片樣式",
