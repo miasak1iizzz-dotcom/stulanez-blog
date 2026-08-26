@@ -1,0 +1,13 @@
+---
+description: After finishing site changes, commit and push to origin automatically
+alwaysApply: true
+---
+
+# Auto commit and push
+
+When a coding task is finished (not a question-only turn), commit the relevant files and push to `origin`. Do not wait to be asked again.
+
+- Use Conventional Commits (`feat:`, `fix:`, `chore:`).
+- Push `HEAD` to `origin` only. Never push `upstream` (CuteLeaf/Firefly). Never force-push.
+- Do not commit `素材/`, secrets, `.env*`, or unrelated files.
+- If there is nothing to commit, skip. If push fails, report the error.

@@ -8,14 +8,12 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 	/**
 	 * 背景图片配置
 	 * 图片路径支持三种格式：
-	 * 1. public 目录（以 "/" 开头，不优化）："/assets/images/banner.avif"
+	 * 1. public 目录（以 "/" 开头，不优化）："/assets/images/wallpaper/wallpaper-01.webp"
 	 * 2. src 目录（不以 "/" 开头，自动优化但会增加构建时间，推荐）："assets/images/banner.avif"
 	 * 3. 远程 URL："https://example.com/banner.jpg"
 	 * 注意：远程URL和public目录的图片不会被优化，请确保图片体积足够小以免影响加载速度
 	 *
-	 * 建议不要替换d1-d6，m1-m6这些默认示例图片，但你可以删除掉节省空间
-	 * 因为以后可能会更换示例图片，导致你自定义的图片被覆盖
-	 * 所以建议使用自己的图片的时候命名为其他名称，不要使用d1-d6，m1-m6这些名称
+	 * 本站壁纸放在 public/assets/images/wallpaper/，预先压成 webp，构建时不再经 Astro 处理。
 	 *
 	 * 如果只使用一张图片或者使用随机图API，推荐直接使用字符串格式：
 	 * desktop: "https://t.alcy.cc/pc",   // 随机图API
@@ -39,22 +37,78 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 		// 桌面背景图片（支持单张或多张随机）
 		// desktop: "assets/images/DesktopWallpaper/d1.avif",
 		desktop: [
-			"assets/images/DesktopWallpaper/desktop-01.jpg",
-			"assets/images/DesktopWallpaper/desktop-02.jpg",
-			"assets/images/DesktopWallpaper/desktop-03.jpg",
-			"assets/images/DesktopWallpaper/desktop-04.jpg",
-			"assets/images/DesktopWallpaper/desktop-05.jpg",
-			"assets/images/DesktopWallpaper/desktop-06.jpg",
+			"/assets/images/wallpaper/wallpaper-01.webp",
+			"/assets/images/wallpaper/wallpaper-02.webp",
+			"/assets/images/wallpaper/wallpaper-03.webp",
+			"/assets/images/wallpaper/wallpaper-04.webp",
+			"/assets/images/wallpaper/wallpaper-05.webp",
+			"/assets/images/wallpaper/wallpaper-06.webp",
+			"/assets/images/wallpaper/wallpaper-07.webp",
+			"/assets/images/wallpaper/wallpaper-08.webp",
+			"/assets/images/wallpaper/wallpaper-09.webp",
+			"/assets/images/wallpaper/wallpaper-10.webp",
+			"/assets/images/wallpaper/wallpaper-11.webp",
+			"/assets/images/wallpaper/wallpaper-12.webp",
+			"/assets/images/wallpaper/wallpaper-13.webp",
+			"/assets/images/wallpaper/wallpaper-14.webp",
+			"/assets/images/wallpaper/wallpaper-15.webp",
+			"/assets/images/wallpaper/wallpaper-16.webp",
+			"/assets/images/wallpaper/wallpaper-17.webp",
+			"/assets/images/wallpaper/wallpaper-18.webp",
+			"/assets/images/wallpaper/wallpaper-19.webp",
+			"/assets/images/wallpaper/wallpaper-20.webp",
+			"/assets/images/wallpaper/wallpaper-21.webp",
+			"/assets/images/wallpaper/wallpaper-22.webp",
+			"/assets/images/wallpaper/wallpaper-23.webp",
+			"/assets/images/wallpaper/wallpaper-24.webp",
+			"/assets/images/wallpaper/wallpaper-25.webp",
+			"/assets/images/wallpaper/wallpaper-26.webp",
+			"/assets/images/wallpaper/wallpaper-27.webp",
+			"/assets/images/wallpaper/wallpaper-28.webp",
+			"/assets/images/wallpaper/wallpaper-29.webp",
+			"/assets/images/wallpaper/wallpaper-30.webp",
+			"/assets/images/wallpaper/wallpaper-31.webp",
+			"/assets/images/wallpaper/wallpaper-32.webp",
+			"/assets/images/wallpaper/wallpaper-33.webp",
+			"/assets/images/wallpaper/wallpaper-34.webp",
 		],
 		// 移动背景图片（支持单张或多张随机）
 		// mobile: "assets/images/MobileWallpaper/m1.avif",
 		mobile: [
-			"assets/images/MobileWallpaper/mobile-01.jpg",
-			"assets/images/MobileWallpaper/mobile-02.jpg",
-			"assets/images/MobileWallpaper/mobile-03.jpg",
-			"assets/images/MobileWallpaper/mobile-04.jpg",
-			"assets/images/MobileWallpaper/mobile-05.jpg",
-			"assets/images/MobileWallpaper/mobile-06.jpg",
+			"/assets/images/wallpaper/wallpaper-mobile-01.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-02.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-03.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-04.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-05.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-06.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-07.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-08.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-09.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-10.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-11.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-12.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-13.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-14.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-15.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-16.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-17.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-18.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-19.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-20.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-21.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-22.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-23.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-24.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-25.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-26.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-27.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-28.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-29.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-30.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-31.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-32.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-33.webp",
+			"/assets/images/wallpaper/wallpaper-mobile-34.webp",
 		],
 		// 背景视频播放地址
 		// 支持单个视频路径（字符串）或多个视频循环（数组，参考上面壁纸配置）
@@ -124,9 +178,9 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			// 是否启用壁纸轮播；关闭时保持每次刷新随机显示一张
 			enable: true,
 			// 轮播切换间隔（毫秒）
-			interval: 5000,
+			interval: 20000,
 			// 过渡效果: 'fade' 渐变 | 'zoom' 缩放 | 'slide' 滑动 | 'kenburns' 旋转木马
-			transitionEffect: "zoom",
+			transitionEffect: "fade",
 		},
 	},
 	// Banner模式特有配置
