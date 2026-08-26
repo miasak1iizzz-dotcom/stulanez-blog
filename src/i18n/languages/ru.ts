@@ -92,6 +92,8 @@ export const ru: Translation = {
 	[Key.guestbook]: "Гостевая книга",
 	[Key.guestbookDescription]:
 		"Добро пожаловать, оставьте свой след здесь, поделитесь своими мыслями и предложениями",
+	[Key.changelog]: "Журнал изменений",
+	[Key.changelogDescription]: "Короткая запись о том, как растёт этот сайт.",
 	[Key.untitled]: "Без названия",
 	[Key.uncategorized]: "Без категории",
 	[Key.noTags]: "Нет тегов",

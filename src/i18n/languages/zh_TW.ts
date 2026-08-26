@@ -89,6 +89,8 @@ export const zh_TW: Translation = {
 	[Key.booknavEmpty]: "暫無書籤",
 	[Key.guestbook]: "留言",
 	[Key.guestbookDescription]: "歡迎在這裡留下你的足跡，分享你的想法和建議",
+	[Key.changelog]: "更新日誌",
+	[Key.changelogDescription]: "記下站點慢慢長出來的樣子",
 	[Key.untitled]: "無標題",
 	[Key.uncategorized]: "未分類",
 	[Key.noTags]: "無標籤",

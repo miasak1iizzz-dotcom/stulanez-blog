@@ -113,6 +113,8 @@ enum I18nKey {
 	friendsEmpty = "friendsEmpty",
 	guestbook = "guestbook",
 	guestbookDescription = "guestbookDescription",
+	changelog = "changelog",
+	changelogDescription = "changelogDescription",
 	bangumi = "bangumi",
 
 	// 书签导航
