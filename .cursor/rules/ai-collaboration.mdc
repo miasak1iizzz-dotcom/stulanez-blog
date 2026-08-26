@@ -1,0 +1,17 @@
+---
+description: Coordinate concurrent Codex and Cursor work without file or Git conflicts
+alwaysApply: true
+---
+
+# Codex–Cursor collaboration
+
+Before changing the repository, read and follow `docs/AI-COLLABORATION.md`.
+
+- Check `.ai-work/claims/` and `git status --short` first.
+- Create your own ignored claim from `.ai-work/CLAIM_TEMPLATE.md` before editing.
+- Claim exact files. Treat directory claims and shared infrastructure files as exclusive.
+- Do not touch any path covered by another active claim. If scopes overlap, choose a different task slice or ask the user to coordinate.
+- Preserve every change you did not create. Never revert, delete, rename, format, stage, or commit another owner's work.
+- Stage explicit owned paths only; never use broad Git staging or cleanup commands.
+- Do not run repository-wide write commands while another claim is active.
+- Remove only your own claim after validation, commit/handoff, and a final status check.
