@@ -6,12 +6,24 @@
 
 <style is:global>
 	/* ============================================================
-	 * 背景花底：首页往下滑后的淡淡花背景（body 层，非顶部壁纸）
+	 * 背景底纹：首页往下滑后的淡淡花背景 + 极光色块质感（多背景层，安全不碍内容）
 	 * ============================================================ */
 	body.is-home {
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23e9a9c8' stroke-width='1.4' stroke-opacity='0.24'%3E%3Ccircle cx='40' cy='44' r='2.2' fill='%23e9a9c8' fill-opacity='0.3' stroke='none'/%3E%3Ccircle cx='206' cy='190' r='2.2' fill='%23e9a9c8' fill-opacity='0.3' stroke='none'/%3E%3Ccircle cx='150' cy='34' r='1.8' fill='%23e9a9c8' fill-opacity='0.3' stroke='none'/%3E%3Cpath d='M132 96c-1-8 5-14 12-14 6 0 9 4 8 9-1 6-12 7-20 5z'/%3E%3Cpath d='M136 102c8-2 14 3 14 10 0 5-5 8-10 7-6-2-7-11-4-17z'/%3E%3Cpath d='M128 98c1 8-4 14-11 14-5 0-8-5-6-9 2-6 12-8 17-5z'/%3E%3Cpath d='M125 92c-8-1-10-9-6-14 4-5 10-4 12 1 2 6-2 11-6 13z'/%3E%3Cpath d='M136 109c5 5 12 5 16 0 3-4 1-8-3-9-6-2-11 4-13 9z'/%3E%3Cpath d='M52 168c22-9 44-9 66 0' stroke-dasharray='2 7'/%3E%3Cpath d='M160 150c14-6 28-6 42 0' stroke-dasharray='2 7'/%3E%3C/g%3E%3C/svg%3E");
-		background-repeat: repeat;
-		background-size: 240px 240px;
+		background-image:
+			radial-gradient(
+				46% 46% at 12% 16%,
+				color-mix(in oklch, var(--primary) 10%, transparent),
+				transparent 64%
+			),
+			radial-gradient(
+				50% 50% at 88% 82%,
+				color-mix(in oklch, var(--primary) 9%, transparent),
+				transparent 66%
+			),
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23e9a9c8' stroke-width='1.4' stroke-opacity='0.24'%3E%3Ccircle cx='40' cy='44' r='2.2' fill='%23e9a9c8' fill-opacity='0.3' stroke='none'/%3E%3Ccircle cx='206' cy='190' r='2.2' fill='%23e9a9c8' fill-opacity='0.3' stroke='none'/%3E%3Ccircle cx='150' cy='34' r='1.8' fill='%23e9a9c8' fill-opacity='0.3' stroke='none'/%3E%3Cpath d='M132 96c-1-8 5-14 12-14 6 0 9 4 8 9-1 6-12 7-20 5z'/%3E%3Cpath d='M136 102c8-2 14 3 14 10 0 5-5 8-10 7-6-2-7-11-4-17z'/%3E%3Cpath d='M128 98c1 8-4 14-11 14-5 0-8-5-6-9 2-6 12-8 17-5z'/%3E%3Cpath d='M125 92c-8-1-10-9-6-14 4-5 10-4 12 1 2 6-2 11-6 13z'/%3E%3Cpath d='M136 109c5 5 12 5 16 0 3-4 1-8-3-9-6-2-11 4-13 9z'/%3E%3Cpath d='M52 168c22-9 44-9 66 0' stroke-dasharray='2 7'/%3E%3Cpath d='M160 150c14-6 28-6 42 0' stroke-dasharray='2 7'/%3E%3C/g%3E%3C/svg%3E");
+		background-repeat: no-repeat, no-repeat, repeat;
+		background-size: 100% 100%, 100% 100%, 240px 240px;
+		background-attachment: scroll, scroll, scroll;
 	}
 
 	/* ============================================================
