@@ -1,0 +1,300 @@
+{
+    "title":  "期末数学超级联赛",
+    "subtitle":  "19卷闭环实战教学手册",
+    "roster":  [
+                   {
+                       "group":  "M",
+                       "name":  "白键阳",
+                       "id":  "01",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "蔡烨峰",
+                       "id":  "02",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "蔡一铭",
+                       "id":  "03",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "曾楚轩",
+                       "id":  "04",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "常煌柯",
+                       "id":  "05",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "陈昊廷",
+                       "id":  "06",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "陈鸿锦",
+                       "id":  "07",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "陈锦程",
+                       "id":  "08",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "陈盛祺",
+                       "id":  "09",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "陈彥博",
+                       "id":  "10",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "杜泽希",
+                       "id":  "11",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "郭栩源",
+                       "id":  "12",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "黄思瀚",
+                       "id":  "13",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "纪宸瑄",
+                       "id":  "14",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "李铧民",
+                       "id":  "15",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "李俊轩",
+                       "id":  "16",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "梁轩诚",
+                       "id":  "17",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "廖星禹",
+                       "id":  "18",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "刘家聚豪",
+                       "id":  "19",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "龙文谦",
+                       "id":  "20",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "莫伟津",
+                       "id":  "21",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "潘其正",
+                       "id":  "22",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "彭方为",
+                       "id":  "23",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "王清文",
+                       "id":  "24",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "杨镒树",
+                       "id":  "25",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "叶檀",
+                       "id":  "26",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "叶子扬",
+                       "id":  "27",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "张朝凯",
+                       "id":  "28",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "张辰懿",
+                       "id":  "29",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "张书睿",
+                       "id":  "30",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "钟俊皓",
+                       "id":  "31",
+                       "goat":  true
+                   },
+                   {
+                       "group":  "M",
+                       "name":  "周锐霖",
+                       "id":  "32",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "艾静怡",
+                       "id":  "33",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "陈奕霖",
+                       "id":  "34",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "邓慧欣",
+                       "id":  "35",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "郭静怡",
+                       "id":  "36",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "何海菲",
+                       "id":  "37",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "何紫晴",
+                       "id":  "38",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "李欣怡",
+                       "id":  "39",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "李梓楹",
+                       "id":  "40",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "廖雨茜",
+                       "id":  "41",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "刘佳瑜",
+                       "id":  "42",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "谭卓琳",
+                       "id":  "43",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "唐欣熠",
+                       "id":  "44",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "薛鑫然",
+                       "id":  "45",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "余晴雅",
+                       "id":  "46",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "袁书慧",
+                       "id":  "47",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "张礼洋",
+                       "id":  "48",
+                       "goat":  false
+                   },
+                   {
+                       "group":  "F",
+                       "name":  "张芷瑜",
+                       "id":  "49",
+                       "goat":  false
+                   }
+               ]
+}
