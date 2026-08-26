@@ -390,6 +390,9 @@ export const ru: Translation = {
 	[Key.splashSelectCharacter]: "Персонаж заставки",
 	[Key.splashUpperBanner]: "Верхний баннер",
 	[Key.splashLowerBanner]: "Нижний баннер",
+	[Key.splashRandom]: "Полный случайный режим",
+	[Key.splashRandomHint]:
+		"Каждый запуск случайно выбирает агента, карты и фразу ульты.",
 
 	// Стиль карточек
 	[Key.cardSettings]: "Стиль карточек",

@@ -379,6 +379,8 @@ export const zh_CN: Translation = {
 	[Key.splashSelectCharacter]: "选择开屏角色",
 	[Key.splashUpperBanner]: "上半幅横幅",
 	[Key.splashLowerBanner]: "下半幅横幅",
+	[Key.splashRandom]: "纯随机模式",
+	[Key.splashRandomHint]: "每次开屏随机英雄、地图和大招台词。",
 
 	// 卡片样式
 	[Key.cardSettings]: "卡片样式",

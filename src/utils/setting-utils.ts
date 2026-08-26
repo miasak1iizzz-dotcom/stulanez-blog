@@ -23,6 +23,7 @@ import {
 	isSplashLowerId,
 	isSplashPortraitId,
 	isSplashUpperId,
+	pickRandomSplashSelection,
 	resolveSplashLower,
 	resolveSplashPortrait,
 	resolveSplashUpper,
@@ -925,6 +926,7 @@ export function setCardFollowThemeEnabled(enabled: boolean): void {
 
 const WALLPAPER_INDEX_KEY = "bannerWallpaperIndex";
 const SPLASH_ENABLED_KEY = "splashEnabled";
+const SPLASH_RANDOM_KEY = "splashRandom";
 const SPLASH_PORTRAIT_KEY = "splashPortrait";
 const SPLASH_UPPER_KEY = "splashUpper";
 const SPLASH_LOWER_KEY = "splashLower";
@@ -983,6 +985,10 @@ export function getDefaultSplashLower(): string {
 	return atmosphereConfig.splash.defaultLower;
 }
 
+export function getDefaultSplashRandom(): boolean {
+	return false;
+}
+
 export function getStoredSplashEnabled(): boolean {
 	if (!displaySettingsConfig.splashSwitchable) {
 		return getDefaultSplashEnabled();
@@ -1031,11 +1037,40 @@ function emitSplashPreview(detail: {
 function currentSplashSelection(
 	overrides: Partial<{ portrait: string; upper: string; lower: string }> = {},
 ): { portrait: string; upper: string; lower: string } {
+	if (getStoredSplashRandom()) {
+		return pickRandomSplashSelection();
+	}
 	return {
 		portrait: overrides.portrait ?? getStoredSplashPortrait(),
 		upper: overrides.upper ?? getStoredSplashUpper(),
 		lower: overrides.lower ?? getStoredSplashLower(),
 	};
+}
+
+export function getStoredSplashRandom(): boolean {
+	if (!displaySettingsConfig.splashSwitchable) {
+		return getDefaultSplashRandom();
+	}
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.getItem !== "function"
+	) {
+		return getDefaultSplashRandom();
+	}
+	const stored = localStorage.getItem(SPLASH_RANDOM_KEY);
+	if (stored === null) return getDefaultSplashRandom();
+	return stored === "true";
+}
+
+export function setSplashRandom(enabled: boolean): void {
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.setItem !== "function"
+	) {
+		return;
+	}
+	localStorage.setItem(SPLASH_RANDOM_KEY, String(enabled));
+	emitSplashPreview(currentSplashSelection());
 }
 
 export function getStoredSplashPortrait(): string {

@@ -389,6 +389,9 @@ export const en: Translation = {
 	[Key.splashSelectCharacter]: "Choose splash character",
 	[Key.splashUpperBanner]: "Upper banner",
 	[Key.splashLowerBanner]: "Lower banner",
+	[Key.splashRandom]: "Pure random",
+	[Key.splashRandomHint]:
+		"Randomize the agent, maps, and ult line each splash.",
 
 	// Card Style
 	[Key.cardSettings]: "Card Style",

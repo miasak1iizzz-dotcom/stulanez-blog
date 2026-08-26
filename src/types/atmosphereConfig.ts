@@ -13,6 +13,8 @@ export type SplashPortrait = {
 	name: string;
 	image: string;
 	badge?: string;
+	ultName: string;
+	ultLine: string;
 };
 
 export type SplashBanner = {

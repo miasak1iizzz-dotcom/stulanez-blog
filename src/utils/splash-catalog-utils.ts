@@ -69,3 +69,25 @@ export function isSplashLowerId(id: string | null): id is string {
 		atmosphereConfig.splash.lowerBanners.some((item) => item.id === id)
 	);
 }
+
+function pickRandomItem<T>(items: T[]): T {
+	return items[Math.floor(Math.random() * items.length)] ?? items[0];
+}
+
+export function pickRandomSplashSelection(): {
+	portrait: string;
+	upper: string;
+	lower: string;
+} {
+	const portraits = atmosphereConfig.splash.portraits;
+	const maps = atmosphereConfig.splash.upperBanners;
+	const portrait = pickRandomItem(portraits);
+	const upper = pickRandomItem(maps);
+	const otherMaps = maps.filter((item) => item.id !== upper.id);
+	const lower = pickRandomItem(otherMaps.length > 0 ? otherMaps : maps);
+	return {
+		portrait: portrait.id,
+		upper: upper.id,
+		lower: lower.id,
+	};
+}
