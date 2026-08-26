@@ -11,6 +11,7 @@ interface PortalCard {
 	icon: string;
 	a: string; // 主题色（浅）
 	b: string; // 主题色（深）
+	img?: string; // Grok 生成的高清背景图
 	motif?: string; // 装饰线稿纹样名（对应 .home-portal-grid 里的 --hp-motif-*）
 	ang?: string; // 渐变角度
 	featured?: boolean;
@@ -26,6 +27,7 @@ const cards: PortalCard[] = [
 		icon: "material-symbols:auto-stories-rounded",
 		a: "#f6a8d0",
 		b: "#2a1633",
+		img: "/assets/images/portal/novel.jpg",
 		motif: "blossom",
 		ang: "150deg",
 		featured: true,
@@ -39,6 +41,7 @@ const cards: PortalCard[] = [
 		icon: "material-symbols:calculate-rounded",
 		a: "#7fb0e8",
 		b: "#12233c",
+		img: "/assets/images/portal/math.jpg",
 		motif: "constellation",
 		ang: "158deg",
 	},
@@ -50,6 +53,7 @@ const cards: PortalCard[] = [
 		icon: "material-symbols:rocket-launch-rounded",
 		a: "#7fd0c4",
 		b: "#123c36",
+		img: "/assets/images/portal/works.jpg",
 		motif: "paper-plane",
 		ang: "144deg",
 	},
@@ -61,6 +65,7 @@ const cards: PortalCard[] = [
 		icon: "material-symbols:sports-esports-rounded",
 		a: "#8fd0dd",
 		b: "#12323c",
+		img: "/assets/images/portal/tft.jpg",
 		motif: "orbit",
 		ang: "163deg",
 	},
@@ -72,6 +77,7 @@ const cards: PortalCard[] = [
 		icon: "material-symbols:chat-bubble-rounded",
 		a: "#f4a0b4",
 		b: "#501722",
+		img: "/assets/images/portal/dynamic.jpg",
 		motif: "clock",
 		ang: "150deg",
 	},
@@ -83,6 +89,7 @@ const cards: PortalCard[] = [
 		icon: "material-symbols:photo-library-rounded",
 		a: "#f0c084",
 		b: "#4a3210",
+		img: "/assets/images/portal/gallery.jpg",
 		motif: "blossom",
 		ang: "155deg",
 	},
@@ -94,6 +101,7 @@ const cards: PortalCard[] = [
 		icon: "material-symbols:bookmarks-rounded",
 		a: "#b6a4ee",
 		b: "#33224a",
+		img: "/assets/images/portal/booknav.jpg",
 		motif: "constellation",
 		ang: "150deg",
 	},
@@ -105,6 +113,7 @@ const cards: PortalCard[] = [
 		icon: "material-symbols:archive-rounded",
 		a: "#c9c4d8",
 		b: "#312c3c",
+		img: "/assets/images/portal/archive.jpg",
 		motif: "paper-plane",
 		ang: "160deg",
 	},
@@ -140,7 +149,7 @@ const cards: PortalCard[] = [
 						"home-portal-card group relative overflow-hidden rounded-2xl flex flex-col justify-between gap-3",
 						c.featured ? "col-span-2 md:col-span-2" : "",
 					]}
-					style={`--pa:${c.a}; --pb:${c.b}; --motif: var(--hp-motif-${c.motif || "blossom"}); --ang:${c.ang || "150deg"};`}
+					style={`--pa:${c.a}; --pb:${c.b}; --motif: var(--hp-motif-${c.motif || "blossom"}); --ang:${c.ang || "150deg"}; ${c.img ? `--hp-img:url('${c.img}');` : ""}`}
 				>
 					<div class="hp-grain" aria-hidden="true"></div>
 					<div class="hp-motif" aria-hidden="true"></div>
@@ -169,12 +178,12 @@ const cards: PortalCard[] = [
 
 					<div class="relative z-10">
 						<div
-							class="home-portal-title text-base font-bold text-neutral-900 dark:text-neutral-100 leading-snug"
+							class="home-portal-title text-base font-bold text-white dark:text-white leading-snug"
 						>
 							{c.title}
 						</div>
 						<div
-							class="home-portal-desc text-xs text-neutral-500 dark:text-neutral-400 mt-1"
+							class="home-portal-desc text-xs text-white/80 dark:text-white/80 mt-1"
 						>
 							{c.desc}
 						</div>
@@ -200,13 +209,38 @@ const cards: PortalCard[] = [
 		min-height: 8.4rem;
 		padding: 1rem;
 		border: 1px solid var(--line-divider);
-		background: linear-gradient(
+		/* 高清素材图 + 渐变遮罩保证可读性 */
+		background-color: color-mix(in srgb, var(--pb) 72%, #000);
+		background-image: linear-gradient(
 			var(--ang, 150deg),
-			color-mix(in srgb, var(--pa) 24%, transparent),
-			color-mix(in srgb, var(--pb) 14%, transparent) 55%,
-			color-mix(in srgb, var(--pb) 26%, transparent)
-		);
+			color-mix(in srgb, var(--pa) 34%, transparent),
+			color-mix(in srgb, var(--pb) 88%, transparent)
+		), var(--hp-img, none);
+		background-size: cover, cover;
+		background-position: center, center;
+		background-repeat: no-repeat, no-repeat;
 		transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+	}
+
+	/* 底部加深渐变，确保文字清晰可读 */
+	.home-portal-card::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: linear-gradient(
+			180deg,
+			transparent 30%,
+			color-mix(in srgb, var(--pb) 82%, #000) 100%
+		);
+		opacity: 0.92;
+		z-index: 0;
+	}
+
+	/* 让标题/描述/图标浮于遮罩之上 */
+	.home-portal-card > div {
+		position: relative;
+		z-index: 2;
 	}
 
 	/* 大而淡的线稿纹样（右下角） */
