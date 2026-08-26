@@ -94,7 +94,12 @@ const cards: PortalCard[] = [
 ---
 
 <section class="home-portal mb-4">
-	<div class="home-portal-head mb-3 flex items-center gap-2">
+	<div class="home-portal-head mb-3 flex flex-wrap items-center gap-2">
+		<span
+			id="portal-greeting"
+			class="home-portal-greeting text-xs font-medium px-2 py-1 rounded-full hidden text-(--primary) bg-(--primary)/10"
+			aria-hidden="true"
+		></span>
 		<div
 			class="h-7 w-7 rounded-lg bg-(--primary)/15 text-(--primary) flex items-center justify-center"
 		>
@@ -215,3 +220,21 @@ const cards: PortalCard[] = [
 		opacity: 1;
 	}
 </style>
+
+<script>
+  (function () {
+    const el = document.getElementById("portal-greeting");
+    if (!el) return;
+    const h = new Date().getHours();
+    const m: [number, number, string][] = [
+      [0, 5, "夜深了"],
+      [5, 11, "早上好"],
+      [11, 13, "中午好"],
+      [13, 18, "下午好"],
+      [18, 24, "晚上好"],
+    ];
+    const found = m.find(([s, e]) => h >= s && h < e);
+    el.textContent = found ? found[2] : "晚上好";
+    el.classList.remove("hidden");
+  })();
+</script>
