@@ -1,0 +1,69 @@
+---
+/**
+ * BiliCard.astro
+ *
+ * 账号名片：B站关注/粉丝墙 —— 做 rainzt 没有的差异化"个人名片"。
+ * 构建时拉取 `x/relation/stat`（实测稳定 code=0，无需 cookie/wbi）。
+ * 若接口失败，显示占位（--），不报错、不中断构建。
+ */
+import { Icon } from "astro-icon/components";
+import { siteConfig } from "@/config";
+import { url } from "@/utils/url-utils";
+
+type Relation = { following: number; follower: number };
+
+const uid = siteConfig.bilibili?.uid?.trim() ?? "";
+const spaceUrl = uid ? `https://space.bilibili.com/${uid}` : "#";
+
+let following = null as number | null;
+let follower = null as number | null;
+
+if (uid) {
+	try {
+		const res = await fetch(
+			`https://api.bilibili.com/x/relation/stat?vmid=${uid}`,
+			{ headers: { "User-Agent": "Mozilla/5.0" } },
+		);
+		const json = (await res.json()) as { code: number; data?: Relation };
+		if (json.code === 0 && json.data) {
+			following = json.data.following;
+			follower = json.data.follower;
+		}
+	} catch {
+		// 接口失败时保持 null，显示占位
+	}
+}
+
+const fmt = (n: number | null) =>
+	n === null ? "--" : new Intl.NumberFormat("zh-CN").format(n);
+---
+
+<div class="w-full card-base rounded-2xl border border-(--line-divider) overflow-hidden">
+  <a
+    href={spaceUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="flex items-center gap-3 p-4 hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
+  >
+    <div class="h-11 w-11 shrink-0 rounded-xl bg-pink-500/10 flex items-center justify-center">
+      <Icon name="fa7-brands:bilibili" class="text-[1.5rem] text-pink-500" />
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-neutral-900 dark:text-neutral-100">哔哩哔哩</span>
+        <Icon name="material-symbols:open-in-new" class="text-sm text-neutral-400 group-hover:text-(--primary) transition-colors" />
+      </div>
+      <div class="text-xs text-neutral-500 dark:text-neutral-400">追番 · 追剧 · 我的空间</div>
+    </div>
+    <div class="flex items-center gap-4 shrink-0">
+      <div class="text-center">
+        <div class="text-lg font-bold text-neutral-900 dark:text-neutral-100">{fmt(follower)}</div>
+        <div class="text-[10px] text-neutral-400">粉丝</div>
+      </div>
+      <div class="text-center">
+        <div class="text-lg font-bold text-neutral-900 dark:text-neutral-100">{fmt(following)}</div>
+        <div class="text-[10px] text-neutral-400">关注</div>
+      </div>
+    </div>
+  </a>
+</div>
