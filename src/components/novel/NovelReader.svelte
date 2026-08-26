@@ -24,6 +24,13 @@ interface NovelData {
 	chapters: NovelChapter[];
 }
 
+interface SearchResult {
+	chapterIndex: number;
+	chapter: NovelChapter;
+	snippet: string;
+	matchCount: number;
+}
+
 interface Props {
 	novel: NovelData;
 	novelId?: string;
@@ -36,14 +43,122 @@ let currentIndex = $state(0);
 let drawerOpen = $state(false);
 let fontScale = $state(1);
 let lineHeight = $state(1.95);
+let searchQuery = $state("");
+let savedProgressIndex = $state<number | null>(null);
+let showResumePrompt = $state(false);
 
 const currentChapter = $derived(novel.chapters[currentIndex]);
 const progress = $derived(((currentIndex + 1) / novel.chapterCount) * 100);
 const currentVolumeIndex = $derived(
 	Math.max(0, novel.volumes.indexOf(currentChapter.volume)) + 1,
 );
+const normalizedSearchQuery = $derived(
+	searchQuery.trim().toLocaleLowerCase("zh-CN"),
+);
+const searchResults = $derived.by((): SearchResult[] => {
+	if (!normalizedSearchQuery) return [];
+
+	return novel.chapters.flatMap((chapter, chapterIndex) => {
+		const heading = `${chapter.fullTitle} ${chapter.volume}`;
+		const headingMatches = countMatches(heading, normalizedSearchQuery);
+		let firstMatchingParagraph = "";
+		let paragraphMatches = 0;
+
+		for (const paragraph of chapter.paragraphs) {
+			const matches = countMatches(paragraph, normalizedSearchQuery);
+			if (matches > 0 && !firstMatchingParagraph) {
+				firstMatchingParagraph = paragraph;
+			}
+			paragraphMatches += matches;
+		}
+
+		const matchCount = headingMatches + paragraphMatches;
+		if (matchCount === 0) return [];
+
+		return [
+			{
+				chapterIndex,
+				chapter,
+				snippet: firstMatchingParagraph
+					? createSnippet(firstMatchingParagraph, normalizedSearchQuery)
+					: `章节标题：${chapter.fullTitle}`,
+				matchCount,
+			},
+		];
+	});
+});
+const totalSearchMatches = $derived(
+	searchResults.reduce((total, result) => total + result.matchCount, 0),
+);
+const resumeChapter = $derived(
+	savedProgressIndex === null ? null : novel.chapters[savedProgressIndex],
+);
 const progressKey = `novel-progress:${novelId}`;
 const displayKey = `novel-display:${novelId}`;
+
+function countMatches(text: string, query: string) {
+	if (!query) return 0;
+	const normalizedText = text.toLocaleLowerCase("zh-CN");
+	let count = 0;
+	let offset = 0;
+
+	while (offset < normalizedText.length) {
+		const index = normalizedText.indexOf(query, offset);
+		if (index < 0) break;
+		count += 1;
+		offset = index + query.length;
+	}
+
+	return count;
+}
+
+function createSnippet(text: string, query: string) {
+	const normalizedText = text.toLocaleLowerCase("zh-CN");
+	const matchIndex = normalizedText.indexOf(query);
+	if (matchIndex < 0) return text.slice(0, 78);
+
+	const start = Math.max(0, matchIndex - 28);
+	const end = Math.min(text.length, matchIndex + query.length + 46);
+	return `${start > 0 ? "…" : ""}${text.slice(start, end)}${end < text.length ? "…" : ""}`;
+}
+
+function highlightSegments(text: string) {
+	if (!normalizedSearchQuery) return [{ text, match: false }];
+	const normalizedText = text.toLocaleLowerCase("zh-CN");
+	const segments: { text: string; match: boolean }[] = [];
+	let offset = 0;
+
+	while (offset < text.length) {
+		const index = normalizedText.indexOf(normalizedSearchQuery, offset);
+		if (index < 0) {
+			segments.push({ text: text.slice(offset), match: false });
+			break;
+		}
+		if (index > offset) {
+			segments.push({ text: text.slice(offset, index), match: false });
+		}
+		segments.push({
+			text: text.slice(index, index + normalizedSearchQuery.length),
+			match: true,
+		});
+		offset = index + normalizedSearchQuery.length;
+	}
+
+	return segments;
+}
+
+function portal(node: HTMLElement) {
+	const previousOverflow = document.body.style.overflow;
+	document.body.appendChild(node);
+	document.body.style.overflow = "hidden";
+
+	return {
+		destroy() {
+			document.body.style.overflow = previousOverflow;
+			node.remove();
+		},
+	};
+}
 
 function persistDisplay() {
 	localStorage.setItem(displayKey, JSON.stringify({ fontScale, lineHeight }));
@@ -66,6 +181,8 @@ function goToChapter(index: number, shouldScroll = true) {
 
 	const chapter = novel.chapters[nextIndex];
 	localStorage.setItem(progressKey, String(nextIndex));
+	savedProgressIndex = nextIndex;
+	showResumePrompt = false;
 	history.replaceState(
 		null,
 		"",
@@ -82,6 +199,18 @@ function goToChapter(index: number, shouldScroll = true) {
 			});
 		});
 	}
+}
+
+function resumeReading() {
+	if (savedProgressIndex === null) return;
+	goToChapter(savedProgressIndex);
+}
+
+function resetProgress() {
+	localStorage.setItem(progressKey, "0");
+	savedProgressIndex = 0;
+	showResumePrompt = false;
+	goToChapter(0);
 }
 
 function handleKeydown(event: KeyboardEvent) {
@@ -108,14 +237,11 @@ onMount(() => {
 		localStorage.getItem(progressKey) || "",
 		10,
 	);
-	const initialIndex =
-		hashIndex >= 0
-			? hashIndex
-			: Number.isInteger(savedIndex) &&
-					savedIndex >= 0 &&
-					savedIndex < novel.chapterCount
-				? savedIndex
-				: 0;
+	const hasSavedIndex =
+		Number.isInteger(savedIndex) &&
+		savedIndex >= 0 &&
+		savedIndex < novel.chapterCount;
+	const initialIndex = hashIndex >= 0 ? hashIndex : 0;
 
 	const savedDisplay = localStorage.getItem(displayKey);
 	if (savedDisplay) {
@@ -140,6 +266,8 @@ onMount(() => {
 	}
 
 	currentIndex = initialIndex;
+	savedProgressIndex = hasSavedIndex ? savedIndex : null;
+	showResumePrompt = hashIndex < 0 && hasSavedIndex && savedIndex > 0;
 	window.addEventListener("keydown", handleKeydown);
 	return () => window.removeEventListener("keydown", handleKeydown);
 });
@@ -164,6 +292,26 @@ onMount(() => {
 			</div>
 		</div>
 	</header>
+
+	{#if showResumePrompt && resumeChapter}
+		<section class="resume-card" aria-label="继续上次阅读">
+			<div class="resume-icon" aria-hidden="true">
+				<svg viewBox="0 0 24 24">
+					<path d="M6 4.5A2.5 2.5 0 0 1 8.5 2H19v16H8.5A2.5 2.5 0 0 0 6 20.5z" />
+					<path d="M6 4.5v16A2.5 2.5 0 0 1 8.5 18H19" />
+				</svg>
+			</div>
+			<div class="resume-copy">
+				<p>上次读到第 {savedProgressIndex === null ? 1 : savedProgressIndex + 1} 章</p>
+				<strong>{resumeChapter.fullTitle}</strong>
+				<span>全书进度 {Math.round(((resumeChapter.index + 1) / novel.chapterCount) * 100)}%</span>
+			</div>
+			<div class="resume-actions">
+				<button type="button" class="secondary" onclick={resetProgress}>从头开始</button>
+				<button type="button" class="primary" onclick={resumeReading}>继续阅读</button>
+			</div>
+		</section>
+	{/if}
 
 	<div class="reader-toolbar" aria-label="阅读工具">
 		<button class="toolbar-button primary" type="button" onclick={() => (drawerOpen = true)}>
@@ -262,7 +410,7 @@ onMount(() => {
 </article>
 
 {#if drawerOpen}
-	<div class="drawer-backdrop" role="presentation" onclick={() => (drawerOpen = false)}>
+	<div use:portal class="drawer-backdrop" role="presentation" onclick={() => (drawerOpen = false)}>
 		<aside
 			class="chapter-drawer"
 			role="dialog"
@@ -280,28 +428,92 @@ onMount(() => {
 				</button>
 			</header>
 
-			<div class="drawer-content">
-				{#each novel.volumes as volume, volumeIndex}
-					<section>
-						<h3><span>{String(volumeIndex + 1).padStart(2, "0")}</span>{volume}</h3>
-						<div class="drawer-chapters">
-							{#each novel.chapters as chapter, index}
-								{#if chapter.volume === volume}
-									<button
-										type="button"
-										class:active={index === currentIndex}
-										onclick={() => goToChapter(index)}
-										aria-current={index === currentIndex ? "page" : undefined}
-									>
-										<span>{String(index + 1).padStart(2, "0")}</span>
-										{chapter.fullTitle}
-									</button>
-								{/if}
-							{/each}
-						</div>
-					</section>
-				{/each}
+			<div class="drawer-search" role="search">
+				<svg viewBox="0 0 24 24" aria-hidden="true">
+					<circle cx="11" cy="11" r="7" />
+					<path d="m16 16 4 4" />
+				</svg>
+				<input
+					type="search"
+					aria-label="搜索全书"
+					placeholder="搜索章节标题或正文"
+					bind:value={searchQuery}
+					autocomplete="off"
+				/>
+				{#if searchQuery}
+					<button type="button" onclick={() => (searchQuery = "")} aria-label="清空搜索">
+						清空
+					</button>
+				{/if}
 			</div>
+
+			<div class="drawer-content">
+				{#if normalizedSearchQuery}
+					<section class="search-results" aria-live="polite">
+						<div class="search-summary">
+							<strong>{searchResults.length} 个章节</strong>
+							<span>共 {totalSearchMatches} 处命中</span>
+						</div>
+						{#if searchResults.length > 0}
+							<div class="search-result-list">
+								{#each searchResults as result}
+									<button type="button" onclick={() => goToChapter(result.chapterIndex)}>
+										<span class="search-result-meta">
+											第 {result.chapterIndex + 1} 章 · {result.matchCount} 处
+										</span>
+										<strong>{result.chapter.fullTitle}</strong>
+										<small>
+											{#each highlightSegments(result.snippet) as segment}
+												{#if segment.match}<mark>{segment.text}</mark>{:else}{segment.text}{/if}
+											{/each}
+										</small>
+									</button>
+								{/each}
+							</div>
+						{:else}
+							<div class="empty-search">
+								<strong>没有找到“{searchQuery.trim()}”</strong>
+								<span>可以试试人物名、地点或更短的关键词。</span>
+							</div>
+						{/if}
+					</section>
+				{:else}
+					{#each novel.volumes as volume, volumeIndex}
+						<section>
+							<h3><span>{String(volumeIndex + 1).padStart(2, "0")}</span>{volume}</h3>
+							<div class="drawer-chapters">
+								{#each novel.chapters as chapter, index}
+									{#if chapter.volume === volume}
+										<button
+											type="button"
+											class:active={index === currentIndex}
+											onclick={() => goToChapter(index)}
+											aria-current={index === currentIndex ? "page" : undefined}
+										>
+											<span>{String(index + 1).padStart(2, "0")}</span>
+											{chapter.fullTitle}
+										</button>
+									{/if}
+								{/each}
+							</div>
+						</section>
+					{/each}
+				{/if}
+			</div>
+
+			<footer class="drawer-progress">
+				<div>
+					<span>本机阅读记录</span>
+					<strong>{resumeChapter ? `第 ${resumeChapter.index + 1} 章 · ${resumeChapter.title}` : "尚未开始"}</strong>
+				</div>
+				<button
+					type="button"
+					onclick={resetProgress}
+					disabled={savedProgressIndex === null || savedProgressIndex === 0}
+				>
+					从头阅读
+				</button>
+			</footer>
 		</aside>
 	</div>
 {/if}
@@ -413,6 +625,88 @@ onMount(() => {
 		background: rgb(0 0 0 / 14%);
 		font-size: 0.72rem;
 		letter-spacing: 0.04em;
+	}
+
+	.resume-card {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		gap: 0.9rem;
+		align-items: center;
+		margin: 0 0 1rem;
+		padding: 0.9rem 1rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--line-divider));
+		border-radius: 1rem;
+		background: color-mix(in srgb, var(--primary) 7%, var(--card-bg));
+	}
+
+	.resume-icon {
+		display: grid;
+		width: 2.7rem;
+		height: 2.7rem;
+		place-items: center;
+		border-radius: 0.8rem;
+		background: var(--primary);
+		color: white;
+	}
+
+	.resume-icon svg {
+		width: 1.35rem;
+		height: 1.35rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 1.7;
+	}
+
+	.resume-copy {
+		display: grid;
+		gap: 0.12rem;
+		min-width: 0;
+	}
+
+	.resume-copy p,
+	.resume-copy strong,
+	.resume-copy span {
+		margin: 0;
+	}
+
+	.resume-copy p,
+	.resume-copy span {
+		color: var(--content-meta);
+		font-size: 0.68rem;
+	}
+
+	.resume-copy strong {
+		overflow: hidden;
+		font-family: "Noto Serif SC", "Songti SC", serif;
+		font-size: 0.92rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.resume-actions {
+		display: flex;
+		gap: 0.45rem;
+	}
+
+	.resume-actions button {
+		min-height: 2.45rem;
+		padding: 0 0.85rem;
+		border: 1px solid var(--line-divider);
+		border-radius: 0.72rem;
+		background: var(--btn-regular-bg);
+		color: var(--btn-content);
+		font: inherit;
+		font-size: 0.75rem;
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	.resume-actions button.primary {
+		border-color: transparent;
+		background: var(--primary);
+		color: white;
 	}
 
 	.reader-toolbar {
@@ -726,6 +1020,51 @@ onMount(() => {
 		cursor: pointer;
 	}
 
+	.drawer-search {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		gap: 0.55rem;
+		align-items: center;
+		margin: 0.85rem 1rem 0;
+		padding: 0 0.7rem;
+		border: 1px solid var(--line-divider);
+		border-radius: 0.78rem;
+		background: color-mix(in srgb, var(--primary) 4%, var(--btn-regular-bg));
+	}
+
+	.drawer-search > svg {
+		width: 1rem;
+		height: 1rem;
+		fill: none;
+		stroke: var(--content-meta);
+		stroke-linecap: round;
+		stroke-width: 1.8;
+	}
+
+	.drawer-search input {
+		min-width: 0;
+		height: 2.65rem;
+		border: 0;
+		outline: 0;
+		background: transparent;
+		color: inherit;
+		font: inherit;
+		font-size: 0.8rem;
+	}
+
+	.drawer-search input::placeholder {
+		color: var(--content-meta);
+	}
+
+	.chapter-drawer .drawer-search button {
+		padding: 0.25rem;
+		border: 0;
+		background: transparent;
+		color: var(--primary);
+		font-size: 0.68rem;
+		cursor: pointer;
+	}
+
 	.drawer-content {
 		overflow-y: auto;
 		padding: 1.1rem 1rem 3rem;
@@ -748,6 +1087,88 @@ onMount(() => {
 		color: var(--primary);
 		font-size: 0.65rem;
 		font-variant-numeric: tabular-nums;
+	}
+
+	.search-summary {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		margin-bottom: 0.65rem;
+	}
+
+	.search-summary strong {
+		font-size: 0.82rem;
+	}
+
+	.search-summary span {
+		color: var(--content-meta);
+		font-size: 0.66rem;
+	}
+
+	.search-result-list {
+		display: grid;
+		gap: 0.45rem;
+	}
+
+	.search-result-list button {
+		display: grid;
+		gap: 0.26rem;
+		width: 100%;
+		padding: 0.75rem 0.8rem;
+		border: 1px solid var(--line-divider);
+		border-radius: 0.78rem;
+		background: color-mix(in srgb, var(--primary) 3%, var(--card-bg));
+		color: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.search-result-list button:hover {
+		border-color: color-mix(in srgb, var(--primary) 48%, var(--line-divider));
+	}
+
+	.search-result-list strong {
+		font-family: "Noto Serif SC", "Songti SC", serif;
+		font-size: 0.82rem;
+	}
+
+	.search-result-list small {
+		display: -webkit-box;
+		overflow: hidden;
+		color: var(--content-meta);
+		font-size: 0.7rem;
+		line-height: 1.55;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+	}
+
+	.search-result-list mark {
+		border-radius: 0.18rem;
+		background: color-mix(in srgb, var(--primary) 24%, transparent);
+		color: var(--primary);
+	}
+
+	.search-result-meta {
+		color: var(--primary);
+		font-size: 0.62rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.empty-search {
+		display: grid;
+		gap: 0.35rem;
+		padding: 2rem 0.8rem;
+		color: var(--content-meta);
+		text-align: center;
+	}
+
+	.empty-search strong {
+		color: inherit;
+		font-size: 0.82rem;
+	}
+
+	.empty-search span {
+		font-size: 0.7rem;
 	}
 
 	.drawer-chapters {
@@ -783,6 +1204,50 @@ onMount(() => {
 		font-variant-numeric: tabular-nums;
 	}
 
+	.drawer-progress {
+		display: flex;
+		gap: 0.75rem;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.8rem 1rem;
+		border-top: 1px solid var(--line-divider);
+		background: color-mix(in srgb, var(--primary) 4%, var(--card-bg));
+	}
+
+	.drawer-progress div {
+		display: grid;
+		gap: 0.12rem;
+		min-width: 0;
+	}
+
+	.drawer-progress span {
+		color: var(--content-meta);
+		font-size: 0.62rem;
+	}
+
+	.drawer-progress strong {
+		overflow: hidden;
+		font-size: 0.72rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.drawer-progress button {
+		flex: 0 0 auto;
+		padding: 0.45rem 0.65rem;
+		border: 1px solid var(--line-divider);
+		border-radius: 0.62rem;
+		background: var(--btn-regular-bg);
+		color: var(--btn-content);
+		font-size: 0.68rem;
+		cursor: pointer;
+	}
+
+	.drawer-progress button:disabled {
+		opacity: 0.42;
+		cursor: not-allowed;
+	}
+
 	.sr-only {
 		position: absolute;
 		width: 1px;
@@ -813,6 +1278,15 @@ onMount(() => {
 		.reader-toolbar {
 			top: 4.3rem;
 			grid-template-columns: auto minmax(0, 1fr);
+		}
+
+		.resume-card {
+			grid-template-columns: auto minmax(0, 1fr);
+		}
+
+		.resume-actions {
+			grid-column: 1 / -1;
+			justify-content: flex-end;
 		}
 
 		.display-tools {

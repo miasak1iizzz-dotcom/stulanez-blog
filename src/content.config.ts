@@ -28,6 +28,7 @@ type PostData = {
 	words?: number;
 	minutes?: number;
 	hideCoverInPost: boolean;
+	contentType: "article" | "novel";
 };
 
 type DynamicData = {
@@ -64,6 +65,7 @@ const postsCollection: ContentCollection<PostData> = defineCollection({
 		words: z.number().int().positive().optional(),
 		minutes: z.number().int().positive().optional(),
 		hideCoverInPost: z.boolean().optional().default(false),
+		contentType: z.enum(["article", "novel"]).optional().default("article"),
 
 		/* For internal use */
 		prevTitle: z.string().default(""),
