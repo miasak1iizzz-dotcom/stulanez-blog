@@ -1,8 +1,8 @@
 ---
 import { Icon } from "astro-icon/components";
 
-// 首页「站点版图」：把站内独一无二的内容做成可点的小卡，既填满空首页，也让人一眼看到这个站里有什么。
-// 差异化设计方向 A。设计参考：MingBlog 观/读/听档案、灵的梦境 Bento、楠枝小筑毛玻璃，但配色/内容都是本站的。
+// 首页「站点版图」：把站内独有内容做成可点小卡。差异化设计方向 A + 卡片美工升级。
+// 借鉴（非抄袭）：MingBlog 档案卡、灵的梦境 Bento、楠枝小筑毛玻璃；纹样/配色/内容都是本站的。
 interface PortalCard {
 	key: string;
 	title: string;
@@ -11,6 +11,8 @@ interface PortalCard {
 	icon: string;
 	a: string; // 主题色（浅）
 	b: string; // 主题色（深）
+	motif?: string; // 装饰线稿纹样名（对应 .home-portal-grid 里的 --hp-motif-*）
+	ang?: string; // 渐变角度
 	featured?: boolean;
 	tag?: string;
 }
@@ -23,7 +25,9 @@ const cards: PortalCard[] = [
 		href: "/posts/star-domain-fantasy/",
 		icon: "material-symbols:auto-stories-rounded",
 		a: "#f6a8d0",
-		b: "#3a2242",
+		b: "#2a1633",
+		motif: "blossom",
+		ang: "150deg",
 		featured: true,
 		tag: "连载中",
 	},
@@ -34,7 +38,9 @@ const cards: PortalCard[] = [
 		href: "/posts/math-league-2026/",
 		icon: "material-symbols:calculate-rounded",
 		a: "#7fb0e8",
-		b: "#1f3355",
+		b: "#12233c",
+		motif: "constellation",
+		ang: "158deg",
 	},
 	{
 		key: "works",
@@ -43,7 +49,9 @@ const cards: PortalCard[] = [
 		href: "/works/",
 		icon: "material-symbols:rocket-launch-rounded",
 		a: "#7fd0c4",
-		b: "#1f5a52",
+		b: "#123c36",
+		motif: "paper-plane",
+		ang: "144deg",
 	},
 	{
 		key: "tft",
@@ -52,7 +60,9 @@ const cards: PortalCard[] = [
 		href: "/tft/team-builder/",
 		icon: "material-symbols:sports-esports-rounded",
 		a: "#8fd0dd",
-		b: "#1f4a58",
+		b: "#12323c",
+		motif: "orbit",
+		ang: "163deg",
 	},
 	{
 		key: "dynamic",
@@ -61,7 +71,9 @@ const cards: PortalCard[] = [
 		href: "/dynamic/",
 		icon: "material-symbols:chat-bubble-rounded",
 		a: "#f4a0b4",
-		b: "#7a2b44",
+		b: "#501722",
+		motif: "clock",
+		ang: "150deg",
 	},
 	{
 		key: "gallery",
@@ -70,7 +82,9 @@ const cards: PortalCard[] = [
 		href: "/gallery/",
 		icon: "material-symbols:photo-library-rounded",
 		a: "#f0c084",
-		b: "#6e4a1a",
+		b: "#4a3210",
+		motif: "blossom",
+		ang: "155deg",
 	},
 	{
 		key: "booknav",
@@ -79,7 +93,9 @@ const cards: PortalCard[] = [
 		href: "/booknav/",
 		icon: "material-symbols:bookmarks-rounded",
 		a: "#b6a4ee",
-		b: "#4a3a78",
+		b: "#33224a",
+		motif: "constellation",
+		ang: "150deg",
 	},
 	{
 		key: "archive",
@@ -88,7 +104,9 @@ const cards: PortalCard[] = [
 		href: "/archive/",
 		icon: "material-symbols:archive-rounded",
 		a: "#c9c4d8",
-		b: "#4a455a",
+		b: "#312c3c",
+		motif: "paper-plane",
+		ang: "160deg",
 	},
 ];
 ---
@@ -113,20 +131,21 @@ const cards: PortalCard[] = [
 		</span>
 	</div>
 
-	<div
-		class="home-portal-grid grid grid-cols-2 md:grid-cols-3 gap-3"
-	>
+	<div id="home-portal-grid" class="home-portal-grid grid grid-cols-2 md:grid-cols-3 gap-3">
 		{
 			cards.map((c) => (
 				<a
 					href={c.href}
 					class:list={[
-						"home-portal-card group relative overflow-hidden rounded-2xl border border-(--line-divider) p-4 flex flex-col justify-between gap-3 transition-all duration-300",
+						"home-portal-card group relative overflow-hidden rounded-2xl flex flex-col justify-between gap-3",
 						c.featured ? "col-span-2 md:col-span-2" : "",
 					]}
-					style={`--pa:${c.a}; --pb:${c.b};`}
+					style={`--pa:${c.a}; --pb:${c.b}; --motif: var(--hp-motif-${c.motif || "blossom"}); --ang:${c.ang || "150deg"};`}
 				>
-					<div class="home-portal-glow"></div>
+					<div class="hp-grain" aria-hidden="true"></div>
+					<div class="hp-motif" aria-hidden="true"></div>
+					<div class="hp-edge" aria-hidden="true"></div>
+					<div class="home-portal-glow" aria-hidden="true"></div>
 
 					<div class="flex items-start justify-between relative z-10">
 						<div class="home-portal-icon">
@@ -135,8 +154,8 @@ const cards: PortalCard[] = [
 						<div class="flex items-center gap-1.5">
 							{c.tag && (
 								<span
-									class="home-portal-tag text-[0.65rem] font-medium px-1.5 py-0.5 rounded-full text-(--primary)"
-									style={`background: color-mix(in srgb, var(--pa) 26%, transparent);`}
+									class="home-portal-tag text-[0.65rem] font-medium px-1.5 py-0.5 rounded-full text-white/90"
+									style={`background: color-mix(in srgb, var(--pa) 55%, transparent);`}
 								>
 									{c.tag}
 								</span>
@@ -167,19 +186,83 @@ const cards: PortalCard[] = [
 </section>
 
 <style>
+	/* 每种纹样的 SVG 线稿(白描边)，供卡片用 mask 染成主题色 */
+	.home-portal-grid {
+		--hp-motif-blossom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='95' cy='66' r='6'/%3E%3Cpath d='M95 60C92 45 101 34 113 35c9 1 13 9 9 16-5 9-20 10-27 9z'/%3E%3Cpath d='M100 71c13-3 23 5 23 16 0 9-8 14-16 12-9-3-11-18-7-28z'/%3E%3Cpath d='M91 73c3 12-5 22-16 22-8 0-12-7-9-14 3-9 17-13 25-8z'/%3E%3Cpath d='M87 62c-12-3-15-15-9-24 5-7 14-6 18 1 5 8-2 19-9 23z'/%3E%3Cpath d='M103 77c8 8 20 8 26 0 5-6 2-13-5-15-8-3-16 6-21 15z'/%3E%3C/g%3E%3C/svg%3E");
+		--hp-motif-constellation: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M46 46l42 18 30-26 36 24M88 64l4 38 40-6M92 102l-28 20'/%3E%3C/g%3E%3Cg fill='white'%3E%3Ccircle cx='46' cy='46' r='4'/%3E%3Ccircle cx='88' cy='64' r='4'/%3E%3Ccircle cx='118' cy='38' r='4'/%3E%3Ccircle cx='154' cy='62' r='4'/%3E%3Ccircle cx='92' cy='102' r='4'/%3E%3Ccircle cx='132' cy='96' r='4'/%3E%3Ccircle cx='64' cy='122' r='4'/%3E%3C/g%3E%3C/svg%3E");
+		--hp-motif-paper-plane: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M36 84 150 40 96 130 80 96z'/%3E%3Cpath d='M80 96l70-56'/%3E%3Cpath d='M96 130l-8-24'/%3E%3C/g%3E%3C/svg%3E");
+		--hp-motif-clock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Ccircle cx='95' cy='74' r='44'/%3E%3Cpath d='M95 74V48M95 74l20 10'/%3E%3Cpath d='M66 58l11 11M124 58l-11 11M66 90l11-11M124 90l-11-11'/%3E%3C/g%3E%3C/svg%3E");
+		--hp-motif-orbit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round'%3E%3Ccircle cx='95' cy='74' r='22'/%3E%3Cellipse cx='95' cy='74' rx='52' ry='20'/%3E%3Cellipse cx='95' cy='74' rx='26' ry='40' transform='rotate(44 95 74)'/%3E%3Ccircle cx='147' cy='60' r='4' fill='white' stroke='none'/%3E%3Ccircle cx='56' cy='96' r='3' fill='white' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
+	}
+
 	.home-portal-card {
-		min-height: 7.5rem;
+		position: relative;
+		min-height: 8.4rem;
+		padding: 1rem;
+		border: 1px solid var(--line-divider);
 		background: linear-gradient(
-			150deg,
-			color-mix(in srgb, var(--pa) 14%, transparent),
-			color-mix(in srgb, var(--pb) 10%, transparent)
+			var(--ang, 150deg),
+			color-mix(in srgb, var(--pa) 24%, transparent),
+			color-mix(in srgb, var(--pb) 14%, transparent) 55%,
+			color-mix(in srgb, var(--pb) 26%, transparent)
 		);
+		transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 	}
+
+	/* 大而淡的线稿纹样（右下角） */
+	.hp-motif {
+		position: absolute;
+		right: -0.1rem;
+		bottom: -0.1rem;
+		width: 68%;
+		height: 68%;
+		pointer-events: none;
+		background: linear-gradient(135deg, var(--pa), var(--pb));
+		-webkit-mask-image: var(--motif);
+		mask-image: var(--motif);
+		-webkit-mask-position: right bottom;
+		mask-position: right bottom;
+		-webkit-mask-repeat: no-repeat;
+		mask-repeat: no-repeat;
+		-webkit-mask-size: contain;
+		mask-size: contain;
+		opacity: 0.15;
+		transform: rotate(-3deg);
+		transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+
+	/* 颗粒质感 */
+	.hp-grain {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		mix-blend-mode: overlay;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+		opacity: 0.06;
+	}
+
+	/* 顶部主题色渐变边 */
+	.hp-edge {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 3px;
+		pointer-events: none;
+		background: linear-gradient(90deg, var(--pa), var(--pb));
+		opacity: 0.8;
+	}
+
 	.home-portal-card:hover {
-		border-color: color-mix(in srgb, var(--pa) 70%, transparent);
-		box-shadow: 0 14px 32px -14px color-mix(in srgb, var(--pa) 55%, transparent);
-		transform: translateY(-3px);
+		border-color: color-mix(in srgb, var(--pa) 72%, transparent);
+		box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--pa) 58%, transparent);
+		transform: translateY(-4px);
 	}
+	.home-portal-card:hover .hp-motif {
+		opacity: 0.24;
+		transform: rotate(0deg) scale(1.05);
+	}
+
 	.home-portal-icon {
 		width: 2.9rem;
 		height: 2.9rem;
@@ -187,13 +270,15 @@ const cards: PortalCard[] = [
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: color-mix(in srgb, var(--pa) 80%, #000 0%);
-		background: color-mix(in srgb, var(--pa) 18%, transparent);
-		transition: transform 0.3s ease;
+		color: color-mix(in srgb, var(--pa) 82%, #000 0%);
+		background: color-mix(in srgb, var(--pa) 20%, transparent);
+		transition: transform 0.3s ease, background 0.3s ease;
 	}
 	.home-portal-card:hover .home-portal-icon {
-		transform: scale(1.08);
+		transform: scale(1.06);
+		background: color-mix(in srgb, var(--pa) 28%, transparent);
 	}
+
 	.home-portal-arrow {
 		color: transparent;
 		transform: translateX(-4px);
@@ -203,15 +288,16 @@ const cards: PortalCard[] = [
 	.home-portal-card:hover .home-portal-arrow {
 		opacity: 1;
 		transform: translateX(0);
-		color: color-mix(in srgb, var(--pa) 80%, #000 0%);
+		color: color-mix(in srgb, var(--pa) 82%, #000 0%);
 	}
+
 	.home-portal-glow {
 		position: absolute;
 		inset: 0;
 		background: radial-gradient(
 			circle at 88% 8%,
-			color-mix(in srgb, var(--pa) 34%, transparent),
-			transparent 55%
+			color-mix(in srgb, var(--pa) 38%, transparent),
+			transparent 56%
 		);
 		opacity: 0;
 		transition: opacity 0.3s ease;
@@ -219,22 +305,54 @@ const cards: PortalCard[] = [
 	.home-portal-card:hover .home-portal-glow {
 		opacity: 1;
 	}
+
+	/* 进入视口渐现（默认可见；JS 生效才加 hp-ready/hp-in，避免无 JS 时隐藏） */
+	.home-portal-grid.hp-ready .home-portal-card {
+		opacity: 0;
+		transform: translateY(14px);
+		transition: opacity 0.5s ease, transform 0.5s ease;
+	}
+	.home-portal-grid.hp-ready .home-portal-card.hp-in {
+		opacity: 1;
+		transform: none;
+	}
 </style>
 
 <script>
-  (function () {
-    const el = document.getElementById("portal-greeting");
-    if (!el) return;
-    const h = new Date().getHours();
-    const m: [number, number, string][] = [
-      [0, 5, "夜深了"],
-      [5, 11, "早上好"],
-      [11, 13, "中午好"],
-      [13, 18, "下午好"],
-      [18, 24, "晚上好"],
-    ];
-    const found = m.find(([s, e]) => h >= s && h < e);
-    el.textContent = found ? found[2] : "晚上好";
-    el.classList.remove("hidden");
-  })();
+	(function () {
+		// 分时问候
+		const greet = document.getElementById("portal-greeting");
+		if (greet) {
+			const h = new Date().getHours();
+			const m: [number, number, string][] = [
+				[0, 5, "夜深了"],
+				[5, 11, "早上好"],
+				[11, 13, "中午好"],
+				[13, 18, "下午好"],
+				[18, 24, "晚上好"],
+			];
+			const found = m.find(([s, e]) => h >= s && h < e);
+			greet.textContent = found ? found[2] : "晚上好";
+			greet.classList.remove("hidden");
+		}
+
+		// 进入视口渐现
+		const grid = document.getElementById("home-portal-grid");
+		if (!grid || !("IntersectionObserver" in window)) return;
+		const cards = Array.from(grid.querySelectorAll(".home-portal-card"));
+		if (cards.length === 0) return;
+		grid.classList.add("hp-ready");
+		const io = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((e) => {
+					if (e.isIntersecting) {
+						e.target.classList.add("hp-in");
+						io.unobserve(e.target);
+					}
+				});
+			},
+			{ rootMargin: "0px 0px -32px 0px" },
+		);
+		cards.forEach((c) => io.observe(c));
+	})();
 </script>
