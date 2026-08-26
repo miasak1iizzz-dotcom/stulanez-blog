@@ -213,7 +213,8 @@ const traitStatuses = $derived.by(() => {
 const unitCount = $derived(board.filter(Boolean).length);
 const goldTotal = $derived(
 	board.reduce(
-		(sum, slot) => sum + (slot ? (unitMap.get(slot.unitId)?.cost ?? 0) : 0),
+		(sum, slot) =>
+			sum + (slot ? ((unitMap.get(slot.unitId)?.cost ?? 0) * 3) : 0),
 		0,
 	),
 );
@@ -328,6 +329,7 @@ function handleDragStart(event: DragEvent, payload: string) {
 
 function handleDrop(event: DragEvent, target: number) {
 	event.preventDefault();
+	event.stopPropagation();
 	const payload = event.dataTransfer?.getData("text/plain") ?? "";
 	if (payload.startsWith("unit:")) {
 		placeUnit(payload.slice(5), target);
@@ -349,6 +351,23 @@ function handleDrop(event: DragEvent, target: number) {
 	else board = next;
 	cloneBoard(enemyVisible ? "enemy" : "main");
 	selectedCell = target;
+}
+
+// 拖到棋格外松手：删除该棋子（tactics.tools 交互）
+function handleOutsideDrop(event: DragEvent) {
+	const payload = event.dataTransfer?.getData("text/plain") ?? "";
+	if (!payload.startsWith("board:")) return;
+	event.preventDefault();
+	const source = Number(payload.slice(6));
+	const target_ = enemyVisible ? enemyBoard : board;
+	if (!Number.isInteger(source) || !target_[source]) return;
+	const next = [...target_];
+	next[source] = null;
+	if (enemyVisible) enemyBoard = next;
+	else board = next;
+	cloneBoard(enemyVisible ? "enemy" : "main");
+	selectedCell = null;
+	notify("已移出阵容");
 }
 
 function equipItem(itemId: string, target: number) {
@@ -618,7 +637,7 @@ async function downloadScreenshot() {
 	<meta name="theme-color" content="#0a1322" />
 </svelte:head>
 
-<div class="ttb" onmouseleave={hideTooltip}>
+<div class="ttb" onmouseleave={hideTooltip} ondrop={handleOutsideDrop}>
 	<section class="ttb-controls" aria-label="阵容操作">
 		<div class="ttc-set">
 			<span class="ttc-set-badge">SET {data.set}</span>
@@ -1245,7 +1264,7 @@ async function downloadScreenshot() {
 	/* 棋盘 */
 	.ttb-boards { display: grid; gap: 14px; align-content: start; }
 	.ttb-board-wrap {
-		padding: 26px 34px;
+		padding: 18px 24px;
 		border: 1px solid var(--tt-line);
 		border-radius: 10px;
 		background: linear-gradient(180deg, #16305c, #122647);
@@ -1446,27 +1465,27 @@ async function downloadScreenshot() {
 	.ttb-group-head img { width: 20px; height: 20px; border-radius: 4px; object-fit: contain; }
 	.ttb-unit-row {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, 52px);
-		gap: 5px;
-		margin-bottom: 7px;
-		padding: 6px;
+		grid-template-columns: repeat(auto-fill, 42px);
+		gap: 4px;
+		margin-bottom: 6px;
+		padding: 5px;
 		border-radius: 6px;
 		background: color-mix(in srgb, var(--band, transparent) 9%, transparent);
 	}
 	.ttb-unit {
-		width: 52px;
-		height: 52px;
+		width: 42px;
+		height: 42px;
 		padding: 0;
-		border: 2px solid var(--cost-color);
-		border-radius: 5px;
+		border: 1.5px solid var(--cost-color);
+		border-radius: 4px;
 		background: #0b1c3a;
 		cursor: pointer;
 		transition: transform 0.12s ease, filter 0.12s ease;
 	}
 	.ttb-unit:hover { z-index: 2; filter: brightness(1.2); transform: translateY(-2px); }
 	.ttb-unit img { width: 100%; height: 100%; border-radius: 3px; object-fit: cover; }
-	.ttb-item-strip { display: flex; flex-wrap: wrap; gap: 4px; padding: 10px 12px 4px; }
-	.ttb-item-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-height: 330px; overflow: auto; padding: 8px 12px 12px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
+	.ttb-item-strip { display: flex; flex-wrap: wrap; gap: 3px; padding: 10px 10px 4px; }
+	.ttb-item-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; max-height: 280px; overflow: auto; padding: 8px 10px 10px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
 	.ttb-item {
 		aspect-ratio: 1;
 		padding: 0;
