@@ -169,6 +169,11 @@ const gridItems = $derived.by(() => {
 		);
 	return [];
 });
+const standardItems = $derived(
+	data.items.filter((item) => item.category === "standard"),
+);
+const emblemItems = $derived(data.items.filter((item) => item.category === "emblem"));
+const artifactItems = $derived(data.items.filter((item) => item.category === "artifact"));
 const traitStatuses = $derived.by(() => {
 	const counts = new Map<string, number>();
 	for (const slot of board) {
@@ -899,7 +904,7 @@ async function downloadScreenshot() {
 					<button type="button" role="tab" aria-selected={itemTab === "other"} class:active={itemTab === "other"} onclick={() => (itemTab = "other")}>其它</button>
 				</div>
 			</header>
-			{#if itemTab !== "radiant"}
+			{#if itemTab === "standard"}
 				<div class="ttb-item-strip">
 					{#each componentItems as item (item.id)}
 						<button
@@ -919,7 +924,7 @@ async function downloadScreenshot() {
 					{/each}
 				</div>
 				<div class="ttb-item-grid">
-					{#each gridItems as item (item.id)}
+					{#each standardItems as item (item.id)}
 						<button
 							type="button"
 							class="ttb-item"
@@ -936,6 +941,70 @@ async function downloadScreenshot() {
 							<img src={item.image} alt="" loading="lazy" />
 						</button>
 					{/each}
+				</div>
+			{:else if itemTab === "other"}
+				<div class="ttb-item-section">
+					<h4>不可合成纹章</h4>
+					<div class="ttb-item-grid">
+						{#each emblemItems as item (item.id)}
+							<button
+								type="button"
+								class="ttb-item"
+								title={item.name}
+								aria-label={item.name}
+								onclick={() => clickItem(item.id)}
+								onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
+								onmousemove={moveTooltip}
+								onmouseleave={hideTooltip}
+								draggable="true"
+								ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
+							>
+								<img src={item.image} alt="" loading="lazy" />
+							</button>
+						{/each}
+					</div>
+				</div>
+				<div class="ttb-item-section">
+					<h4>奥恩神器</h4>
+					<div class="ttb-item-grid">
+						{#each artifactItems as item (item.id)}
+							<button
+								type="button"
+								class="ttb-item"
+								title={item.name}
+								aria-label={item.name}
+								onclick={() => clickItem(item.id)}
+								onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
+								onmousemove={moveTooltip}
+								onmouseleave={hideTooltip}
+								draggable="true"
+								ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
+							>
+								<img src={item.image} alt="" loading="lazy" />
+							</button>
+						{/each}
+					</div>
+				</div>
+				<div class="ttb-item-section">
+					<h4>装备散件</h4>
+					<div class="ttb-item-strip">
+						{#each componentItems as item (item.id)}
+							<button
+								type="button"
+								class="ttb-item"
+								title={item.name}
+								aria-label={item.name}
+								onclick={() => clickItem(item.id)}
+								onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
+								onmousemove={moveTooltip}
+								onmouseleave={hideTooltip}
+								draggable="true"
+								ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
+							>
+								<img src={item.image} alt="" loading="lazy" />
+							</button>
+						{/each}
+					</div>
 				</div>
 			{:else}
 				<div class="ttb-empty-note">当前数据源（Data Dragon {data.patch}）暂未提供光明武器数据。</div>
@@ -1376,8 +1445,8 @@ async function downloadScreenshot() {
 	.ttb-group-head { display: flex; align-items: center; gap: 7px; padding: 8px 4px 4px; color: #9fb4dd; font-size: 12px; font-weight: 700; }
 	.ttb-group-head img { width: 20px; height: 20px; border-radius: 4px; object-fit: contain; }
 	.ttb-unit-row {
-		display: flex;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, 52px);
 		gap: 5px;
 		margin-bottom: 7px;
 		padding: 6px;
@@ -1411,6 +1480,19 @@ async function downloadScreenshot() {
 	.ttb-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
 	.ttb-empty-note { padding: 26px 18px; color: var(--tt-muted); font-size: 13px; text-align: center; }
 	.ttb-empty-note.tall { padding: 60px 30px; }
+	.ttb-item-section { padding: 10px 12px 4px; }
+	.ttb-item-section h4 {
+		margin: 0 0 8px;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--tt-muted);
+		white-space: nowrap;
+	}
+	.ttb-item-section .ttb-item-grid {
+		max-height: none;
+		overflow: visible;
+		padding: 0 0 6px;
+	}
 
 	/* 弹层 */
 	.ttb-overlay {
