@@ -39,7 +39,66 @@ export const atmosphereConfig: AtmosphereConfig = {
 	},
 	splash: {
 		enable: true,
-		defaultStyle: "logo",
-		durationMs: 1800,
+		durationMs: 2200,
+		defaultPortrait: "jett",
+		defaultUpper: "upper-a",
+		defaultLower: "lower-a",
+		portraits: [
+			{
+				id: "jett",
+				name: "捷风",
+				badge: "默认",
+				image: "/assets/images/splash/portraits/jett.webp",
+			},
+			{
+				id: "sage",
+				name: "贤者",
+				image: "/assets/images/splash/portraits/sage.webp",
+			},
+			{
+				id: "reyna",
+				name: "芮娜",
+				image: "/assets/images/splash/portraits/reyna.webp",
+			},
+			{
+				id: "killjoy",
+				name: "奇乐",
+				image: "/assets/images/splash/portraits/killjoy.webp",
+			},
+			{
+				id: "neon",
+				name: "霓虹",
+				image: "/assets/images/splash/portraits/neon.webp",
+			},
+			{
+				id: "clove",
+				name: "暮蝶",
+				image: "/assets/images/splash/portraits/clove.webp",
+			},
+		],
+		upperBanners: [
+			{
+				id: "upper-a",
+				name: "特工群像",
+				image: "/assets/images/splash/banners/upper-a.webp",
+			},
+			{
+				id: "upper-b",
+				name: "毒雾夜行",
+				image: "/assets/images/splash/banners/upper-b.webp",
+			},
+		],
+		lowerBanners: [
+			{
+				id: "lower-a",
+				name: "Q版三人",
+				image: "/assets/images/splash/banners/lower-a.webp",
+			},
+			{
+				id: "lower-b",
+				name: "玫魂",
+				image: "/assets/images/splash/banners/lower-b.webp",
+			},
+		],
 	},
 };

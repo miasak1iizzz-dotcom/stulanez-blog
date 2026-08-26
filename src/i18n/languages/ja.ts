@@ -381,11 +381,12 @@ export const ja: Translation = {
 	[Key.wallpaperBuiltin]: "プリセット壁紙",
 	[Key.splashAnimation]: "スプラッシュ",
 	[Key.splashPlayOnHome]: "ホーム入場時に再生",
-	[Key.splashPreviewHint]: "スタイルを切り替えるとすぐにプレビューします。",
+	[Key.splashPreviewHint]:
+		"ホームでキャラやバナーを切り替えると、すぐにプレビューします。",
 	[Key.splashPreviewBadge]: "ホームでプレビュー可",
-	[Key.splashStyleLogo]: "ロゴ",
-	[Key.splashStylePetal]: "花びら",
-	[Key.splashStyleWash]: "ウォッシュ",
+	[Key.splashSelectCharacter]: "スプラッシュキャラ",
+	[Key.splashUpperBanner]: "上バナー",
+	[Key.splashLowerBanner]: "下バナー",
 
 	// カードスタイル
 	[Key.cardSettings]: "カードスタイル",

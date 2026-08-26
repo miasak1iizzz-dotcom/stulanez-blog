@@ -383,11 +383,12 @@ export const en: Translation = {
 	[Key.wallpaperBuiltin]: "Built-in wallpapers",
 	[Key.splashAnimation]: "Splash",
 	[Key.splashPlayOnHome]: "Play when entering the home page",
-	[Key.splashPreviewHint]: "Switching a style previews it immediately.",
+	[Key.splashPreviewHint]:
+		"Switching a character or banner on the home page plays a preview.",
 	[Key.splashPreviewBadge]: "Preview on home",
-	[Key.splashStyleLogo]: "Logo",
-	[Key.splashStylePetal]: "Petals",
-	[Key.splashStyleWash]: "Wash",
+	[Key.splashSelectCharacter]: "Choose splash character",
+	[Key.splashUpperBanner]: "Upper banner",
+	[Key.splashLowerBanner]: "Lower banner",
 
 	// Card Style
 	[Key.cardSettings]: "Card Style",

@@ -5,7 +5,22 @@ import "@/styles/splash.css";
 
 const splash = atmosphereConfig.splash;
 const title = siteConfig.title;
-const logoSrc = url("/favicon/riven-192.png");
+const catalog = {
+	portraits: Object.fromEntries(
+		splash.portraits.map((item) => [item.id, url(item.image)]),
+	),
+	uppers: Object.fromEntries(
+		splash.upperBanners.map((item) => [item.id, url(item.image)]),
+	),
+	lowers: Object.fromEntries(
+		splash.lowerBanners.map((item) => [item.id, url(item.image)]),
+	),
+	defaults: {
+		portrait: splash.defaultPortrait,
+		upper: splash.defaultUpper,
+		lower: splash.defaultLower,
+	},
+};
 ---
 
 {
@@ -14,19 +29,16 @@ const logoSrc = url("/favicon/riven-192.png");
 			id="splash-screen"
 			class="splash-screen"
 			hidden
-			data-default-style={splash.defaultStyle}
 			data-duration={splash.durationMs}
-			data-title={title}
 			aria-hidden="true"
 		>
-			<div class="splash-stage" data-splash-stage>
-				<img class="splash-logo" src={logoSrc} alt="" width="96" height="96" />
+			<img class="splash-upper" data-splash-upper alt="" />
+			<div class="splash-hero">
+				<img class="splash-character" data-splash-character alt="" />
 				<p class="splash-title">{title}</p>
-				<div class="splash-petals" aria-hidden="true">
-					<span></span><span></span><span></span><span></span><span></span>
-					<span></span><span></span><span></span>
-				</div>
 			</div>
+			<img class="splash-lower" data-splash-lower alt="" />
+			<script type="application/json" id="splash-catalog" set:html={JSON.stringify(catalog)} />
 		</div>
 	)
 }
@@ -39,10 +51,17 @@ const logoSrc = url("/favicon/riven-192.png");
 				if (!root) return;
 
 				var SESSION_KEY = "stulanez.splash.played";
-				var duration = parseInt(root.getAttribute("data-duration") || "1800", 10);
-				var defaultStyle = root.getAttribute("data-default-style") || "logo";
+				var duration = parseInt(root.getAttribute("data-duration") || "2200", 10);
+				var catalogNode = document.getElementById("splash-catalog");
+				var catalog = { portraits: {}, uppers: {}, lowers: {}, defaults: {} };
+				try {
+					catalog = JSON.parse(catalogNode && catalogNode.textContent ? catalogNode.textContent : "{}");
+				} catch (e) {}
 				var hideTimer = 0;
 				var playing = false;
+				var upperEl = root.querySelector("[data-splash-upper]");
+				var characterEl = root.querySelector("[data-splash-character]");
+				var lowerEl = root.querySelector("[data-splash-lower]");
 
 				function reducedMotion() {
 					return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -58,24 +77,32 @@ const logoSrc = url("/favicon/riven-192.png");
 					}
 				}
 
-				function storedStyle() {
+				function storedOr(key, fallback) {
 					try {
-						var raw = localStorage.getItem("splashStyle");
-						if (raw === "logo" || raw === "petal" || raw === "wash") return raw;
+						var raw = localStorage.getItem(key);
+						if (raw) return raw;
 					} catch (e) {}
-					return defaultStyle;
+					return fallback;
+				}
+
+				function applyArt(portrait, upper, lower) {
+					var portraitSrc = catalog.portraits[portrait] || catalog.portraits[catalog.defaults.portrait];
+					var upperSrc = catalog.uppers[upper] || catalog.uppers[catalog.defaults.upper];
+					var lowerSrc = catalog.lowers[lower] || catalog.lowers[catalog.defaults.lower];
+					if (characterEl && portraitSrc) characterEl.src = portraitSrc;
+					if (upperEl && upperSrc) upperEl.src = upperSrc;
+					if (lowerEl && lowerSrc) lowerEl.src = lowerSrc;
 				}
 
 				function finish() {
 					playing = false;
 					root.hidden = true;
-					root.classList.remove("is-playing", "is-preview");
+					root.classList.remove("is-playing", "is-preview", "is-leaving");
 					root.setAttribute("aria-hidden", "true");
 					document.documentElement.removeAttribute("data-splash-pending");
-					document.documentElement.removeAttribute("data-splash-style");
 				}
 
-				function play(style, isPreview) {
+				function play(detail, isPreview) {
 					if (reducedMotion()) {
 						finish();
 						return;
@@ -83,16 +110,20 @@ const logoSrc = url("/favicon/riven-192.png");
 					if (playing && !isPreview) return;
 					if (hideTimer) window.clearTimeout(hideTimer);
 					playing = true;
+					applyArt(
+						(detail && detail.portrait) || storedOr("splashPortrait", catalog.defaults.portrait),
+						(detail && detail.upper) || storedOr("splashUpper", catalog.defaults.upper),
+						(detail && detail.lower) || storedOr("splashLower", catalog.defaults.lower)
+					);
 					root.hidden = false;
 					root.classList.toggle("is-preview", !!isPreview);
+					root.classList.remove("is-leaving");
 					root.classList.add("is-playing");
 					root.setAttribute("aria-hidden", "false");
 					document.documentElement.setAttribute("data-splash-pending", "true");
-					document.documentElement.setAttribute("data-splash-style", style);
 					hideTimer = window.setTimeout(function () {
 						root.classList.add("is-leaving");
 						window.setTimeout(function () {
-							root.classList.remove("is-leaving");
 							finish();
 						}, 420);
 					}, duration);
@@ -111,18 +142,17 @@ const logoSrc = url("/favicon/riven-192.png");
 				}
 
 				if (shouldAutoplay() || document.documentElement.hasAttribute("data-splash-pending")) {
-					play(storedStyle(), false);
+					play(null, false);
 				} else {
 					finish();
 				}
 
 				window.addEventListener("splashPreview", function (event) {
-					var detail = event.detail || {};
-					play(detail.style || storedStyle(), true);
+					play(event.detail || {}, true);
 				});
 				window.addEventListener("splashEnabledChange", function (event) {
 					if (event.detail && event.detail.enabled) {
-						play(storedStyle(), true);
+						play(null, true);
 					} else {
 						finish();
 					}

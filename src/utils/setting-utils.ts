@@ -17,8 +17,16 @@ import {
 	sakuraConfig,
 	siteConfig,
 } from "../config";
-import type { SplashStyleId } from "../types/atmosphereConfig";
+import type { SplashBanner, SplashPortrait } from "../types/atmosphereConfig";
 import { isHomePage as checkIsHomePage } from "./layout-utils";
+import {
+	isSplashLowerId,
+	isSplashPortraitId,
+	isSplashUpperId,
+	resolveSplashLower,
+	resolveSplashPortrait,
+	resolveSplashUpper,
+} from "./splash-catalog-utils";
 
 // Declare global functions
 declare global {
@@ -917,8 +925,9 @@ export function setCardFollowThemeEnabled(enabled: boolean): void {
 
 const WALLPAPER_INDEX_KEY = "bannerWallpaperIndex";
 const SPLASH_ENABLED_KEY = "splashEnabled";
-const SPLASH_STYLE_KEY = "splashStyle";
-const SPLASH_STYLES: SplashStyleId[] = ["logo", "petal", "wash"];
+const SPLASH_PORTRAIT_KEY = "splashPortrait";
+const SPLASH_UPPER_KEY = "splashUpper";
+const SPLASH_LOWER_KEY = "splashLower";
 
 export function getDefaultBannerWallpaperIndex(): number | null {
 	return null;
@@ -962,8 +971,16 @@ export function getDefaultSplashEnabled(): boolean {
 	return atmosphereConfig.splash.enable;
 }
 
-export function getDefaultSplashStyle(): SplashStyleId {
-	return atmosphereConfig.splash.defaultStyle;
+export function getDefaultSplashPortrait(): string {
+	return atmosphereConfig.splash.defaultPortrait;
+}
+
+export function getDefaultSplashUpper(): string {
+	return atmosphereConfig.splash.defaultUpper;
+}
+
+export function getDefaultSplashLower(): string {
+	return atmosphereConfig.splash.defaultLower;
 }
 
 export function getStoredSplashEnabled(): boolean {
@@ -998,37 +1015,112 @@ export function setSplashEnabled(enabled: boolean): void {
 	}
 }
 
-function isSplashStyle(value: string | null): value is SplashStyleId {
-	return value !== null && SPLASH_STYLES.includes(value as SplashStyleId);
+function emitSplashPreview(detail: {
+	portrait: string;
+	upper: string;
+	lower: string;
+}): void {
+	if (typeof window === "undefined") return;
+	window.dispatchEvent(
+		new CustomEvent("splashPreview", {
+			detail,
+		}),
+	);
 }
 
-export function getStoredSplashStyle(): SplashStyleId {
+function currentSplashSelection(
+	overrides: Partial<{ portrait: string; upper: string; lower: string }> = {},
+): { portrait: string; upper: string; lower: string } {
+	return {
+		portrait: overrides.portrait ?? getStoredSplashPortrait(),
+		upper: overrides.upper ?? getStoredSplashUpper(),
+		lower: overrides.lower ?? getStoredSplashLower(),
+	};
+}
+
+export function getStoredSplashPortrait(): string {
 	if (!displaySettingsConfig.splashSwitchable) {
-		return getDefaultSplashStyle();
+		return getDefaultSplashPortrait();
 	}
 	if (
 		typeof localStorage === "undefined" ||
 		typeof localStorage.getItem !== "function"
 	) {
-		return getDefaultSplashStyle();
+		return getDefaultSplashPortrait();
 	}
-	const stored = localStorage.getItem(SPLASH_STYLE_KEY);
-	return isSplashStyle(stored) ? stored : getDefaultSplashStyle();
+	const stored = localStorage.getItem(SPLASH_PORTRAIT_KEY);
+	return isSplashPortraitId(stored) ? stored : getDefaultSplashPortrait();
 }
 
-export function setSplashStyle(style: SplashStyleId): void {
+export function setSplashPortrait(id: string): void {
 	if (
 		typeof localStorage === "undefined" ||
 		typeof localStorage.setItem !== "function"
 	) {
 		return;
 	}
-	localStorage.setItem(SPLASH_STYLE_KEY, style);
-	if (typeof window !== "undefined") {
-		window.dispatchEvent(
-			new CustomEvent("splashPreview", {
-				detail: { style },
-			}),
-		);
+	localStorage.setItem(SPLASH_PORTRAIT_KEY, id);
+	emitSplashPreview(currentSplashSelection({ portrait: id }));
+}
+
+export function getStoredSplashUpper(): string {
+	if (!displaySettingsConfig.splashSwitchable) {
+		return getDefaultSplashUpper();
 	}
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.getItem !== "function"
+	) {
+		return getDefaultSplashUpper();
+	}
+	const stored = localStorage.getItem(SPLASH_UPPER_KEY);
+	return isSplashUpperId(stored) ? stored : getDefaultSplashUpper();
+}
+
+export function setSplashUpper(id: string): void {
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.setItem !== "function"
+	) {
+		return;
+	}
+	localStorage.setItem(SPLASH_UPPER_KEY, id);
+	emitSplashPreview(currentSplashSelection({ upper: id }));
+}
+
+export function getStoredSplashLower(): string {
+	if (!displaySettingsConfig.splashSwitchable) {
+		return getDefaultSplashLower();
+	}
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.getItem !== "function"
+	) {
+		return getDefaultSplashLower();
+	}
+	const stored = localStorage.getItem(SPLASH_LOWER_KEY);
+	return isSplashLowerId(stored) ? stored : getDefaultSplashLower();
+}
+
+export function setSplashLower(id: string): void {
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.setItem !== "function"
+	) {
+		return;
+	}
+	localStorage.setItem(SPLASH_LOWER_KEY, id);
+	emitSplashPreview(currentSplashSelection({ lower: id }));
+}
+
+export function getResolvedSplashAssets(): {
+	portrait: SplashPortrait;
+	upper: SplashBanner;
+	lower: SplashBanner;
+} {
+	return {
+		portrait: resolveSplashPortrait(getStoredSplashPortrait()),
+		upper: resolveSplashUpper(getStoredSplashUpper()),
+		lower: resolveSplashLower(getStoredSplashLower()),
+	};
 }

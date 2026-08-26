@@ -384,11 +384,12 @@ export const ru: Translation = {
 	[Key.wallpaperBuiltin]: "Встроенные обои",
 	[Key.splashAnimation]: "Заставка",
 	[Key.splashPlayOnHome]: "Показывать на главной",
-	[Key.splashPreviewHint]: "Смена стиля сразу показывает превью.",
+	[Key.splashPreviewHint]:
+		"Смена персонажа или баннера на главной сразу показывает превью.",
 	[Key.splashPreviewBadge]: "Превью на главной",
-	[Key.splashStyleLogo]: "Логотип",
-	[Key.splashStylePetal]: "Лепестки",
-	[Key.splashStyleWash]: "Вспышка",
+	[Key.splashSelectCharacter]: "Персонаж заставки",
+	[Key.splashUpperBanner]: "Верхний баннер",
+	[Key.splashLowerBanner]: "Нижний баннер",
 
 	// Стиль карточек
 	[Key.cardSettings]: "Стиль карточек",

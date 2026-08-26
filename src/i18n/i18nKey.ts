@@ -372,9 +372,9 @@ enum I18nKey {
 	splashPlayOnHome = "splashPlayOnHome",
 	splashPreviewHint = "splashPreviewHint",
 	splashPreviewBadge = "splashPreviewBadge",
-	splashStyleLogo = "splashStyleLogo",
-	splashStylePetal = "splashStylePetal",
-	splashStyleWash = "splashStyleWash",
+	splashSelectCharacter = "splashSelectCharacter",
+	splashUpperBanner = "splashUpperBanner",
+	splashLowerBanner = "splashLowerBanner",
 
 	// 卡片样式
 	cardSettings = "cardSettings",
