@@ -32,7 +32,7 @@ type TftData = {
 	items: Item[];
 	augments?: Augment[];
 };
-type BoardUnit = { unitId: string; star: number; items: string[] };
+type BoardUnit = { unitId: string; star: number; items: string[]; luxTrait?: string };
 type TraitStatus = Trait & {
 	count: number;
 	activeStyle: number;
@@ -119,11 +119,26 @@ type PoolGroup = { key: string; label: string; image?: string; band: string; uni
 const originIds = $derived(
 	new Set(data.units.map((unit) => unit.traits[0]?.id).filter(Boolean)),
 );
+const LUX_FORMS = [
+	"DA_Primal18",
+	"DA_18_Elderwood",
+	"DA_18_Fae",
+	"DA_18_Blossom",
+	"DA_18_Coven",
+	"DA_18_Solar",
+	"DA_18_Blackthorn",
+	"DA_18_Inferno",
+	"DA_18_Lunar",
+];
 const luxTraits = $derived(
-	[...traitMap.values()].filter((t) => originIds.has(t.id)),
+	[...traitMap.values()].filter((t) => LUX_FORMS.includes(t.id)),
 );
 function isLux(unit: Unit) {
 	return unit.id === "DA_Lux18_Base" || unit.traits.some((t) => t.id === "DA_18_LuxUniqueTrait");
+}
+function luxFormPair(id: string) {
+	const i = id.indexOf("::");
+	return i >= 0 ? { unitId: id.slice(0, i), traitId: id.slice(i + 2) } : { unitId: id, traitId: "" };
 }
 const poolGroups = $derived.by(() => {
 	if (poolMode === "cost") {
@@ -178,6 +193,8 @@ const traitStatuses = $derived.by(() => {
 		for (const trait of unit?.traits ?? []) {
 			counts.set(trait.id, (counts.get(trait.id) ?? 0) + trait.amount);
 		}
+		// 拉克丝(大元素使)：自然之力给所选羁绊 +2
+		if (slot.luxTrait) counts.set(slot.luxTrait, (counts.get(slot.luxTrait) ?? 0) + 2);
 	}
 	return [...counts]
 		.map(([id, count]) => {
@@ -267,18 +284,20 @@ function cloneBoard(target: "main" | "enemy" = "main") {
 
 function placeUnit(unitId: string, target: number) {
 	const target_ = enemyVisible ? enemyBoard : board;
-	const existing = target_.findIndex((slot) => slot?.unitId === unitId);
+	const { unitId: baseId, traitId } = luxFormPair(unitId);
+	const existing = target_.findIndex((slot) => slot?.unitId === baseId);
 	if (existing === target) return;
 	const next = [...target_];
 	if (existing >= 0) next[existing] = null;
-	next[target] = { unitId, star: 1, items: [] };
+	next[target] = { unitId: baseId, star: 1, items: [], luxTrait: traitId || undefined };
 	if (enemyVisible) enemyBoard = next;
 	else board = next;
 	cloneBoard(enemyVisible ? "enemy" : "main");
 	selectedCell = null;
 }
 
-function chooseUnit(unitId: string) {
+function chooseUnit(id: string) {
+	const { unitId, traitId } = luxFormPair(id);
 	const target_ = enemyVisible ? enemyBoard : board;
 	const existing = target_.findIndex((slot) => slot?.unitId === unitId);
 	if (existing >= 0) {
@@ -302,7 +321,7 @@ function chooseUnit(unitId: string) {
 		}
 	}
 	if (empty < 0) empty = target_.findIndex((slot) => !slot);
-	if (empty >= 0) placeUnit(unitId, empty);
+	if (empty >= 0) placeUnit(traitId ? `${unitId}::${traitId}` : unitId, empty);
 	else notify(enemyVisible ? "敌方棋盘已经放满了" : "棋盘已经放满了");
 }
 
@@ -897,12 +916,12 @@ async function downloadScreenshot() {
 										class="ttb-unit ttb-unit-lux"
 										style={`--cost-color: ${COST_COLORS[unit.cost] ?? "#bbb"}`}
 										aria-label={`${unit.name}·${t.name}`}
-										onclick={() => chooseUnit(unit.id)}
+										onclick={() => chooseUnit(`${unit.id}::${t.id}`)}
 										onmouseenter={(event) => showTooltip(event, { unitId: unit.id })}
 										onmousemove={moveTooltip}
 										onmouseleave={hideTooltip}
 										draggable="true"
-										ondragstart={(event) => handleDragStart(event, `unit:${unit.id}`)}
+										ondragstart={(event) => handleDragStart(event, `unit:${unit.id}::${t.id}`)}
 									>
 										<img src={unit.image} alt="" loading="lazy" draggable="false" />
 										<span class="ttb-unit-lux-badge" title={t.name}><img src={t.image} alt="" loading="lazy" /></span>
