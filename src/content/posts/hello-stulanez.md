@@ -4,6 +4,7 @@ published: 2026-08-26
 description: 站点刚挂到 stulanez.com。这里会慢慢写下代码、生活，以及还想继续做的事。
 tags: [站点, 开始]
 category: 随笔
+image: /assets/images/posts/hello-stulanez-cover.svg
 pinned: true
 draft: false
 slug: hello-stulanez
