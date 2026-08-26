@@ -4,7 +4,10 @@ import { url } from "@/utils/url-utils";
 import "@/styles/splash.css";
 
 const splash = atmosphereConfig.splash;
-const title = siteConfig.title;
+const titleChars = Array.from(siteConfig.title);
+const titleMid = Math.ceil(titleChars.length / 2);
+const titleLeft = titleChars.slice(0, titleMid).join("");
+const titleRight = titleChars.slice(titleMid).join("");
 const catalog = {
 	portraits: Object.fromEntries(
 		splash.portraits.map((item) => [item.id, url(item.image)]),
@@ -33,11 +36,13 @@ const catalog = {
 			aria-hidden="true"
 		>
 			<img class="splash-upper" data-splash-upper alt="" />
-			<div class="splash-hero">
-				<img class="splash-character" data-splash-character alt="" />
-				<p class="splash-title">{title}</p>
-			</div>
 			<img class="splash-lower" data-splash-lower alt="" />
+			<div class="splash-band" aria-hidden="true"></div>
+			<div class="splash-title-row">
+				<p class="splash-title splash-title-left">{titleLeft}</p>
+				<p class="splash-title splash-title-right">{titleRight}</p>
+			</div>
+			<img class="splash-character" data-splash-character alt="" />
 			<script type="application/json" id="splash-catalog" set:html={JSON.stringify(catalog)} />
 		</div>
 	)
