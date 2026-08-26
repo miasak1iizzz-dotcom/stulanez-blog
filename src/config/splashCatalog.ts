@@ -56,7 +56,7 @@ export const splashPortraits: SplashPortrait[] = [
 		name: "幻棱",
 		image: "/assets/images/splash/portraits/waylay.webp",
 		ultName: "时光修罗场",
-		ultLine: "时光倒流！",
+		ultLine: "一息，一闪，一念！",
 	},
 	{
 		id: "omen",
@@ -119,7 +119,7 @@ export const splashPortraits: SplashPortrait[] = [
 		name: "禁灭",
 		image: "/assets/images/splash/portraits/veto.webp",
 		ultName: "完全进化",
-		ultLine: "这就是进化！",
+		ultLine: "让一切都湮灭！",
 	},
 	{
 		id: "vyse",
@@ -154,14 +154,14 @@ export const splashPortraits: SplashPortrait[] = [
 		name: "迷核",
 		image: "/assets/images/splash/portraits/miks.webp",
 		ultName: "音脉强袭",
-		ultLine: "跟上节奏！",
+		ultLine: "聆听这个！",
 	},
 	{
 		id: "tejo",
 		name: "钛狐",
 		image: "/assets/images/splash/portraits/tejo.webp",
 		ultName: "末日审判",
-		ultLine: "开始清场！",
+		ultLine: "末日从天而降！",
 	},
 	{
 		id: "deadlock",
