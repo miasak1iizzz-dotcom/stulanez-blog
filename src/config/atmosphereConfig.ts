@@ -1,5 +1,9 @@
 import type { AtmosphereConfig } from "../types/atmosphereConfig";
-import { splashMaps, splashPortraits } from "./splashCatalog";
+import {
+	splashLowerMaps,
+	splashPortraits,
+	splashUpperMaps,
+} from "./splashCatalog";
 
 export const atmosphereConfig: AtmosphereConfig = {
 	hitokoto: {
@@ -45,7 +49,7 @@ export const atmosphereConfig: AtmosphereConfig = {
 		defaultUpper: "ascent",
 		defaultLower: "split",
 		portraits: splashPortraits,
-		upperBanners: splashMaps,
-		lowerBanners: splashMaps,
+		upperBanners: splashUpperMaps,
+		lowerBanners: splashLowerMaps,
 	},
 };

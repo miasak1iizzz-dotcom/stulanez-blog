@@ -80,11 +80,11 @@ export function pickRandomSplashSelection(): {
 	lower: string;
 } {
 	const portraits = atmosphereConfig.splash.portraits;
-	const maps = atmosphereConfig.splash.upperBanners;
+	const upperMaps = atmosphereConfig.splash.upperBanners;
+	const lowerMaps = atmosphereConfig.splash.lowerBanners;
 	const portrait = pickRandomItem(portraits);
-	const upper = pickRandomItem(maps);
-	const otherMaps = maps.filter((item) => item.id !== upper.id);
-	const lower = pickRandomItem(otherMaps.length > 0 ? otherMaps : maps);
+	const upper = pickRandomItem(upperMaps);
+	const lower = pickRandomItem(lowerMaps);
 	return {
 		portrait: portrait.id,
 		upper: upper.id,

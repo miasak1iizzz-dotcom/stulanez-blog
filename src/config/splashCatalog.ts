@@ -274,3 +274,11 @@ export const splashMaps: SplashBanner[] = [
 		image: "/assets/images/splash/banners/split.webp",
 	},
 ];
+
+const splashMapSplit = Math.ceil(splashMaps.length / 2);
+
+export const splashUpperMaps: SplashBanner[] = splashMaps.slice(
+	0,
+	splashMapSplit,
+);
+export const splashLowerMaps: SplashBanner[] = splashMaps.slice(splashMapSplit);
