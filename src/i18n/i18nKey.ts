@@ -375,6 +375,8 @@ enum I18nKey {
 	splashSelectCharacter = "splashSelectCharacter",
 	splashUpperBanner = "splashUpperBanner",
 	splashLowerBanner = "splashLowerBanner",
+	splashRandom = "splashRandom",
+	splashRandomHint = "splashRandomHint",
 
 	// 卡片样式
 	cardSettings = "cardSettings",

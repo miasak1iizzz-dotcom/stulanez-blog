@@ -1,16 +1,19 @@
 ---
-import { atmosphereConfig, siteConfig } from "@/config";
+import { atmosphereConfig } from "@/config";
 import { url } from "@/utils/url-utils";
 import "@/styles/splash.css";
 
 const splash = atmosphereConfig.splash;
-const titleChars = Array.from(siteConfig.title);
-const titleMid = Math.ceil(titleChars.length / 2);
-const titleLeft = titleChars.slice(0, titleMid).join("");
-const titleRight = titleChars.slice(titleMid).join("");
 const catalog = {
 	portraits: Object.fromEntries(
-		splash.portraits.map((item) => [item.id, url(item.image)]),
+		splash.portraits.map((item) => [
+			item.id,
+			{
+				image: url(item.image),
+				ultName: item.ultName,
+				ultLine: item.ultLine,
+			},
+		]),
 	),
 	uppers: Object.fromEntries(
 		splash.upperBanners.map((item) => [item.id, url(item.image)]),
@@ -43,8 +46,8 @@ const catalog = {
 			</div>
 			<div class="splash-band" aria-hidden="true"></div>
 			<div class="splash-title-row">
-				<p class="splash-title splash-title-left">{titleLeft}</p>
-				<p class="splash-title splash-title-right">{titleRight}</p>
+				<p class="splash-title splash-title-left" data-splash-title-left></p>
+				<p class="splash-title splash-title-right" data-splash-title-right></p>
 			</div>
 			<img class="splash-character" data-splash-character alt="" />
 			<script type="application/json" id="splash-catalog" set:html={JSON.stringify(catalog)} />
@@ -71,6 +74,8 @@ const catalog = {
 				var upperEl = root.querySelector("[data-splash-upper]");
 				var characterEl = root.querySelector("[data-splash-character]");
 				var lowerEl = root.querySelector("[data-splash-lower]");
+				var titleLeftEl = root.querySelector("[data-splash-title-left]");
+				var titleRightEl = root.querySelector("[data-splash-title-right]");
 
 				function reducedMotion() {
 					return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -86,6 +91,14 @@ const catalog = {
 					}
 				}
 
+				function storedRandom() {
+					try {
+						return localStorage.getItem("splashRandom") === "true";
+					} catch (e) {
+						return false;
+					}
+				}
+
 				function storedOr(key, fallback) {
 					try {
 						var raw = localStorage.getItem(key);
@@ -94,13 +107,51 @@ const catalog = {
 					return fallback;
 				}
 
+				function idsOf(map) {
+					return Object.keys(map || {});
+				}
+
+				function pickId(map, exceptId) {
+					var ids = idsOf(map).filter(function (id) {
+						return id !== exceptId;
+					});
+					if (!ids.length) ids = idsOf(map);
+					return ids[Math.floor(Math.random() * ids.length)];
+				}
+
+				function resolveSelection(detail) {
+					if (detail && detail.portrait) {
+						return {
+							portrait: detail.portrait,
+							upper: detail.upper || storedOr("splashUpper", catalog.defaults.upper),
+							lower: detail.lower || storedOr("splashLower", catalog.defaults.lower)
+						};
+					}
+					if (storedRandom()) {
+						var upper = pickId(catalog.uppers);
+						return {
+							portrait: pickId(catalog.portraits),
+							upper: upper,
+							lower: pickId(catalog.lowers, upper)
+						};
+					}
+					return {
+						portrait: storedOr("splashPortrait", catalog.defaults.portrait),
+						upper: storedOr("splashUpper", catalog.defaults.upper),
+						lower: storedOr("splashLower", catalog.defaults.lower)
+					};
+				}
+
 				function applyArt(portrait, upper, lower) {
-					var portraitSrc = catalog.portraits[portrait] || catalog.portraits[catalog.defaults.portrait];
+					var portraitEntry = catalog.portraits[portrait] || catalog.portraits[catalog.defaults.portrait];
 					var upperSrc = catalog.uppers[upper] || catalog.uppers[catalog.defaults.upper];
 					var lowerSrc = catalog.lowers[lower] || catalog.lowers[catalog.defaults.lower];
+					var portraitSrc = portraitEntry && (portraitEntry.image || portraitEntry);
 					if (characterEl && portraitSrc) characterEl.src = portraitSrc;
 					if (upperEl && upperSrc) upperEl.src = upperSrc;
 					if (lowerEl && lowerSrc) lowerEl.src = lowerSrc;
+					if (titleLeftEl) titleLeftEl.textContent = (portraitEntry && portraitEntry.ultName) || "";
+					if (titleRightEl) titleRightEl.textContent = (portraitEntry && portraitEntry.ultLine) || "";
 				}
 
 				function finish() {
@@ -119,11 +170,8 @@ const catalog = {
 					if (playing && !isPreview) return;
 					if (hideTimer) window.clearTimeout(hideTimer);
 					playing = true;
-					applyArt(
-						(detail && detail.portrait) || storedOr("splashPortrait", catalog.defaults.portrait),
-						(detail && detail.upper) || storedOr("splashUpper", catalog.defaults.upper),
-						(detail && detail.lower) || storedOr("splashLower", catalog.defaults.lower)
-					);
+					var selection = resolveSelection(detail);
+					applyArt(selection.portrait, selection.upper, selection.lower);
 					root.hidden = false;
 					root.classList.toggle("is-preview", !!isPreview);
 					root.classList.remove("is-leaving", "is-playing");

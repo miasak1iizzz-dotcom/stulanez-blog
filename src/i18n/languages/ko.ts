@@ -386,6 +386,9 @@ export const ko: Translation = {
 	[Key.splashSelectCharacter]: "스플래시 캐릭터",
 	[Key.splashUpperBanner]: "상단 배너",
 	[Key.splashLowerBanner]: "하단 배너",
+	[Key.splashRandom]: "완전 랜덤",
+	[Key.splashRandomHint]:
+		"스플래시마다 요원, 맵, 궁극기 대사를 무작위로 고릅니다.",
 
 	// 카드 스타일
 	[Key.cardSettings]: "카드 스타일",

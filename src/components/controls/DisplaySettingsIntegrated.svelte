@@ -21,6 +21,7 @@ import {
 	getDefaultSplashEnabled,
 	getDefaultSplashLower,
 	getDefaultSplashPortrait,
+	getDefaultSplashRandom,
 	getDefaultSplashUpper,
 	getDefaultWavesEnabled,
 	getHue,
@@ -37,6 +38,7 @@ import {
 	getStoredSplashEnabled,
 	getStoredSplashLower,
 	getStoredSplashPortrait,
+	getStoredSplashRandom,
 	getStoredSplashUpper,
 	getStoredWallpaperMode,
 	getStoredWavesEnabled,
@@ -54,6 +56,7 @@ import {
 	setSplashEnabled,
 	setSplashLower,
 	setSplashPortrait,
+	setSplashRandom,
 	setSplashUpper,
 	setWallpaperMode,
 	setWavesEnabled,
@@ -122,6 +125,8 @@ let splashUpper = $state(getDefaultSplashUpper());
 const defaultSplashUpper = getDefaultSplashUpper();
 let splashLower = $state(getDefaultSplashLower());
 const defaultSplashLower = getDefaultSplashLower();
+let splashRandom = $state(getDefaultSplashRandom());
+const defaultSplashRandom = getDefaultSplashRandom();
 let sakuraEnabled = $state(true);
 const defaultSakuraEnabled = getDefaultSakuraEnabled();
 let overlayOpacity = $state(getDefaultOverlayOpacity());
@@ -208,6 +213,7 @@ let bannerSettingsIsDefault = $derived(
 );
 let splashSettingsIsDefault = $derived(
 	splashEnabled === defaultSplashEnabled &&
+		splashRandom === defaultSplashRandom &&
 		splashPortrait === defaultSplashPortrait &&
 		splashUpper === defaultSplashUpper &&
 		splashLower === defaultSplashLower,
@@ -406,6 +412,10 @@ function resetSplashSettings() {
 		splashEnabled = defaultSplashEnabled;
 		setSplashEnabled(defaultSplashEnabled);
 	}
+	if (splashRandom !== defaultSplashRandom) {
+		splashRandom = defaultSplashRandom;
+		setSplashRandom(defaultSplashRandom);
+	}
 	if (splashPortrait !== defaultSplashPortrait) {
 		splashPortrait = defaultSplashPortrait;
 		setSplashPortrait(defaultSplashPortrait);
@@ -583,6 +593,7 @@ onMount(() => {
 	splashPortrait = getStoredSplashPortrait();
 	splashUpper = getStoredSplashUpper();
 	splashLower = getStoredSplashLower();
+	splashRandom = getStoredSplashRandom();
 
 	// 从localStorage读取樱花特效状态
 	sakuraEnabled = getStoredSakuraEnabled();
@@ -734,12 +745,17 @@ $effect(() => {
 			</div>
 			<SplashPicker
 				enabled={splashEnabled}
+				random={splashRandom}
 				portrait={splashPortrait}
 				upper={splashUpper}
 				lower={splashLower}
 				onEnabledChange={(value) => {
 					splashEnabled = value;
 					setSplashEnabled(value);
+				}}
+				onRandomChange={(value) => {
+					splashRandom = value;
+					setSplashRandom(value);
 				}}
 				onPortraitChange={(value) => {
 					splashPortrait = value;

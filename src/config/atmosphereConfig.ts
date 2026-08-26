@@ -1,4 +1,5 @@
 import type { AtmosphereConfig } from "../types/atmosphereConfig";
+import { splashMaps, splashPortraits } from "./splashCatalog";
 
 export const atmosphereConfig: AtmosphereConfig = {
 	hitokoto: {
@@ -41,84 +42,10 @@ export const atmosphereConfig: AtmosphereConfig = {
 		enable: true,
 		durationMs: 4200,
 		defaultPortrait: "jett",
-		defaultUpper: "upper-a",
-		defaultLower: "lower-a",
-		portraits: [
-			{
-				id: "jett",
-				name: "捷风",
-				badge: "默认",
-				image: "/assets/images/splash/portraits/jett.webp",
-			},
-			{
-				id: "sage",
-				name: "贤者",
-				image: "/assets/images/splash/portraits/sage.webp",
-			},
-			{
-				id: "reyna",
-				name: "芮娜",
-				image: "/assets/images/splash/portraits/reyna.webp",
-			},
-			{
-				id: "killjoy",
-				name: "奇乐",
-				image: "/assets/images/splash/portraits/killjoy.webp",
-			},
-			{
-				id: "neon",
-				name: "霓虹",
-				image: "/assets/images/splash/portraits/neon.webp",
-			},
-			{
-				id: "clove",
-				name: "暮蝶",
-				image: "/assets/images/splash/portraits/clove.webp",
-			},
-		],
-		upperBanners: [
-			{
-				id: "upper-a",
-				name: "亚海悬城",
-				image: "/assets/images/splash/banners/upper-a.webp",
-			},
-			{
-				id: "upper-b",
-				name: "微风岛屿",
-				image: "/assets/images/splash/banners/upper-b.webp",
-			},
-			{
-				id: "upper-c",
-				name: "日落之城",
-				image: "/assets/images/splash/banners/upper-c.webp",
-			},
-			{
-				id: "upper-d",
-				name: "莲华古城",
-				image: "/assets/images/splash/banners/upper-d.webp",
-			},
-		],
-		lowerBanners: [
-			{
-				id: "lower-a",
-				name: "霓虹町",
-				image: "/assets/images/splash/banners/lower-a.webp",
-			},
-			{
-				id: "lower-b",
-				name: "深海明珠",
-				image: "/assets/images/splash/banners/lower-b.webp",
-			},
-			{
-				id: "lower-c",
-				name: "盐海矿镇",
-				image: "/assets/images/splash/banners/lower-c.webp",
-			},
-			{
-				id: "lower-d",
-				name: "幽邃地窟",
-				image: "/assets/images/splash/banners/lower-d.webp",
-			},
-		],
+		defaultUpper: "ascent",
+		defaultLower: "split",
+		portraits: splashPortraits,
+		upperBanners: splashMaps,
+		lowerBanners: splashMaps,
 	},
 };

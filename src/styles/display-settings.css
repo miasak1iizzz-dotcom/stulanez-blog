@@ -293,10 +293,18 @@
 	color: color-mix(in oklch, var(--btn-content) 62%, transparent);
 }
 
+#display-setting .splash-pickers.is-random {
+	opacity: 0.42;
+	pointer-events: none;
+}
+
 #display-setting .splash-portrait-grid {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 0.5rem;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.4rem;
+	max-height: 13.5rem;
+	overflow-y: auto;
+	padding-right: 0.15rem;
 }
 
 #display-setting .splash-portrait {
@@ -320,8 +328,8 @@
 
 #display-setting .splash-portrait-frame {
 	display: block;
-	width: 3.55rem;
-	height: 3.55rem;
+	width: 2.85rem;
+	height: 2.85rem;
 	overflow: hidden;
 	border-radius: 50%;
 	background:
@@ -361,6 +369,9 @@
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 0.45rem;
+	max-height: 11.5rem;
+	overflow-y: auto;
+	padding-right: 0.15rem;
 }
 
 #display-setting .splash-banner-wrap {

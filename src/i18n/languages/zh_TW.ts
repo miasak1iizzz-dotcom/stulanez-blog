@@ -381,6 +381,8 @@ export const zh_TW: Translation = {
 	[Key.splashSelectCharacter]: "選擇開屏角色",
 	[Key.splashUpperBanner]: "上半幅橫幅",
 	[Key.splashLowerBanner]: "下半幅橫幅",
+	[Key.splashRandom]: "純隨機模式",
+	[Key.splashRandomHint]: "每次開屏隨機英雄、地圖和大招台詞。",
 
 	// 卡片樣式
 	[Key.cardSettings]: "卡片樣式",

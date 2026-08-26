@@ -387,6 +387,9 @@ export const ja: Translation = {
 	[Key.splashSelectCharacter]: "スプラッシュキャラ",
 	[Key.splashUpperBanner]: "上バナー",
 	[Key.splashLowerBanner]: "下バナー",
+	[Key.splashRandom]: "完全ランダム",
+	[Key.splashRandomHint]:
+		"スプラッシュのキャラ・マップ・必殺台詞を毎回ランダムにします。",
 
 	// カードスタイル
 	[Key.cardSettings]: "カードスタイル",
