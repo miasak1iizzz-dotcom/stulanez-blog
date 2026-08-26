@@ -44,10 +44,12 @@ const catalog = {
 			<div class="splash-lower-clip">
 				<img class="splash-lower" data-splash-lower alt="" />
 			</div>
-			<div class="splash-band" aria-hidden="true"></div>
-			<div class="splash-title-row">
-				<p class="splash-title splash-title-left" data-splash-title-left></p>
-				<p class="splash-title splash-title-right" data-splash-title-right></p>
+			<div class="splash-slash">
+				<div class="splash-band" aria-hidden="true"></div>
+				<div class="splash-title-row">
+					<p class="splash-title splash-title-left" data-splash-title-left></p>
+					<p class="splash-title splash-title-right" data-splash-title-right></p>
+				</div>
 			</div>
 			<img class="splash-character" data-splash-character alt="" />
 			<script type="application/json" id="splash-catalog" set:html={JSON.stringify(catalog)} />
@@ -151,7 +153,11 @@ const catalog = {
 					if (upperEl && upperSrc) upperEl.src = upperSrc;
 					if (lowerEl && lowerSrc) lowerEl.src = lowerSrc;
 					if (titleLeftEl) titleLeftEl.textContent = (portraitEntry && portraitEntry.ultName) || "";
-					if (titleRightEl) titleRightEl.textContent = (portraitEntry && portraitEntry.ultLine) || "";
+					if (titleRightEl) {
+						var line = (portraitEntry && portraitEntry.ultLine) || "";
+						titleRightEl.textContent = line;
+						titleRightEl.setAttribute("data-text", line);
+					}
 				}
 
 				function finish() {
