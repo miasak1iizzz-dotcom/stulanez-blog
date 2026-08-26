@@ -1411,16 +1411,19 @@ async function downloadScreenshot() {
 	/* 库区 */
 	.ttb-library {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) 316px;
+		grid-template-columns: minmax(0, 1fr) 380px;
 		gap: 14px;
+		max-height: min(600px, 72vh);
+		overflow: hidden;
 	}
 	.ttb-units, .ttb-items {
 		display: flex;
 		flex-direction: column;
+		min-height: 0;
 		border: 1px solid var(--tt-line);
 		border-radius: 10px;
 		background: var(--tt-panel);
-		overflow: hidden;
+		overflow: auto;
 	}
 	.ttb-units header, .ttb-items header {
 		display: flex;
