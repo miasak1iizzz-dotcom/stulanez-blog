@@ -157,6 +157,9 @@ const poolGroups = $derived.by(() => {
 		}))
 		.filter((group) => group.units.length) satisfies PoolGroup[];
 });
+const standardItems = $derived(
+	data.items.filter((item) => item.category === "standard"),
+);
 const emblemItems = $derived(data.items.filter((item) => item.category === "emblem"));
 const artifactItems = $derived(data.items.filter((item) => item.category === "artifact"));
 const radiantItems = $derived(data.items.filter((item) => item.category === "radiant"));
@@ -837,21 +840,6 @@ async function downloadScreenshot() {
 			<section class="ttb-bench" aria-label="装备散件">
 				<h3>装备散件</h3>
 				<div class="ttb-bench-grid">
-					{#each componentItems as item (item.id)}
-						<button
-							type="button"
-							title={item.name}
-							aria-label={item.name}
-							onclick={() => clickItem(item.id)}
-							onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
-							onmousemove={moveTooltip}
-							onmouseleave={hideTooltip}
-							draggable="true"
-							ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
-						>
-							<img src={item.image} alt="" loading="lazy" />
-						</button>
-					{/each}
 				</div>
 			</section>
 		</div>
