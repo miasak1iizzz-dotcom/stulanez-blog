@@ -233,6 +233,10 @@ html {
     .card-base {
         @apply rounded-(--radius-large) overflow-hidden bg-(--card-bg) transition-colors duration-150;
     }
+    /* 精致衍生色板：卡片 hover 用主题色光晕阴影（替代生硬黑影） */
+    .card-base:hover {
+        box-shadow: 0 8px 30px -12px color-mix(in srgb, var(--primary) 35%, transparent);
+    }
     .card-base-transparent {
         @apply rounded-(--radius-large) overflow-hidden bg-(--card-bg-transparent) transition-colors duration-150;
     }
