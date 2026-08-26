@@ -3,6 +3,7 @@ import { getEntry, render } from "astro:content";
 import Markdown from "@components/common/Markdown.astro";
 import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
+import BiliCard from "@/components/features/BiliCard.astro";
 import { booknavPageConfig } from "@/config/booknavConfig";
 import { profileConfig } from "@/config/profileConfig";
 import { siteConfig } from "@/config/siteConfig";
@@ -100,6 +101,11 @@ const pageLinks = [
 						))}
 					</div>
 				</div>
+			</div>
+
+			<!-- 账号名片：B站关注/粉丝（差异化个人窗口） -->
+			<div class="mb-8">
+				<BiliCard />
 			</div>
 
 			<nav class="flex flex-wrap gap-2 mb-8" aria-label={i18n(I18nKey.about)}>
