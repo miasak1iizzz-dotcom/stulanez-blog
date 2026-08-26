@@ -47,7 +47,7 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		name: "我的",
 		url: "#",
 		icon: "material-symbols:person-play-rounded",
-		children: [LinkPresets.Booknav],
+		children: [LinkPresets.Works, LinkPresets.Booknav],
 	});
 
 	// 关于
@@ -109,6 +109,11 @@ export const LinkPresets: Record<string, NavBarLink> = {
 		url: "/gallery/",
 		icon: "material-symbols:photo-library",
 		pageKey: "gallery",
+	},
+	Works: {
+		name: "作品",
+		url: "/works/",
+		icon: "material-symbols:auto-awesome-mosaic-outline-rounded",
 	},
 	Booknav: {
 		name: "工具",

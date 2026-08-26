@@ -162,9 +162,13 @@ const copy = {
 					root.classList.add("is-visible");
 				});
 				markShown();
+				const leaveTimer = window.setTimeout(() => hideToast(root), 5500);
 				root.querySelector("[data-welcome-close]")?.addEventListener(
 					"click",
-					() => hideToast(root),
+					() => {
+						window.clearTimeout(leaveTimer);
+						hideToast(root);
+					},
 				);
 			}
 
