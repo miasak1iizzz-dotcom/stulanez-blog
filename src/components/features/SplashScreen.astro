@@ -11,7 +11,7 @@ const catalog = {
 			{
 				image: url(item.image),
 				ultName: item.ultName,
-				ultLine: item.ultLine,
+				ultLines: item.ultLines,
 			},
 		]),
 	),
@@ -144,6 +144,12 @@ const catalog = {
 					};
 				}
 
+				function pickUltLine(entry) {
+					var lines = entry && entry.ultLines;
+					if (!lines || !lines.length) return "";
+					return lines[Math.floor(Math.random() * lines.length)] || "";
+				}
+
 				function applyArt(portrait, upper, lower) {
 					var portraitEntry = catalog.portraits[portrait] || catalog.portraits[catalog.defaults.portrait];
 					var upperSrc = catalog.uppers[upper] || catalog.uppers[catalog.defaults.upper];
@@ -154,7 +160,7 @@ const catalog = {
 					if (lowerEl && lowerSrc) lowerEl.src = lowerSrc;
 					if (titleLeftEl) titleLeftEl.textContent = (portraitEntry && portraitEntry.ultName) || "";
 					if (titleRightEl) {
-						var line = (portraitEntry && portraitEntry.ultLine) || "";
+						var line = pickUltLine(portraitEntry);
 						titleRightEl.textContent = line;
 						titleRightEl.setAttribute("data-text", line);
 					}
