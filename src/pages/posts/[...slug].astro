@@ -60,6 +60,7 @@ const { Content, headings } = await render(entry);
 const { remarkPluginFrontmatter } = await render(entry);
 const words = entry.data.words ?? remarkPluginFrontmatter.words;
 const minutes = entry.data.minutes ?? remarkPluginFrontmatter.minutes;
+const isNovel = entry.data.contentType === "novel";
 
 const bannerPostMeta = {
 	title: entry.data.title,
@@ -155,10 +156,25 @@ const jsonLd = {
 	"@context": "https://schema.org",
 	"@graph": [
 		{
-			"@type": "BlogPosting",
-			headline: entry.data.title,
+			"@type": isNovel ? "Book" : "BlogPosting",
+			...(isNovel
+				? {
+						name: entry.data.title,
+						bookFormat: "EBook",
+						genre: entry.data.tags,
+						accessMode: "textual",
+						isAccessibleForFree: true,
+					}
+				: {
+						headline: entry.data.title,
+						keywords: entry.data.tags.length
+							? entry.data.tags.join(", ")
+							: undefined,
+						...(entry.data.category
+							? { articleSection: entry.data.category }
+							: {}),
+					}),
 			description: entry.data.description || entry.data.title,
-			keywords: entry.data.tags.length ? entry.data.tags.join(", ") : undefined,
 			author: { "@id": authorPerson["@id"] },
 			publisher: { "@id": publisher["@id"] },
 			...(coverImage
@@ -173,7 +189,6 @@ const jsonLd = {
 					}
 				: {}), // 优化：有封面才输出，避免 image:null
 			datePublished: entry.data.published.toISOString(),
-			...(entry.data.category ? { articleSection: entry.data.category } : {}),
 			...(words ? { wordCount: words } : {}),
 			...(entry.data.updated
 				? { dateModified: entry.data.updated.toISOString() }

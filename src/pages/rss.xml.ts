@@ -31,13 +31,31 @@ export async function GET(context: APIContext): Promise<Response> {
 	const container = await AstroContainer.create({ renderers });
 	const feedItems: RSSFeedItem[] = [];
 	for (const post of blog) {
+		const postUrl = url(`/posts/${post.id}/`);
 		if (post.data.password) {
 			feedItems.push({
 				title: post.data.title,
 				pubDate: post.data.published,
 				description: post.data.description || "",
-				link: url(`/posts/${post.id}/`),
+				link: postUrl,
 				content: i18n(I18nKey.passwordProtectedRss),
+			});
+			continue;
+		}
+		if (post.data.contentType === "novel") {
+			const novelSummary = sanitizeHtml(
+				`<p>${post.data.description || post.data.title}</p><p><a href="${postUrl}">前往网站阅读完整分章版《${post.data.title}》</a></p>`,
+				{
+					allowedTags: ["p", "a"],
+					allowedAttributes: { a: ["href"] },
+				},
+			);
+			feedItems.push({
+				title: post.data.title,
+				pubDate: post.data.published,
+				description: post.data.description || "",
+				link: postUrl,
+				content: novelSummary,
 			});
 			continue;
 		}
@@ -48,7 +66,7 @@ export async function GET(context: APIContext): Promise<Response> {
 			title: post.data.title,
 			pubDate: post.data.published,
 			description: post.data.description || "",
-			link: url(`/posts/${post.id}/`),
+			link: postUrl,
 			content: sanitizeHtml(cleanedContent, {
 				allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
 			}),
