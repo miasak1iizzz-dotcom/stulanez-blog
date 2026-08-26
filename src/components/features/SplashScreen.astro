@@ -52,6 +52,12 @@ const catalog = {
 				</div>
 			</div>
 			<img class="splash-character" data-splash-character alt="" />
+			<canvas
+				class="splash-sakura"
+				data-splash-sakura
+				data-src={url("/assets/images/effects/sakura.png")}
+				aria-hidden="true"
+			></canvas>
 			<script type="application/json" id="splash-catalog" set:html={JSON.stringify(catalog)} />
 		</div>
 	)
@@ -79,6 +85,10 @@ const catalog = {
 				var lowerEl = root.querySelector("[data-splash-lower]");
 				var titleLeftEl = root.querySelector("[data-splash-title-left]");
 				var titleRightEl = root.querySelector("[data-splash-title-right]");
+				var sakuraCanvas = root.querySelector("[data-splash-sakura]");
+				var sakuraImg = null;
+				var sakuraRaf = 0;
+				var sakuraGen = 0;
 
 				function reducedMotion() {
 					return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -145,6 +155,95 @@ const catalog = {
 					};
 				}
 
+				function stopSplashSakura() {
+					sakuraGen += 1;
+					if (sakuraRaf) {
+						window.cancelAnimationFrame(sakuraRaf);
+						sakuraRaf = 0;
+					}
+					if (sakuraCanvas) {
+						var clearCtx = sakuraCanvas.getContext("2d");
+						if (clearCtx) {
+							clearCtx.setTransform(1, 0, 0, 1, 0, 0);
+							clearCtx.clearRect(0, 0, sakuraCanvas.width, sakuraCanvas.height);
+						}
+					}
+				}
+
+				function startSplashSakura() {
+					stopSplashSakura();
+					if (!sakuraCanvas || reducedMotion()) return;
+					var ctx = sakuraCanvas.getContext("2d");
+					if (!ctx) return;
+					var gen = sakuraGen;
+					var src = sakuraCanvas.getAttribute("data-src") || "/assets/images/effects/sakura.png";
+					var petals = [];
+					var viewW = 0;
+					var viewH = 0;
+					var count = window.matchMedia("(max-width: 640px)").matches ? 18 : 28;
+
+					function resize() {
+						var dpr = Math.min(window.devicePixelRatio || 1, 2);
+						viewW = root.clientWidth || window.innerWidth;
+						viewH = root.clientHeight || window.innerHeight;
+						sakuraCanvas.width = Math.floor(viewW * dpr);
+						sakuraCanvas.height = Math.floor(viewH * dpr);
+						ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+					}
+
+					function spawn(anywhere) {
+						var fromTop = Math.random() > 0.4;
+						return {
+							x: anywhere ? Math.random() * viewW : fromTop ? Math.random() * viewW : viewW,
+							y: anywhere ? Math.random() * viewH : fromTop ? -12 : Math.random() * viewH,
+							s: 0.55 + Math.random() * 0.7,
+							r: Math.random() * 6,
+							a: 0.38 + Math.random() * 0.5,
+							vx: -1.7 + Math.random() * 0.5,
+							vy: 1.5 + Math.random() * 0.7,
+							vr: 0.03
+						};
+					}
+
+					function tick() {
+						if (gen !== sakuraGen) return;
+						ctx.clearRect(0, 0, viewW, viewH);
+						for (var i = 0; i < petals.length; i++) {
+							var p = petals[i];
+							p.x += p.vx;
+							p.y += p.vy;
+							p.r += p.vr;
+							if (p.x > viewW || p.x < -48 || p.y > viewH || p.y < -48) {
+								petals[i] = spawn(false);
+								p = petals[i];
+							}
+							ctx.save();
+							ctx.translate(p.x, p.y);
+							ctx.rotate(p.r);
+							ctx.globalAlpha = p.a;
+							ctx.drawImage(sakuraImg, 0, 0, 40 * p.s, 40 * p.s);
+							ctx.restore();
+						}
+						sakuraRaf = window.requestAnimationFrame(tick);
+					}
+
+					function go() {
+						if (gen !== sakuraGen || !sakuraImg || !sakuraImg.naturalWidth) return;
+						resize();
+						petals = [];
+						for (var i = 0; i < count; i++) petals.push(spawn(true));
+						tick();
+					}
+
+					if (sakuraImg && sakuraImg.complete && sakuraImg.naturalWidth) {
+						go();
+						return;
+					}
+					sakuraImg = new Image();
+					sakuraImg.onload = go;
+					sakuraImg.src = src;
+				}
+
 				function pickUltLine(entry) {
 					var lines = entry && entry.ultLines;
 					if (!lines || !lines.length) return "";
@@ -192,6 +291,7 @@ const catalog = {
 
 				function finish() {
 					playing = false;
+					stopSplashSakura();
 					root.hidden = true;
 					root.classList.remove("is-playing", "is-preview", "is-leaving");
 					root.setAttribute("aria-hidden", "true");
@@ -214,6 +314,7 @@ const catalog = {
 					root.classList.remove("is-leaving", "is-playing");
 					root.setAttribute("aria-hidden", "false");
 					document.documentElement.setAttribute("data-splash-pending", "true");
+					startSplashSakura();
 					whenImageReady(characterEl, function () {
 						if (seq !== playSeq) return;
 						void root.offsetWidth;
