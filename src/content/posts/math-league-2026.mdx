@@ -22,6 +22,21 @@ import LeagueShowcase from "@/components/league/LeagueShowcase.svelte";
 
 这篇文章不只是在复述规则，我把它当作一个**教学系统设计案例**来讲。下面先给你能直接上手玩的交互版，再拆开说设计思路。
 
+> 🎮 想要真正"当一把选手"？直接进**联赛模拟器**，把 19 卷打完、抽海克斯、看晋级表——点下面按钮体验。
+
+<div class="my-6 text-center">
+  <a
+    href="/league/5.15.html"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-(--primary) text-white dark:text-black/70 font-semibold hover:bg-(--primary)/90 hover:scale-105 active:scale-95 transition-all shadow-lg"
+  >
+    <span>🎮</span>
+    <span>体验联赛模拟器</span>
+  </a>
+  <div class="mt-2 text-xs text-neutral-400 dark:text-neutral-500">打开完整互动版 · 建议用电脑端</div>
+</div>
+
 <LeagueShowcase client:load />
 
 ## 为什么是"联赛"而不是"刷题计划"
