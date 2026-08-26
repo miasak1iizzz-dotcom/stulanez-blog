@@ -1,12 +1,35 @@
 ---
 import fs from "node:fs";
 import path from "node:path";
-import { footerConfig, profileConfig } from "@/config";
+import { footerConfig, profileConfig, siteConfig } from "@/config";
 import { url } from "@/utils/url-utils";
 
 const currentYear = new Date().getFullYear();
+const siteStartDate = siteConfig.siteStartDate || `${currentYear}-01-01`;
 
-// 读取FooterConfig.html文件内容
+const badges = [
+	{ name: "Astro", href: "https://astro.build" },
+	{ name: "Tailwind", href: "https://tailwindcss.com" },
+	{ name: "Firefly", href: "https://github.com/CuteLeaf/Firefly" },
+	{ name: "Giscus", href: "https://giscus.app" },
+	{ name: "Vercel", href: "https://vercel.com" },
+];
+
+function formatUptime(startMs: number, nowMs: number) {
+	const elapsed = Math.max(0, nowMs - startMs);
+	const days = Math.floor(elapsed / 86_400_000);
+	const hours = Math.floor((elapsed % 86_400_000) / 3_600_000);
+	const minutes = Math.floor((elapsed % 3_600_000) / 60_000);
+	const seconds = Math.floor((elapsed % 60_000) / 1_000);
+	const pad = (value: number) => String(value).padStart(2, "0");
+	return `已运行 ${days} 天 ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
+const startMs = Date.parse(`${siteStartDate}T00:00:00+08:00`);
+const initialUptime = Number.isNaN(startMs)
+	? "已运行 0 天 00:00:00"
+	: formatUptime(startMs, Date.now());
+
 let customFooterHtml = "";
 if (footerConfig.enable) {
 	try {
@@ -17,7 +40,6 @@ if (footerConfig.enable) {
 			"FooterConfig.html",
 		);
 		customFooterHtml = fs.readFileSync(footerConfigPath, "utf-8");
-		// 移除HTML注释
 		customFooterHtml = customFooterHtml.replace(/<!--[\s\S]*?-->/g, "").trim();
 	} catch (error) {
 		console.warn(
@@ -28,7 +50,6 @@ if (footerConfig.enable) {
 }
 ---
 
-
 <div
   class="transition border-t border-black/10 dark:border-white/15 my-10 border-dashed mx-32"
 >
@@ -37,10 +58,33 @@ if (footerConfig.enable) {
 <div
   class="transition border-dashed border-[oklch(85%_0.01_var(--hue))] dark:border-white/15 rounded-2xl mb-12 flex flex-col items-center justify-center px-6"
 >
-  <div class="transition text-50 text-sm text-center wrap">
-    <div class="mb-2">
-      {customFooterHtml && <div set:html={customFooterHtml} />}
-    </div>
+  <div class="transition text-50 text-sm text-center wrap w-full max-w-3xl">
+    <ul class="m-0 mb-3 flex flex-wrap justify-center gap-2 p-0 list-none" aria-label="技术栈">
+      {badges.map((badge) => (
+        <li>
+          <a
+            class="inline-flex items-center rounded-full border border-(--line-divider) px-2.5 py-0.5 text-xs font-medium text-neutral-600 dark:text-neutral-300 transition hover:border-(--primary) hover:text-(--primary)"
+            href={badge.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {badge.name}
+          </a>
+        </li>
+      ))}
+    </ul>
+    {customFooterHtml && (
+      <div class="mb-2 mx-0.5 flex gap-x-2 gap-y-2.5 justify-center flex-wrap">
+        <div set:html={customFooterHtml} />
+      </div>
+    )}
+    <p
+      class="m-0 mb-2 font-medium tabular-nums text-neutral-600 dark:text-neutral-300"
+      data-site-uptime
+      data-start={siteStartDate}
+    >
+      {initialUptime}
+    </p>
     <div class="mx-0.5 my-2.5 flex gap-x-2 gap-y-2.5 justify-center flex-wrap">
       &copy; <span id="copyright-year">{currentYear}</span>
       {profileConfig.name}. All Rights Reserved.
@@ -71,10 +115,38 @@ if (footerConfig.enable) {
         href="https://github.com/CuteLeaf/Firefly">Firefly</a
       >
     </div>
-    <!-- 
-      注意：请勿随意修改或删除 "Powered by Astro & Firefly" 部分，这是对开源项目的尊重和支持。
-      如果您需要在底部增加内容，请在src/config/footerConfig.ts中修改enable属性为true，然后编辑src/config/FooterConfig.html文件。
-      您可以随意在src/config/FooterConfig.html中随意添加自定义内容，不需要修改Footer.astro文件。
-    -->
   </div>
 </div>
+
+<script is:inline>
+	(function initSiteUptime() {
+		const nodes = document.querySelectorAll("[data-site-uptime]");
+		if (!nodes.length) return;
+		const startAttr = nodes[0].getAttribute("data-start");
+		const startMs = Date.parse(String(startAttr || "") + "T00:00:00+08:00");
+		if (Number.isNaN(startMs)) return;
+
+		function pad(value) {
+			return String(value).padStart(2, "0");
+		}
+
+		function render() {
+			const elapsed = Math.max(0, Date.now() - startMs);
+			const days = Math.floor(elapsed / 86400000);
+			const hours = Math.floor((elapsed % 86400000) / 3600000);
+			const minutes = Math.floor((elapsed % 3600000) / 60000);
+			const seconds = Math.floor((elapsed % 60000) / 1000);
+			const text =
+				"已运行 " + days + " 天 " + pad(hours) + ":" + pad(minutes) + ":" + pad(seconds);
+			nodes.forEach((node) => {
+				node.textContent = text;
+			});
+		}
+
+		render();
+		if (window.__stulanezUptimeTimer) {
+			window.clearInterval(window.__stulanezUptimeTimer);
+		}
+		window.__stulanezUptimeTimer = window.setInterval(render, 1000);
+	})();
+</script>

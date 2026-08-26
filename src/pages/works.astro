@@ -1,0 +1,278 @@
+---
+import { url } from "@/utils/url-utils";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import "@/styles/works-showcase.css";
+
+const works = [
+	{
+		title: "永恒欲望",
+		subtitle: "个人站点本身",
+		href: url("/"),
+		image: url("/assets/images/wallpaper/thumbs/wallpaper-01.webp"),
+	},
+	{
+		title: "星域幻想",
+		subtitle: "连载小说",
+		href: url("/posts/star-domain-fantasy/"),
+		image: url("/assets/images/posts/star-domain-fantasy-cover.svg"),
+	},
+	{
+		title: "开屏动画",
+		subtitle: "国服英雄立绘与斜切台词",
+		href: url("/"),
+		image: url("/assets/images/splash/portraits/jett.webp"),
+	},
+	{
+		title: "工具导航",
+		subtitle: "常用站点入口",
+		href: url("/booknav/"),
+		image: url("/assets/images/wallpaper/thumbs/wallpaper-07.webp"),
+	},
+	{
+		title: "更新日志",
+		subtitle: "站点慢慢长成的记录",
+		href: url("/changelog/"),
+		image: url("/assets/images/wallpaper/thumbs/wallpaper-04.webp"),
+	},
+];
+---
+
+<MainGridLayout title="作品" description="永恒欲望里已经做成、还在继续长的东西。">
+	<div class="works-page z-10 relative w-full">
+		<section class="works-intro card-base px-6 py-6 md:px-9">
+			<p class="works-intro-kicker">WORKS</p>
+			<h1 class="works-intro-title">做成的，和还在做的</h1>
+			<p class="works-intro-body">
+				这一页学的是滚动叙事，不是别人的角色。上面的舞台只负责把作品一张张送过来，真正能点进去的链接在下面。
+			</p>
+			<a class="works-intro-link" href="#showcase">向下看作品</a>
+		</section>
+
+		<div class="works-showcase" id="showcase" data-works-showcase>
+			<div class="works-showcase-stage" aria-hidden="true">
+				<div class="works-guide" data-works-guide>
+					<p>往下滚，作品会自己过来</p>
+				</div>
+				<div class="works-panels" data-works-panels>
+					{works.map((work, index) => (
+						<article class="works-panel" data-works-panel style={`z-index: ${index + 1}`}>
+							<img src={work.image} alt="" />
+							<p class="works-panel-copy">
+								<strong>{work.title}</strong>
+								<span>{work.subtitle}</span>
+							</p>
+						</article>
+					))}
+				</div>
+				<div class="works-finale" data-works-finale>
+					<img
+						class="works-finale-bg"
+						src={url("/assets/images/wallpaper/wallpaper-21.webp")}
+						alt=""
+					/>
+					<img
+						class="works-finale-fg"
+						src={url("/assets/images/splash/portraits/sage.webp")}
+						alt=""
+					/>
+					<div class="works-finale-words" data-works-words>
+						<span>永恒</span>
+						<span>欲望</span>
+					</div>
+				</div>
+				<div class="works-shutter">
+					<div
+						class="works-strip works-strip-left"
+						data-works-strip-left
+						style={`background-image: url('${url("/assets/images/splash/banners/ascent.webp")}')`}
+					></div>
+					<div
+						class="works-strip works-strip-right"
+						data-works-strip-right
+						style={`background-image: url('${url("/assets/images/splash/banners/split.webp")}')`}
+					></div>
+				</div>
+			</div>
+		</div>
+
+		<section class="works-section card-base px-6 py-6 md:px-9" id="works">
+			<div class="works-grid">
+				{works.map((work) => (
+					<article class="works-card">
+						<a class="works-card-link" href={work.href}>
+							<img src={work.image} alt="" />
+							<div class="works-card-body">
+								<strong>{work.title}</strong>
+								<span>{work.subtitle}</span>
+							</div>
+						</a>
+					</article>
+				))}
+			</div>
+		</section>
+	</div>
+</MainGridLayout>
+
+<script>
+	function initWorksShowcase() {
+		const root = document.querySelector("[data-works-showcase]");
+		if (!(root instanceof HTMLElement)) return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+		const guide = root.querySelector("[data-works-guide]");
+		const finale = root.querySelector("[data-works-finale]");
+		const words = root.querySelector("[data-works-words]");
+		const stripLeft = root.querySelector("[data-works-strip-left]");
+		const stripRight = root.querySelector("[data-works-strip-right]");
+		const panels = [...root.querySelectorAll("[data-works-panel]")];
+		if (
+			!(guide instanceof HTMLElement) ||
+			!(finale instanceof HTMLElement) ||
+			!(words instanceof HTMLElement) ||
+			!(stripLeft instanceof HTMLElement) ||
+			!(stripRight instanceof HTMLElement)
+		) {
+			return;
+		}
+
+		const clamp = (value: number) => Math.min(1, Math.max(0, value));
+		const ease = (value: number) => {
+			const t = clamp(value);
+			return t * t * (3 - 2 * t);
+		};
+		const phaseAt = (progress: number, start: number, end: number) =>
+			ease((progress - start) / Math.max(0.001, end - start));
+
+		let startY = 0;
+		let travel = 1;
+		let pinTop = 88;
+		let target = 0;
+		let rendered = 0;
+		let frame = 0;
+		let lastTs = 0;
+		let lastApplied = -1;
+
+		const measure = () => {
+			const fontSize =
+				Number.parseFloat(getComputedStyle(document.documentElement).fontSize) ||
+				16;
+			pinTop = 5.5 * fontSize;
+			const rect = root.getBoundingClientRect();
+			startY = rect.top + window.scrollY;
+			travel = Math.max(1, root.offsetHeight - window.innerHeight + pinTop);
+		};
+
+		const progressFromScroll = () =>
+			clamp((window.scrollY + pinTop - startY) / travel);
+
+		const apply = (progress: number) => {
+			if (Math.abs(progress - lastApplied) < 0.00001) return;
+			lastApplied = progress;
+			const phase = (start: number, end: number) => phaseAt(progress, start, end);
+
+			guide.style.opacity = String(1 - phase(0, 0.21));
+
+			panels.forEach((panel, index) => {
+				if (!(panel instanceof HTMLElement)) return;
+				const copy = panel.querySelector(".works-panel-copy");
+				const inProgress = phase(0.04 + index * 0.055, 0.16 + index * 0.055);
+				const dissolve = phase(0.6, 0.72);
+				const direction = index % 2 === 0 ? 1 : -1;
+				const startingY = (1 - inProgress) * direction * 150;
+				const fanX = (index - 2) * dissolve * -3.25;
+				const fanY = (index - 2) * dissolve * 1.35;
+				panel.style.opacity = String(inProgress * (1 - dissolve));
+				panel.style.transform =
+					"translate3d(calc(-50% + " +
+					fanX +
+					"vw), calc(-50% + " +
+					(startingY + fanY) +
+					"%), 0) scale(" +
+					(1 - dissolve * 0.12) +
+					") rotate(" +
+					(index - 2) * dissolve * 1.35 +
+					"deg)";
+				if (copy instanceof HTMLElement) {
+					const copyIn = phase(0.16 + index * 0.05, 0.25 + index * 0.05);
+					const copyOut = phase(0.58, 0.7);
+					copy.style.opacity = String(copyIn * (1 - copyOut));
+				}
+			});
+
+			const stripsIn = phase(0.72, 0.84);
+			const stripsOut = phase(0.91, 0.97);
+			const stripPosition = stripsIn * (1 - stripsOut);
+			stripLeft.style.transform =
+				"translate3d(" + (1 - stripPosition) * -108 + "%, 0, 0)";
+			stripRight.style.transform =
+				"translate3d(" + (1 - stripPosition) * 108 + "%, 0, 0)";
+
+			const finaleIn = phase(0.88, 1);
+			finale.style.opacity = String(finaleIn);
+			words.style.opacity = String(phase(0.78, 0.86) * (1 - phase(0.9, 0.97)));
+		};
+
+		const render = (timestamp: number) => {
+			const elapsed = lastTs
+				? Math.min(64, Math.max(0, timestamp - lastTs))
+				: 16.67;
+			lastTs = timestamp;
+			const blend = 1 - Math.exp(-elapsed / 180);
+			rendered += (target - rendered) * blend;
+			if (Math.abs(target - rendered) < 0.00008) rendered = target;
+			apply(rendered);
+			if (Math.abs(target - rendered) >= 0.00008) {
+				frame = window.requestAnimationFrame(render);
+				return;
+			}
+			frame = 0;
+			lastTs = 0;
+		};
+
+		const requestUpdate = () => {
+			target = progressFromScroll();
+			if (frame) return;
+			lastTs = 0;
+			frame = window.requestAnimationFrame(render);
+		};
+
+		const resize = () => {
+			measure();
+			target = progressFromScroll();
+			rendered = target;
+			lastApplied = -1;
+			apply(rendered);
+		};
+
+		const abort = new AbortController();
+		const previous = (window as Window & { __stulanezWorksAbort?: AbortController })
+			.__stulanezWorksAbort;
+		previous?.abort();
+		(window as Window & { __stulanezWorksAbort?: AbortController }).__stulanezWorksAbort =
+			abort;
+
+		measure();
+		resize();
+		window.addEventListener("scroll", requestUpdate, {
+			passive: true,
+			signal: abort.signal,
+		});
+		window.addEventListener("resize", resize, {
+			passive: true,
+			signal: abort.signal,
+		});
+		abort.signal.addEventListener("abort", () => {
+			if (frame) window.cancelAnimationFrame(frame);
+		});
+	}
+
+	initWorksShowcase();
+
+	const swupHost = window as Window & { __stulanezWorksSwup?: boolean };
+	if (!swupHost.__stulanezWorksSwup) {
+		swupHost.__stulanezWorksSwup = true;
+		document.addEventListener("swup:contentReplaced", () => {
+			initWorksShowcase();
+		});
+	}
+</script>
