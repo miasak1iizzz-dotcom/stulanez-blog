@@ -281,7 +281,7 @@ function chooseUnit(unitId: string) {
 		cloneBoard(enemyVisible ? "enemy" : "main");
 		return;
 	}
-	// 自动前后排：近战(range<=2)放前排，远程放后排
+	// 自动前后排：近战(range<=2)放前排(前两行)，远程放最后一行
 	const unit = unitMap.get(unitId);
 	const range = unit?.range ?? 3;
 	const isMelee = typeof range === "number" && range <= 2;
@@ -289,7 +289,8 @@ function chooseUnit(unitId: string) {
 	for (let i = 0; i < target_.length; i++) {
 		if (target_[i]) continue;
 		const isFront = i < 2 * BOARD_COLS;
-		if (isMelee ? isFront : !isFront) {
+		const isRear = i >= 3 * BOARD_COLS;
+		if (isMelee ? isFront : isRear) {
 			empty = i;
 			break;
 		}
@@ -640,7 +641,7 @@ async function downloadScreenshot() {
 	<meta name="theme-color" content="#0a1322" />
 </svelte:head>
 
-<div class="ttb" onmouseleave={hideTooltip} ondrop={handleOutsideDrop}>
+<div class="ttb" onmouseleave={hideTooltip} ondrop={handleOutsideDrop} ondragover={(e) => e.preventDefault()}>
 	<section class="ttb-controls" aria-label="阵容操作">
 		<div class="ttc-set">
 			<span class="ttc-set-badge">SET {data.set}</span>
@@ -1388,6 +1389,8 @@ async function downloadScreenshot() {
 		gap: 14px;
 	}
 	.ttb-units, .ttb-items {
+		display: flex;
+		flex-direction: column;
 		border: 1px solid var(--tt-line);
 		border-radius: 10px;
 		background: var(--tt-panel);
@@ -1427,7 +1430,7 @@ async function downloadScreenshot() {
 	}
 	.ttb-tabs button.active { border-bottom-color: var(--tt-blue); color: var(--tt-blue); }
 	.ttb-tabs button:hover { color: #fff; }
-	.ttb-unit-scroll { max-height: 400px; overflow: auto; padding: 10px 12px 14px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
+	.ttb-unit-scroll { flex: 1 1 auto; min-height: 0; max-height: none; overflow: auto; padding: 10px 12px 14px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
 	.ttb-group-head { display: flex; align-items: center; gap: 7px; padding: 8px 4px 4px; color: #9fb4dd; font-size: 12px; font-weight: 700; }
 	.ttb-group-head img { width: 20px; height: 20px; border-radius: 4px; object-fit: contain; }
 	.ttb-unit-row {
@@ -1452,7 +1455,7 @@ async function downloadScreenshot() {
 	.ttb-unit:hover { z-index: 2; filter: brightness(1.2); transform: translateY(-2px); }
 	.ttb-unit img { width: 100%; height: 100%; border-radius: 3px; object-fit: cover; }
 	.ttb-item-strip { display: flex; flex-wrap: wrap; gap: 3px; padding: 10px 10px 4px; }
-	.ttb-item-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; max-height: 190px; overflow: auto; padding: 8px 10px 10px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
+	.ttb-item-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; flex: 1 1 auto; min-height: 0; max-height: none; overflow: auto; padding: 8px 10px 10px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
 	.ttb-item {
 		aspect-ratio: 1;
 		padding: 0;
@@ -1466,7 +1469,7 @@ async function downloadScreenshot() {
 	.ttb-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
 	.ttb-empty-note { padding: 26px 18px; color: var(--tt-muted); font-size: 13px; text-align: center; }
 	.ttb-empty-note.tall { padding: 60px 30px; }
-	.ttb-item-section { padding: 10px 12px 4px; }
+	.ttb-item-section { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 10px 12px 4px; }
 	.ttb-item-section h4 {
 		margin: 0 0 8px;
 		font-size: 13px;
