@@ -7,6 +7,7 @@ type Unit = {
 	plannerCode: number;
 	traits: TraitRef[];
 	image: string;
+	range?: number;
 };
 type Trait = {
 	id: string;
@@ -280,7 +281,20 @@ function chooseUnit(unitId: string) {
 		cloneBoard(enemyVisible ? "enemy" : "main");
 		return;
 	}
-	const empty = target_.findIndex((slot) => !slot);
+	// 自动前后排：近战(range<=2)放前排，远程放后排
+	const unit = unitMap.get(unitId);
+	const range = unit?.range ?? 3;
+	const isMelee = typeof range === "number" && range <= 2;
+	let empty = -1;
+	for (let i = 0; i < target_.length; i++) {
+		if (target_[i]) continue;
+		const isFront = i < 2 * BOARD_COLS;
+		if (isMelee ? isFront : !isFront) {
+			empty = i;
+			break;
+		}
+	}
+	if (empty < 0) empty = target_.findIndex((slot) => !slot);
 	if (empty >= 0) placeUnit(unitId, empty);
 	else notify(enemyVisible ? "敌方棋盘已经放满了" : "棋盘已经放满了");
 }

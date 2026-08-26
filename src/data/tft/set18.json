@@ -30,7 +30,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_akali_ad.webp"
+      "image": "/assets/tft/set18/units/da_18_akali_ad.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Ornn",
@@ -49,7 +50,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_ornn.webp"
+      "image": "/assets/tft/set18/units/da_18_ornn.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Sentry",
@@ -87,7 +89,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_cinderling18.webp"
+      "image": "/assets/tft/set18/units/da_cinderling18.webp",
+      "range": 4
     },
     {
       "id": "DA_Karma18",
@@ -106,7 +109,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_karma18.webp"
+      "image": "/assets/tft/set18/units/da_karma18.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Camille",
@@ -125,7 +129,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_camille.webp"
+      "image": "/assets/tft/set18/units/da_18_camille.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Kobuko",
@@ -144,7 +149,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_kobuko.webp"
+      "image": "/assets/tft/set18/units/da_18_kobuko.webp",
+      "range": 1
     },
     {
       "id": "DA_18_RekSai",
@@ -163,7 +169,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_reksai.webp"
+      "image": "/assets/tft/set18/units/da_18_reksai.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Leona",
@@ -182,7 +189,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_leona.webp"
+      "image": "/assets/tft/set18/units/da_18_leona.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Rakan",
@@ -206,7 +214,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_rakan.webp"
+      "image": "/assets/tft/set18/units/da_18_rakan.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Varus",
@@ -225,7 +234,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_varus.webp"
+      "image": "/assets/tft/set18/units/da_18_varus.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Veigar",
@@ -249,7 +259,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_veigar.webp"
+      "image": "/assets/tft/set18/units/da_18_veigar.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Xayah",
@@ -273,7 +284,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_xayah.webp"
+      "image": "/assets/tft/set18/units/da_18_xayah.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Yorick",
@@ -297,7 +309,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_yorick.webp"
+      "image": "/assets/tft/set18/units/da_18_yorick.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Alistar",
@@ -316,7 +329,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_alistar.webp"
+      "image": "/assets/tft/set18/units/da_18_alistar.webp",
+      "range": 1
     },
     {
       "id": "DA_Murkwolf18",
@@ -335,7 +349,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_murkwolf18.webp"
+      "image": "/assets/tft/set18/units/da_murkwolf18.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Kayle",
@@ -354,7 +369,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_kayle.webp"
+      "image": "/assets/tft/set18/units/da_18_kayle.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Caitlyn",
@@ -373,7 +389,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_caitlyn.webp"
+      "image": "/assets/tft/set18/units/da_18_caitlyn.webp",
+      "range": 4
     },
     {
       "id": "DA_18_LeBlanc",
@@ -392,7 +409,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_leblanc.webp"
+      "image": "/assets/tft/set18/units/da_18_leblanc.webp",
+      "range": 4
     },
     {
       "id": "DA_Gromp18_AP",
@@ -411,7 +429,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_gromp18_ap.webp"
+      "image": "/assets/tft/set18/units/da_gromp18_ap.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Sejuani",
@@ -430,7 +449,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_sejuani.webp"
+      "image": "/assets/tft/set18/units/da_18_sejuani.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Shen",
@@ -449,7 +469,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_shen.webp"
+      "image": "/assets/tft/set18/units/da_18_shen.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Teemo",
@@ -468,7 +489,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_teemo.webp"
+      "image": "/assets/tft/set18/units/da_18_teemo.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Warwick",
@@ -487,7 +509,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_warwick.webp"
+      "image": "/assets/tft/set18/units/da_18_warwick.webp",
+      "range": 1
     },
     {
       "id": "DA_Scuttlecrab18",
@@ -506,7 +529,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_scuttlecrab18.webp"
+      "image": "/assets/tft/set18/units/da_scuttlecrab18.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Elise",
@@ -525,7 +549,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_elise.webp"
+      "image": "/assets/tft/set18/units/da_18_elise.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Yunara",
@@ -544,7 +569,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_yunara.webp"
+      "image": "/assets/tft/set18/units/da_18_yunara.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Azir",
@@ -568,7 +594,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_azir.webp"
+      "image": "/assets/tft/set18/units/da_18_azir.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Tristana",
@@ -592,7 +619,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_tristana.webp"
+      "image": "/assets/tft/set18/units/da_18_tristana.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Diana",
@@ -616,7 +644,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_diana.webp"
+      "image": "/assets/tft/set18/units/da_18_diana.webp",
+      "range": 1
     },
     {
       "id": "DA_Fiddlesticks18",
@@ -640,7 +669,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_fiddlesticks18.webp"
+      "image": "/assets/tft/set18/units/da_fiddlesticks18.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Hecarim",
@@ -659,7 +689,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_hecarim.webp"
+      "image": "/assets/tft/set18/units/da_18_hecarim.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Cassiopeia",
@@ -678,7 +709,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_cassiopeia.webp"
+      "image": "/assets/tft/set18/units/da_18_cassiopeia.webp",
+      "range": 4
     },
     {
       "id": "DA_18_KhaZix",
@@ -692,7 +724,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_khazix.webp"
+      "image": "/assets/tft/set18/units/da_18_khazix.webp",
+      "range": 1
     },
     {
       "id": "DA_KogMaw18_AD",
@@ -716,7 +749,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_kogmaw18_ad.webp"
+      "image": "/assets/tft/set18/units/da_kogmaw18_ad.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Rammus",
@@ -735,7 +769,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_rammus.webp"
+      "image": "/assets/tft/set18/units/da_18_rammus.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Rengar",
@@ -749,7 +784,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_rengar.webp"
+      "image": "/assets/tft/set18/units/da_18_rengar.webp",
+      "range": 1
     },
     {
       "id": "DA_CrimsonRaptor18",
@@ -792,7 +828,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_vi18.webp"
+      "image": "/assets/tft/set18/units/da_vi18.webp",
+      "range": 1
     },
     {
       "id": "DA_18_MasterYi_AD",
@@ -811,7 +848,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_masteryi_ad.webp"
+      "image": "/assets/tft/set18/units/da_18_masteryi_ad.webp",
+      "range": 1
     },
     {
       "id": "DA_Krug18",
@@ -830,7 +868,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_krug18.webp"
+      "image": "/assets/tft/set18/units/da_krug18.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Ahri",
@@ -849,7 +888,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_ahri.webp"
+      "image": "/assets/tft/set18/units/da_18_ahri.webp",
+      "range": 4
     },
     {
       "id": "DA_Amumu18",
@@ -868,7 +908,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_amumu18.webp"
+      "image": "/assets/tft/set18/units/da_amumu18.webp",
+      "range": 1
     },
     {
       "id": "DA_Sentinel18",
@@ -892,7 +933,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_sentinel18.webp"
+      "image": "/assets/tft/set18/units/da_sentinel18.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Aphelios",
@@ -911,7 +953,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_aphelios.webp"
+      "image": "/assets/tft/set18/units/da_18_aphelios.webp",
+      "range": 4
     },
     {
       "id": "DA_Brambleback18",
@@ -930,7 +973,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_brambleback18.webp"
+      "image": "/assets/tft/set18/units/da_brambleback18.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Zyra",
@@ -949,7 +993,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_zyra.webp"
+      "image": "/assets/tft/set18/units/da_18_zyra.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Lillia",
@@ -968,7 +1013,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_lillia.webp"
+      "image": "/assets/tft/set18/units/da_18_lillia.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Morgana",
@@ -987,7 +1033,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_morgana.webp"
+      "image": "/assets/tft/set18/units/da_18_morgana.webp",
+      "range": 2
     },
     {
       "id": "DA_18_Malphite",
@@ -1006,7 +1053,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_malphite.webp"
+      "image": "/assets/tft/set18/units/da_18_malphite.webp",
+      "range": 1
     },
     {
       "id": "DA_Nidalee18_AP",
@@ -1025,7 +1073,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_nidalee18_ap.webp"
+      "image": "/assets/tft/set18/units/da_nidalee18_ap.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Sett",
@@ -1044,7 +1093,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_sett.webp"
+      "image": "/assets/tft/set18/units/da_18_sett.webp",
+      "range": 1
     },
     {
       "id": "DA_18_Soraka",
@@ -1063,7 +1113,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_soraka.webp"
+      "image": "/assets/tft/set18/units/da_18_soraka.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Sivir",
@@ -1082,7 +1133,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_sivir.webp"
+      "image": "/assets/tft/set18/units/da_18_sivir.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Ezreal",
@@ -1101,7 +1153,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_ezreal.webp"
+      "image": "/assets/tft/set18/units/da_18_ezreal.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Ivern",
@@ -1115,7 +1168,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_ivern.webp"
+      "image": "/assets/tft/set18/units/da_18_ivern.webp",
+      "range": 2
     },
     {
       "id": "DA_18_Ashe",
@@ -1134,7 +1188,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_ashe.webp"
+      "image": "/assets/tft/set18/units/da_18_ashe.webp",
+      "range": 4
     },
     {
       "id": "DA_Draven18",
@@ -1148,7 +1203,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_draven18.webp"
+      "image": "/assets/tft/set18/units/da_draven18.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Kennen",
@@ -1167,7 +1223,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_kennen.webp"
+      "image": "/assets/tft/set18/units/da_18_kennen.webp",
+      "range": 2
     },
     {
       "id": "DA_Lux18_Base",
@@ -1181,7 +1238,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_lux18_base.webp"
+      "image": "/assets/tft/set18/units/da_lux18_base.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Alune",
@@ -1205,7 +1263,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_alune.webp"
+      "image": "/assets/tft/set18/units/da_18_alune.webp",
+      "range": 4
     },
     {
       "id": "DA_18_Maokai",
@@ -1224,7 +1283,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_maokai.webp"
+      "image": "/assets/tft/set18/units/da_18_maokai.webp",
+      "range": 1
     },
     {
       "id": "DA_18_GnarSmall",
@@ -1267,7 +1327,8 @@
           "amount": 1
         }
       ],
-      "image": "/assets/tft/set18/units/da_taric18.webp"
+      "image": "/assets/tft/set18/units/da_taric18.webp",
+      "range": 1
     },
     {
       "id": "DA_18_ElderDragon",
@@ -1286,7 +1347,8 @@
           "amount": 2
         }
       ],
-      "image": "/assets/tft/set18/units/da_18_elderdragon.webp"
+      "image": "/assets/tft/set18/units/da_18_elderdragon.webp",
+      "range": 2
     }
   ],
   "traits": [
