@@ -11,12 +11,14 @@ import GithubCardManager from "@components/features/GithubCardManager.astro";
 import MusicManager from "@components/features/MusicManager.astro";
 import MusicPlayerView from "@components/features/MusicPlayerView.astro";
 import SakuraEffect from "@components/features/SakuraEffect.astro";
+import SplashScreen from "@components/features/SplashScreen.astro";
 import WavesEffect from "@components/features/WavesEffect.astro";
 import WelcomeToast from "@components/features/WelcomeToast.astro";
 import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
 
 import {
 	analyticsConfig,
+	atmosphereConfig,
 	backgroundWallpaper,
 	displaySettingsConfig,
 	expressiveCodeConfig,
@@ -305,6 +307,8 @@ const siteLogo = await getSiteLogo();
         defaultWallpaperMode: backgroundWallpaper.mode,
         isWallpaperSwitchable:
           displaySettingsConfig.wallpaperModeSwitchable,
+        isHomePage: isHomePageCheck,
+        defaultSplashEnabled: atmosphereConfig.splash.enable,
         darkTheme: expressiveCodeConfig.darkTheme,
         lightTheme: expressiveCodeConfig.lightTheme,
         baseUrl: import.meta.env.BASE_URL,
@@ -412,6 +416,18 @@ const siteLogo = await getSiteLogo();
           document.documentElement.setAttribute("data-banner-title-enabled", bannerTitleEnabled);
         }
       })();
+
+      (function applySplashPending() {
+        if (!isHomePage) return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        try {
+          if (sessionStorage.getItem("stulanez.splash.played")) return;
+          const stored = localStorage.getItem("splashEnabled");
+          const enabled = stored === null ? defaultSplashEnabled : stored === "true";
+          if (!enabled) return;
+          document.documentElement.setAttribute("data-splash-pending", "true");
+        } catch (e) {}
+      })();
     </script>
     <style
       define:vars={{
@@ -458,6 +474,7 @@ const siteLogo = await getSiteLogo();
     </script>
 
     <div id="progress-bar"></div>
+    <SplashScreen />
 
     {/* 卡片样式：根据 localStorage 覆盖默认配置 */}
     <script is:inline define:vars={{

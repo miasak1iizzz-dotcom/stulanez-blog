@@ -46,6 +46,12 @@ export type DisplaySettingsConfig = {
 	// 壁纸轮播开关
 	bannerCarouselSwitchable: boolean;
 
+	// 内置壁纸缩略图点选
+	wallpaperPickerSwitchable: boolean;
+
+	// 开屏动画选择
+	splashSwitchable: boolean;
+
 	// 全屏透明模式参数调节开关
 	// 设为 false 关闭所有滑块，或用对象形式单独控制每个滑块
 	overlaySwitchable: OverlaySwitchable;

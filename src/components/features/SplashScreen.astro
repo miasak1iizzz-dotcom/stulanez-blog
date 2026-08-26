@@ -1,0 +1,133 @@
+---
+import { atmosphereConfig, siteConfig } from "@/config";
+import { url } from "@/utils/url-utils";
+import "@/styles/splash.css";
+
+const splash = atmosphereConfig.splash;
+const title = siteConfig.title;
+const logoSrc = url("/favicon/riven-192.png");
+---
+
+{
+	splash.enable && (
+		<div
+			id="splash-screen"
+			class="splash-screen"
+			hidden
+			data-default-style={splash.defaultStyle}
+			data-duration={splash.durationMs}
+			data-title={title}
+			aria-hidden="true"
+		>
+			<div class="splash-stage" data-splash-stage>
+				<img class="splash-logo" src={logoSrc} alt="" width="96" height="96" />
+				<p class="splash-title">{title}</p>
+				<div class="splash-petals" aria-hidden="true">
+					<span></span><span></span><span></span><span></span><span></span>
+					<span></span><span></span><span></span>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+{
+	splash.enable && (
+		<script is:inline data-swup-ignore-script>
+			(function initSplashScreen() {
+				var root = document.getElementById("splash-screen");
+				if (!root) return;
+
+				var SESSION_KEY = "stulanez.splash.played";
+				var duration = parseInt(root.getAttribute("data-duration") || "1800", 10);
+				var defaultStyle = root.getAttribute("data-default-style") || "logo";
+				var hideTimer = 0;
+				var playing = false;
+
+				function reducedMotion() {
+					return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+				}
+
+				function storedEnabled() {
+					try {
+						var raw = localStorage.getItem("splashEnabled");
+						if (raw === null) return true;
+						return raw === "true";
+					} catch (e) {
+						return true;
+					}
+				}
+
+				function storedStyle() {
+					try {
+						var raw = localStorage.getItem("splashStyle");
+						if (raw === "logo" || raw === "petal" || raw === "wash") return raw;
+					} catch (e) {}
+					return defaultStyle;
+				}
+
+				function finish() {
+					playing = false;
+					root.hidden = true;
+					root.classList.remove("is-playing", "is-preview");
+					root.setAttribute("aria-hidden", "true");
+					document.documentElement.removeAttribute("data-splash-pending");
+					document.documentElement.removeAttribute("data-splash-style");
+				}
+
+				function play(style, isPreview) {
+					if (reducedMotion()) {
+						finish();
+						return;
+					}
+					if (playing && !isPreview) return;
+					if (hideTimer) window.clearTimeout(hideTimer);
+					playing = true;
+					root.hidden = false;
+					root.classList.toggle("is-preview", !!isPreview);
+					root.classList.add("is-playing");
+					root.setAttribute("aria-hidden", "false");
+					document.documentElement.setAttribute("data-splash-pending", "true");
+					document.documentElement.setAttribute("data-splash-style", style);
+					hideTimer = window.setTimeout(function () {
+						root.classList.add("is-leaving");
+						window.setTimeout(function () {
+							root.classList.remove("is-leaving");
+							finish();
+						}, 420);
+					}, duration);
+				}
+
+				function shouldAutoplay() {
+					if (!storedEnabled()) return false;
+					if (reducedMotion()) return false;
+					var isHome = document.body && document.body.classList.contains("is-home");
+					if (!isHome) return false;
+					try {
+						if (sessionStorage.getItem(SESSION_KEY)) return false;
+						sessionStorage.setItem(SESSION_KEY, "1");
+					} catch (e) {}
+					return true;
+				}
+
+				if (shouldAutoplay() || document.documentElement.hasAttribute("data-splash-pending")) {
+					play(storedStyle(), false);
+				} else {
+					finish();
+				}
+
+				window.addEventListener("splashPreview", function (event) {
+					var detail = event.detail || {};
+					play(detail.style || storedStyle(), true);
+				});
+				window.addEventListener("splashEnabledChange", function (event) {
+					if (event.detail && event.detail.enabled) {
+						play(storedStyle(), true);
+					} else {
+						finish();
+					}
+				});
+			})();
+		</script>
+	)
+}

@@ -379,7 +379,16 @@ export const ru: Translation = {
 	// Вкладки панели настроек
 	[Key.settingsTabAppearance]: "Оформление",
 	[Key.settingsTabWallpaper]: "Обои",
-	[Key.settingsTabEffects]: "Эффекты",
+	[Key.settingsTabEffects]: "Настройки",
+
+	[Key.wallpaperBuiltin]: "Встроенные обои",
+	[Key.splashAnimation]: "Заставка",
+	[Key.splashPlayOnHome]: "Показывать на главной",
+	[Key.splashPreviewHint]: "Смена стиля сразу показывает превью.",
+	[Key.splashPreviewBadge]: "Превью на главной",
+	[Key.splashStyleLogo]: "Логотип",
+	[Key.splashStylePetal]: "Лепестки",
+	[Key.splashStyleWash]: "Вспышка",
 
 	// Стиль карточек
 	[Key.cardSettings]: "Стиль карточек",

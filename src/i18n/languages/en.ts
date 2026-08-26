@@ -378,7 +378,16 @@ export const en: Translation = {
 	// Settings Panel Tabs
 	[Key.settingsTabAppearance]: "Appearance",
 	[Key.settingsTabWallpaper]: "Wallpaper",
-	[Key.settingsTabEffects]: "Effects",
+	[Key.settingsTabEffects]: "Preferences",
+
+	[Key.wallpaperBuiltin]: "Built-in wallpapers",
+	[Key.splashAnimation]: "Splash",
+	[Key.splashPlayOnHome]: "Play when entering the home page",
+	[Key.splashPreviewHint]: "Switching a style previews it immediately.",
+	[Key.splashPreviewBadge]: "Preview on home",
+	[Key.splashStyleLogo]: "Logo",
+	[Key.splashStylePetal]: "Petals",
+	[Key.splashStyleWash]: "Wash",
 
 	// Card Style
 	[Key.cardSettings]: "Card Style",

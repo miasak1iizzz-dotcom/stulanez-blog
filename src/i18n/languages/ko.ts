@@ -376,7 +376,16 @@ export const ko: Translation = {
 	// Settings Panel Tabs
 	[Key.settingsTabAppearance]: "외형",
 	[Key.settingsTabWallpaper]: "배경화면",
-	[Key.settingsTabEffects]: "효과",
+	[Key.settingsTabEffects]: "환경설정",
+
+	[Key.wallpaperBuiltin]: "내장 배경",
+	[Key.splashAnimation]: "스플래시",
+	[Key.splashPlayOnHome]: "홈 입장 시 재생",
+	[Key.splashPreviewHint]: "스타일을 바꾸면 바로 미리봅니다.",
+	[Key.splashPreviewBadge]: "홈에서 미리보기",
+	[Key.splashStyleLogo]: "로고",
+	[Key.splashStylePetal]: "꽃잎",
+	[Key.splashStyleWash]: "워시",
 
 	// 카드 스타일
 	[Key.cardSettings]: "카드 스타일",

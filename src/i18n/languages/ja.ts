@@ -376,7 +376,16 @@ export const ja: Translation = {
 	// 設定パネルタブ
 	[Key.settingsTabAppearance]: "外観",
 	[Key.settingsTabWallpaper]: "壁紙",
-	[Key.settingsTabEffects]: "エフェクト",
+	[Key.settingsTabEffects]: "設定",
+
+	[Key.wallpaperBuiltin]: "プリセット壁紙",
+	[Key.splashAnimation]: "スプラッシュ",
+	[Key.splashPlayOnHome]: "ホーム入場時に再生",
+	[Key.splashPreviewHint]: "スタイルを切り替えるとすぐにプレビューします。",
+	[Key.splashPreviewBadge]: "ホームでプレビュー可",
+	[Key.splashStyleLogo]: "ロゴ",
+	[Key.splashStylePetal]: "花びら",
+	[Key.splashStyleWash]: "ウォッシュ",
 
 	// カードスタイル
 	[Key.cardSettings]: "カードスタイル",

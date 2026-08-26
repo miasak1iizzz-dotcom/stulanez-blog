@@ -367,6 +367,15 @@ enum I18nKey {
 	settingsTabWallpaper = "settingsTabWallpaper",
 	settingsTabEffects = "settingsTabEffects",
 
+	wallpaperBuiltin = "wallpaperBuiltin",
+	splashAnimation = "splashAnimation",
+	splashPlayOnHome = "splashPlayOnHome",
+	splashPreviewHint = "splashPreviewHint",
+	splashPreviewBadge = "splashPreviewBadge",
+	splashStyleLogo = "splashStyleLogo",
+	splashStylePetal = "splashStylePetal",
+	splashStyleWash = "splashStyleWash",
+
 	// 卡片样式
 	cardSettings = "cardSettings",
 	cardBorder = "cardBorder",

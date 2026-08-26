@@ -37,4 +37,9 @@ export const atmosphereConfig: AtmosphereConfig = {
 	cursor: {
 		enable: true,
 	},
+	splash: {
+		enable: true,
+		defaultStyle: "logo",
+		durationMs: 1800,
+	},
 };
