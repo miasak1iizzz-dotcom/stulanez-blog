@@ -174,6 +174,7 @@ const standardItems = $derived(
 );
 const emblemItems = $derived(data.items.filter((item) => item.category === "emblem"));
 const artifactItems = $derived(data.items.filter((item) => item.category === "artifact"));
+const radiantItems = $derived(data.items.filter((item) => item.category === "radiant"));
 const traitStatuses = $derived.by(() => {
 	const counts = new Map<string, number>();
 	for (const slot of board) {
@@ -1026,7 +1027,25 @@ async function downloadScreenshot() {
 					</div>
 				</div>
 			{:else}
-				<div class="ttb-empty-note">当前数据源（Data Dragon {data.patch}）暂未提供光明武器数据。</div>
+				<div class="ttb-item-grid">
+					{#each radiantItems as item (item.id)}
+						<button
+							type="button"
+							class="ttb-item"
+							class:equipped={selectedBoardUnit?.items.includes(item.id)}
+							title={item.name}
+							aria-label={item.name}
+							onclick={() => clickItem(item.id)}
+							onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
+							onmousemove={moveTooltip}
+							onmouseleave={hideTooltip}
+							draggable="true"
+							ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
+						>
+							<img src={item.image} alt="" loading="lazy" />
+						</button>
+					{/each}
+				</div>
 			{/if}
 		</section>
 	</div>
