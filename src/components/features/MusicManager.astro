@@ -125,6 +125,57 @@ const managerConfigStr = JSON.stringify({
     else if (config.playMode === 'one') state.playMode = 1;
     else state.playMode = 0;
 
+    var LAST_TRACK_KEY = 'stulanez.music.last-track';
+
+    function trackUrlBase(url) {
+        return String(url || '').split('?')[0];
+    }
+
+    function readLastTrack() {
+        try {
+            var raw = localStorage.getItem(LAST_TRACK_KEY);
+            if (!raw) return null;
+            var saved = JSON.parse(raw);
+            if (!saved || typeof saved !== 'object') return null;
+            return saved;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function saveLastTrack(track) {
+        if (!track) return;
+        try {
+            localStorage.setItem(LAST_TRACK_KEY, JSON.stringify({
+                name: track.name || '',
+                artist: track.artist || '',
+                url: track.url || ''
+            }));
+        } catch (e) {}
+    }
+
+    function findSavedTrackIndex(playlist) {
+        var saved = readLastTrack();
+        if (!saved || !playlist || !playlist.length) return -1;
+        var i;
+        if (saved.name) {
+            for (i = 0; i < playlist.length; i++) {
+                if (playlist[i].name === saved.name && playlist[i].artist === saved.artist) {
+                    return i;
+                }
+            }
+        }
+        if (saved.url) {
+            var savedBase = trackUrlBase(saved.url);
+            for (i = 0; i < playlist.length; i++) {
+                if (trackUrlBase(playlist[i].url) === savedBase) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
     // ── Event helpers ────────────────────────────────────────
     function emit(name, detail) {
         window.dispatchEvent(new CustomEvent(name, { detail: detail || {} }));
@@ -233,6 +284,7 @@ const managerConfigStr = JSON.stringify({
         if (index < 0 || index >= state.playlist.length) return;
         state.currentIndex = index;
         var track = state.playlist[index];
+        saveLastTrack(track);
         var ver = ++loadVersion;
 
         if (errorSkipTimeout) {
@@ -417,8 +469,11 @@ const managerConfigStr = JSON.stringify({
                 // Apply volume
                 audio.volume = state.volume;
 
+                var savedIndex = findSavedTrackIndex(state.playlist);
                 var startIndex = 0;
-                if (state.playMode === 2) {
+                if (savedIndex >= 0) {
+                    startIndex = savedIndex;
+                } else if (state.playMode === 2) {
                     startIndex = Math.floor(Math.random() * state.playlist.length);
                 }
 
@@ -426,6 +481,7 @@ const managerConfigStr = JSON.stringify({
 
                 emit('fm:init', {
                     playlist: state.playlist,
+                    currentIndex: startIndex,
                     playMode: state.playMode,
                     volume: state.volume,
                     isMuted: state.isMuted
