@@ -97,8 +97,8 @@ const hiddenTagCount = hiddenTags.length;
 
 const { remarkPluginFrontmatter } = await render(entry);
 const descriptionText = description || remarkPluginFrontmatter.excerpt || "";
-const words = remarkPluginFrontmatter.words;
-const minutes = remarkPluginFrontmatter.minutes;
+const words = entry.data.words ?? remarkPluginFrontmatter.words;
+const minutes = entry.data.minutes ?? remarkPluginFrontmatter.minutes;
 ---
 
 <div

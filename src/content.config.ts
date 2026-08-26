@@ -25,6 +25,9 @@ type PostData = {
 	prevSlug: string;
 	nextTitle: string;
 	nextSlug: string;
+	words?: number;
+	minutes?: number;
+	hideCoverInPost: boolean;
 };
 
 type DynamicData = {
@@ -58,6 +61,9 @@ const postsCollection: ContentCollection<PostData> = defineCollection({
 		comment: z.boolean().optional().default(true),
 		password: z.string().optional().default(""),
 		passwordHint: z.string().optional().default(""),
+		words: z.number().int().positive().optional(),
+		minutes: z.number().int().positive().optional(),
+		hideCoverInPost: z.boolean().optional().default(false),
 
 		/* For internal use */
 		prevTitle: z.string().default(""),
