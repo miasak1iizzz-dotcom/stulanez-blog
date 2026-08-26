@@ -487,6 +487,11 @@ function hideTooltip() {
 	tooltip = null;
 }
 
+function moveTooltip(event: MouseEvent) {
+	if (!tooltip) return;
+	tooltip = { ...tooltip, x: event.clientX, y: event.clientY };
+}
+
 function styleColor(style: number) {
 	return STYLE_COLORS[style] ?? STYLE_COLORS[0];
 }
