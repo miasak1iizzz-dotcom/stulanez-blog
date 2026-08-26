@@ -177,11 +177,11 @@ html[data-splash-pending] {
 .splash-character {
 	position: absolute;
 	left: 50%;
-	bottom: -1.5vh;
+	bottom: -6vh;
 	z-index: 3;
 	width: auto;
-	height: 94vh;
-	max-width: 72vw;
+	height: 112vh;
+	max-width: 96vw;
 	object-fit: contain;
 	object-position: bottom center;
 	filter: drop-shadow(0 14px 22px rgb(15 25 35 / 42%));
@@ -275,8 +275,9 @@ html[data-splash-pending] {
 	}
 
 	.splash-character {
-		height: 90vh;
-		max-width: 88vw;
+		height: 108vh;
+		max-width: 100vw;
+		bottom: -5vh;
 	}
 }
 
