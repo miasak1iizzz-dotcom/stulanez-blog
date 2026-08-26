@@ -16,6 +16,7 @@ import { getBackgroundImages, isHomePage } from "@/utils/layout-utils";
 import { getEffectiveSidebarState } from "@/utils/sidebar-effective-utils";
 import Layout from "./Layout.astro";
 import SiteDecor from "@/components/misc/SiteDecor.astro";
+import ReadingProgress from "@/components/common/ReadingProgress.astro";
 
 import "@/styles/expressive-code.css";
 
@@ -88,6 +89,7 @@ const {
 <slot slot="head" name="head" />
 <HeaderTopRow stickyNavbar={stickyNavbar} navbarWidthFull={navbarWidthFull} />
 <SiteDecor />
+<ReadingProgress />
 
 <WallpaperSection state={banner} backgroundImages={backgroundImages} title={title} bannerPostMeta={bannerPostMeta} />
 
