@@ -12,6 +12,7 @@ interface Props {
 const { class: className, style, id } = Astro.props;
 
 const config = musicPlayerConfig;
+const trackCount = config.local?.playlist?.length ?? 0;
 
 const widgetId =
 	id || `music-widget-${Math.random().toString(36).substring(2, 9)}`;
@@ -20,17 +21,22 @@ const widgetId =
 <div id={widgetId} class:list={["music-player-widget w-full relative transition-all duration-300", className]} style={style} role="region" aria-label={i18n(I18nKey.music)}>
 
     <!-- Top Row: Cover & Info -->
-<div class="flex items-center gap-2 mb-2 px-1">
+<div class="music-hero-row flex items-center gap-3 mb-3 px-1">
     <!-- Circular Cover -->
-    <div class="relative shrink-0 w-14 h-14 group">
-            <div class="w-full h-full rounded-full overflow-hidden shadow-lg border-2 border-white dark:border-neutral-700 relative z-10 bg-(--primary)/10 flex items-center justify-center">
+    <div class="music-cover-frame relative shrink-0 w-16 h-16 group">
+            <div class="music-disc w-full h-full overflow-hidden relative z-10 bg-(--primary)/10 flex items-center justify-center">
             <Icon name="material-symbols:music-note-rounded" class="text-2xl text-(--primary) opacity-40 absolute" aria-hidden="true" />
             <img class="music-cover w-full h-full object-cover animate-spin-slow relative z-10 opacity-0 transition-opacity duration-300" src="" alt={i18n(I18nKey.musicCover)} style="animation-play-state: paused;" />
             </div>
+            <span class="music-eq" aria-hidden="true"><i></i><i></i><i></i></span>
     </div>
 
     <!-- Info Section -->
     <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <div class="music-meta-line">
+            <span>LOCAL MIX</span>
+            <span>{trackCount} TRACKS</span>
+        </div>
         <div class="flex items-center justify-between overflow-hidden gap-2">
             <div class="flex-1 min-w-0 overflow-hidden relative">
                 <h3 class="music-title font-bold text-base text-neutral-800 dark:text-neutral-100 leading-tight truncate">
@@ -75,7 +81,7 @@ const widgetId =
 </div>
 
 <!-- Progress Bar (Slim) -->
-<div class="px-1">
+<div class="music-track px-1">
     <div class="progress-container relative w-full h-1 bg-neutral-300/60 dark:bg-neutral-500/40 rounded-full cursor-pointer touch-none mb-2 group mt-2" role="slider" aria-label={i18n(I18nKey.musicProgress)} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="progress-bar absolute left-0 top-0 h-full bg-(--primary) rounded-full w-0 transition-[width] duration-100"></div>
         <!-- Hover Thumb -->
@@ -84,7 +90,7 @@ const widgetId =
 </div>
 
 <!-- Controls Row -->
-<div class="flex items-center justify-between px-1 select-none">
+<div class="music-controls flex items-center justify-between px-1 select-none">
     <!-- Repeat Mode -->
     <button class="btn-repeat text-neutral-300 dark:text-neutral-600 hover:text-(--primary) transition-colors p-2 active:scale-95" title={i18n(I18nKey.musicPlayMode)} aria-label={i18n(I18nKey.musicPlayMode)}>
         <Icon name="material-symbols:repeat-rounded" class="icon-repeat text-xl" aria-hidden="true" />
@@ -152,4 +158,128 @@ const widgetId =
     .animate-spin-slow {
         animation: spin-slow 10s linear infinite;
     }
+
+	.music-player-widget {
+		padding: 0.2rem 0 0.05rem;
+	}
+
+	.music-cover-frame::before {
+		position: absolute;
+		inset: -0.32rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+		border-radius: 1.3rem;
+		background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 12%, transparent), transparent 62%);
+		content: "";
+		transform: rotate(-3deg);
+	}
+
+	.music-cover {
+		animation-name: none !important;
+	}
+
+	.music-disc {
+		border: 2px solid color-mix(in srgb, white 72%, var(--primary));
+		border-radius: 1rem;
+		box-shadow:
+			0 0.7rem 1.6rem color-mix(in srgb, var(--primary) 14%, transparent),
+			inset 0 0 0 1px rgb(255 255 255 / 18%);
+	}
+
+	:global(.dark) .music-disc {
+		border-color: color-mix(in srgb, var(--primary) 35%, #27272a);
+	}
+
+	.music-eq {
+		position: absolute;
+		right: -0.25rem;
+		bottom: -0.15rem;
+		z-index: 12;
+		display: flex;
+		align-items: flex-end;
+		gap: 2px;
+		width: 1.45rem;
+		height: 1.45rem;
+		padding: 0.35rem;
+		border: 2px solid var(--card-bg);
+		border-radius: 50%;
+		background: var(--primary);
+		box-shadow: 0 0.35rem 0.8rem color-mix(in srgb, var(--primary) 32%, transparent);
+	}
+
+	.music-eq i {
+		width: 2px;
+		border-radius: 2px;
+		background: white;
+	}
+
+	.music-eq i:nth-child(1) { height: 45%; }
+	.music-eq i:nth-child(2) { height: 100%; }
+	.music-eq i:nth-child(3) { height: 70%; }
+
+	.music-meta-line {
+		display: flex;
+		align-items: center;
+		gap: 0.38rem;
+		margin-bottom: 0.15rem;
+		color: color-mix(in srgb, var(--primary) 78%, #71717a);
+		font-size: 0.53rem;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+	}
+
+	.music-meta-line span + span {
+		padding-left: 0.38rem;
+		border-left: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+	}
+
+	.music-title {
+		letter-spacing: -0.015em;
+	}
+
+	.music-track {
+		position: relative;
+		margin-top: 0.15rem;
+	}
+
+	.progress-container {
+		box-shadow: inset 0 1px 2px rgb(0 0 0 / 8%);
+	}
+
+	.progress-bar,
+	.vol-bar {
+		background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 70%, white), var(--primary));
+		box-shadow: 0 0 0.45rem color-mix(in srgb, var(--primary) 30%, transparent);
+	}
+
+	.music-controls {
+		margin-top: 0.35rem;
+		padding: 0.3rem 0.35rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 9%, transparent);
+		border-radius: 1rem;
+		background: color-mix(in srgb, var(--card-bg) 74%, transparent);
+		box-shadow: inset 0 1px rgb(255 255 255 / 14%);
+	}
+
+	.music-controls button {
+		border-radius: 0.75rem;
+	}
+
+	.music-controls .btn-play {
+		width: 2.8rem;
+		height: 2.8rem;
+		background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 70%, white), var(--primary));
+		box-shadow:
+			0 0.5rem 1rem color-mix(in srgb, var(--primary) 24%, transparent),
+			inset 0 1px rgb(255 255 255 / 35%);
+		color: white;
+	}
+
+	.music-controls .btn-play:hover {
+		filter: brightness(1.06);
+		transform: translateY(-1px);
+	}
+
+	.music-loading {
+		backdrop-filter: blur(5px);
+	}
 </style>

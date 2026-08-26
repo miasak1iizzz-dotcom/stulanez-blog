@@ -1,4 +1,5 @@
 ---
+import { Icon } from "astro-icon/components";
 import WidgetLayout from "@/components/common/WidgetLayout.astro";
 import { atmosphereConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
@@ -39,83 +40,239 @@ const labels = {
 	class={className}
 	style={style}
 >
-	<div class="flex flex-col gap-3" data-time-progress-root>
-		<div data-progress-row="year">
-			<div class="mb-1 flex items-center justify-between text-sm">
-				<span class="text-neutral-700 dark:text-neutral-300">{labels.year}</span>
-				<span class="tabular-nums font-medium text-neutral-900 dark:text-neutral-100" data-progress-percent>
+	<span slot="title-icon" class="progress-title-chip">2026 / JOURNEY</span>
+	<div class="progress-shell" data-time-progress-root>
+		<div class="progress-slice progress-year" data-progress-row="year">
+			<div class="progress-topline">
+				<span>{labels.year}</span>
+				<span class="progress-percent" data-progress-percent>
 					{Math.round(snapshot.year.percent)}%
 				</span>
 			</div>
-			<div class="h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+			<div class="progress-track">
 				<div
-					class="h-full rounded-full bg-(--primary) transition-[width] duration-500"
+					class="progress-bar"
 					data-progress-bar
 					style={`width: ${snapshot.year.percent}%`}
 				>
 				</div>
 			</div>
-			<p class="mt-1 mb-0 text-xs text-neutral-500 dark:text-neutral-400" data-progress-left>
+			<p class="progress-left" data-progress-left>
 				{labels.yearLeft.replace("{days}", String(snapshot.year.remainingDays))}
 			</p>
 		</div>
-		<div data-progress-row="month">
-			<div class="mb-1 flex items-center justify-between text-sm">
-				<span class="text-neutral-700 dark:text-neutral-300">{labels.month}</span>
-				<span class="tabular-nums font-medium text-neutral-900 dark:text-neutral-100" data-progress-percent>
+		<div class="progress-slice progress-month" data-progress-row="month">
+			<div class="progress-topline">
+				<span>{labels.month}</span>
+				<span class="progress-percent" data-progress-percent>
 					{Math.round(snapshot.month.percent)}%
 				</span>
 			</div>
-			<div class="h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+			<div class="progress-track">
 				<div
-					class="h-full rounded-full bg-(--primary) transition-[width] duration-500"
+					class="progress-bar"
 					data-progress-bar
 					style={`width: ${snapshot.month.percent}%`}
 				>
 				</div>
 			</div>
-			<p class="mt-1 mb-0 text-xs text-neutral-500 dark:text-neutral-400" data-progress-left>
+			<p class="progress-left" data-progress-left>
 				{labels.monthLeft.replace("{days}", String(snapshot.month.remainingDays))}
 			</p>
 		</div>
-		<div data-progress-row="week">
-			<div class="mb-1 flex items-center justify-between text-sm">
-				<span class="text-neutral-700 dark:text-neutral-300">{labels.week}</span>
-				<span class="tabular-nums font-medium text-neutral-900 dark:text-neutral-100" data-progress-percent>
+		<div class="progress-slice progress-week" data-progress-row="week">
+			<div class="progress-topline">
+				<span>{labels.week}</span>
+				<span class="progress-percent" data-progress-percent>
 					{Math.round(snapshot.week.percent)}%
 				</span>
 			</div>
-			<div class="h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+			<div class="progress-track">
 				<div
-					class="h-full rounded-full bg-(--primary) transition-[width] duration-500"
+					class="progress-bar"
 					data-progress-bar
 					style={`width: ${snapshot.week.percent}%`}
 				>
 				</div>
 			</div>
-			<p class="mt-1 mb-0 text-xs text-neutral-500 dark:text-neutral-400" data-progress-left>
+			<p class="progress-left" data-progress-left>
 				{labels.weekLeft.replace("{days}", String(snapshot.week.remainingDays))}
 			</p>
 		</div>
-		<div
-			class="rounded-xl border border-(--primary)/15 bg-(--primary)/10 px-3 py-2"
-			data-progress-next
-			hidden={!snapshot.next}
-		>
-			<p class="m-0 text-xs text-neutral-500 dark:text-neutral-400">
-				{labels.next}
-				<span data-progress-next-name>{snapshot.next?.name ?? ""}</span>
-			</p>
-			<p class="m-0 mt-1 text-lg font-bold tabular-nums text-neutral-900 dark:text-neutral-100">
-				<span data-progress-next-days>{snapshot.next?.remainingDays ?? "--"}</span>
-				<span class="ml-1 text-sm font-medium text-neutral-500 dark:text-neutral-400">{labels.days}</span>
-			</p>
-			<p class="m-0 mt-0.5 text-xs tabular-nums text-neutral-500 dark:text-neutral-400" data-progress-next-date>
-				{snapshot.next?.dateLabel ?? ""}
-			</p>
+		<div class="progress-milestone" data-progress-next hidden={!snapshot.next}>
+			<div class="progress-milestone-icon">
+				<Icon name="material-symbols:flag-outline-rounded" />
+			</div>
+			<div class="progress-milestone-copy">
+				<p>{labels.next} · <span data-progress-next-name>{snapshot.next?.name ?? ""}</span></p>
+				<span data-progress-next-date>{snapshot.next?.dateLabel ?? ""}</span>
+			</div>
+			<strong><span data-progress-next-days>{snapshot.next?.remainingDays ?? "--"}</span><small>{labels.days}</small></strong>
 		</div>
 	</div>
 </WidgetLayout>
+
+<style>
+	:global(widget-layout[data-id="time-progress"]) {
+		position: relative;
+		overflow: hidden;
+		background:
+			radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 40%),
+			linear-gradient(150deg, color-mix(in srgb, var(--card-bg) 96%, var(--primary) 4%), var(--card-bg));
+	}
+
+	.progress-title-chip {
+		margin-right: 1rem;
+		color: color-mix(in srgb, var(--primary) 76%, #71717a);
+		font-size: 0.53rem;
+		font-weight: 800;
+		letter-spacing: 0.09em;
+	}
+
+	.progress-shell {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.progress-slice {
+		padding: 0.58rem 0.62rem 0.52rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 7%, transparent);
+		border-radius: 0.8rem;
+		background: color-mix(in srgb, var(--card-bg) 74%, transparent);
+		box-shadow: inset 0 1px rgb(255 255 255 / 11%);
+	}
+
+	.progress-topline {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		margin-bottom: 0.38rem;
+		color: rgb(82 82 91);
+		font-size: 0.68rem;
+		font-weight: 700;
+	}
+
+	:global(.dark) .progress-topline {
+		color: rgb(212 212 216);
+	}
+
+	.progress-percent {
+		color: rgb(39 39 42);
+		font-size: 0.84rem;
+		font-weight: 850;
+		font-variant-numeric: tabular-nums;
+	}
+
+	:global(.dark) .progress-percent {
+		color: rgb(244 244 245);
+	}
+
+	.progress-track {
+		height: 0.34rem;
+		overflow: hidden;
+		border-radius: 999px;
+		background: rgb(0 0 0 / 7%);
+	}
+
+	:global(.dark) .progress-track {
+		background: rgb(255 255 255 / 10%);
+	}
+
+	.progress-bar {
+		height: 100%;
+		border-radius: inherit;
+		background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 72%, #8b9cff), var(--primary));
+		box-shadow: 0 0 0.7rem color-mix(in srgb, var(--primary) 25%, transparent);
+		transition: width 0.5s ease;
+	}
+
+	.progress-month .progress-bar {
+		filter: saturate(0.82) hue-rotate(18deg);
+	}
+
+	.progress-week .progress-bar {
+		filter: saturate(1.08) hue-rotate(-14deg);
+	}
+
+	.progress-left {
+		margin: 0.28rem 0 0;
+		color: rgb(161 161 170);
+		font-size: 0.56rem;
+	}
+
+	.progress-milestone {
+		display: grid;
+		grid-template-columns: 2rem minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.58rem 0.65rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
+		border-radius: 0.85rem;
+		background: linear-gradient(120deg, color-mix(in srgb, var(--primary) 11%, transparent), color-mix(in srgb, var(--card-bg) 74%, transparent));
+	}
+
+	.progress-milestone[hidden] {
+		display: none;
+	}
+
+	.progress-milestone-icon {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 0.62rem;
+		background: color-mix(in srgb, var(--primary) 12%, transparent);
+		color: var(--primary);
+		font-size: 1rem;
+	}
+
+	.progress-milestone-copy {
+		min-width: 0;
+	}
+
+	.progress-milestone-copy p {
+		overflow: hidden;
+		margin: 0;
+		color: rgb(63 63 70);
+		font-size: 0.62rem;
+		font-weight: 750;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.progress-milestone-copy > span {
+		display: block;
+		margin-top: 0.08rem;
+		color: rgb(161 161 170);
+		font-size: 0.54rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	:global(.dark) .progress-milestone-copy p {
+		color: rgb(228 228 231);
+	}
+
+	.progress-milestone > strong {
+		display: flex;
+		align-items: baseline;
+		gap: 0.16rem;
+		color: rgb(39 39 42);
+		font-size: 1.1rem;
+		font-weight: 850;
+		font-variant-numeric: tabular-nums;
+	}
+
+	:global(.dark) .progress-milestone > strong {
+		color: rgb(244 244 245);
+	}
+
+	.progress-milestone small {
+		color: rgb(113 113 122);
+		font-size: 0.56rem;
+		font-weight: 650;
+	}
+</style>
 
 <script
 	is:inline

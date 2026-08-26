@@ -101,9 +101,27 @@ export const booknavConfig: BooknavGroup[] = [
 		id: "design-assets",
 		name: "视觉资源",
 		icon: "material-symbols:palette-outline-rounded",
-		desc: "图标、壁纸压缩与格式转换",
+		desc: "摄影素材、图标与图片压缩工具",
 		weight: 80,
 		items: [
+			{
+				title: "Unsplash",
+				url: "https://unsplash.com",
+				desc: "高质量摄影图片与创作灵感",
+				weight: 13,
+			},
+			{
+				title: "Pexels",
+				url: "https://www.pexels.com",
+				desc: "免费摄影图片与视频素材",
+				weight: 12,
+			},
+			{
+				title: "Pixabay",
+				url: "https://pixabay.com",
+				desc: "图片、插画、矢量与音频资源",
+				weight: 11,
+			},
 			{
 				title: "Iconify",
 				url: "https://icon-sets.iconify.design",

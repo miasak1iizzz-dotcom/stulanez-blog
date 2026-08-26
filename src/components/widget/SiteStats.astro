@@ -112,33 +112,23 @@ const stats = [
 ---
 
 <WidgetLayout name={i18n(I18nKey.siteStats)} showTitle={showTitle} id="site-stats" class={className} style={style}>
-  <div class="flex flex-col gap-2">
-    {stats.map((stat) => (
-      <div class="flex items-center justify-between px-3 py-1.5">
-        <div class="flex items-center gap-2.5">
-          <div class="text-(--primary) text-xl">
-            <Icon name={stat.icon} />
-          </div>
-          <span class="text-neutral-700 dark:text-neutral-300 font-medium text-sm">
-            {stat.label}
-          </span>
-        </div>
-        <div class="flex items-center">
-          <span
-            class="text-base font-bold text-neutral-900 dark:text-neutral-100"
-            data-stat-id={stat.id}
-          >
-            {stat.formatted ? formatNumber(stat.value) : stat.value}
-          </span>
-          {stat.suffix && (
-            <span class="ml-1 text-sm text-neutral-500 dark:text-neutral-400">
-              {stat.suffix}
-            </span>
-          )}
-        </div>
-      </div>
-    ))}
-  </div>
+	<span slot="title-icon" class="stats-live-chip"><i></i>LIVE</span>
+	<div class="stats-grid">
+		{stats.map((stat, index) => (
+			<div class:list={["stat-tile", { "stat-tile-featured": index === 0 }]}>
+				<div class="stat-icon"><Icon name={stat.icon} /></div>
+				<div class="stat-copy">
+					<span>{stat.label}</span>
+					<div>
+						<strong data-stat-id={stat.id}>
+							{stat.formatted ? formatNumber(stat.value) : stat.value}
+						</strong>
+						{stat.suffix && <small>{stat.suffix}</small>}
+					</div>
+				</div>
+			</div>
+		))}
+	</div>
 </WidgetLayout>
 
 <script is:inline define:vars={{ siteStartDate, lastPostDate, todayText }}>
@@ -190,3 +180,124 @@ const stats = [
     });
   }
 </script>
+
+<style>
+	:global(widget-layout[data-id="site-stats"]) {
+		position: relative;
+		overflow: hidden;
+		background:
+			radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 38%),
+			linear-gradient(155deg, color-mix(in srgb, var(--card-bg) 96%, var(--primary) 4%), var(--card-bg));
+	}
+
+	.stats-live-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin-right: 1rem;
+		color: color-mix(in srgb, var(--primary) 78%, #71717a);
+		font-size: 0.56rem;
+		font-weight: 800;
+		letter-spacing: 0.11em;
+	}
+
+	.stats-live-chip i {
+		width: 0.4rem;
+		height: 0.4rem;
+		border-radius: 50%;
+		background: #46c991;
+		box-shadow: 0 0 0 0.22rem rgb(70 201 145 / 13%);
+	}
+
+	.stats-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.48rem;
+	}
+
+	.stat-tile {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-width: 0;
+		min-height: 3.35rem;
+		padding: 0.55rem 0.55rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 8%, transparent);
+		border-radius: 0.85rem;
+		background: color-mix(in srgb, var(--card-bg) 76%, transparent);
+		box-shadow: inset 0 1px rgb(255 255 255 / 12%);
+		transition: 0.2s ease;
+	}
+
+	.stat-tile:hover {
+		border-color: color-mix(in srgb, var(--primary) 18%, transparent);
+		background: color-mix(in srgb, var(--primary) 6%, var(--card-bg));
+		transform: translateY(-1px);
+	}
+
+	.stat-icon {
+		display: grid;
+		place-items: center;
+		flex: 0 0 auto;
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: 0.55rem;
+		background: color-mix(in srgb, var(--primary) 10%, transparent);
+		color: var(--primary);
+		font-size: 1.05rem;
+	}
+
+	.stat-copy {
+		display: flex;
+		min-width: 0;
+		flex: 1;
+		flex-direction: column;
+		gap: 0.05rem;
+	}
+
+	.stat-copy > span {
+		overflow: hidden;
+		color: rgb(113 113 122);
+		font-size: 0.61rem;
+		font-weight: 600;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	:global(.dark) .stat-copy > span {
+		color: rgb(161 161 170);
+	}
+
+	.stat-copy div {
+		display: flex;
+		align-items: baseline;
+		gap: 0.18rem;
+		min-width: 0;
+	}
+
+	.stat-copy strong {
+		overflow: hidden;
+		color: rgb(39 39 42);
+		font-size: 0.98rem;
+		font-weight: 800;
+		font-variant-numeric: tabular-nums;
+		line-height: 1.15;
+		text-overflow: ellipsis;
+	}
+
+	:global(.dark) .stat-copy strong {
+		color: rgb(244 244 245);
+	}
+
+	.stat-copy small {
+		color: rgb(161 161 170);
+		font-size: 0.58rem;
+	}
+
+	@media (max-width: 1279px) and (min-width: 769px) {
+		.stats-grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+</style>

@@ -26,40 +26,169 @@ const showTitle = widgetConfig?.showTitle !== false;
   class={className}
   style={style}
 >
-  <div>
-    <!-- 公告栏内容 -->
-    <div class="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-3">
-      {config.content}
-    </div>
+	<span slot="title-icon" class="notice-title-chip">
+		<span></span>
+		NOTICE
+	</span>
+	<div class="notice-body">
+		<div class="notice-kicker">
+			<Icon name="material-symbols:campaign-outline-rounded" />
+			<span>FROM STULANEZ</span>
+		</div>
+		<p>{config.content}</p>
 
-    <!-- 可选链接和关闭按钮 -->
-    <div class="flex items-center justify-between gap-3">
-      <div>
-        {
-          config.link && config.link.enable !== false && (
-            <a
-              href={config.link.url}
-              target={config.link.external ? "_blank" : "_self"}
-              rel={config.link.external ? "noopener noreferrer" : undefined}
-              class="btn-regular rounded-lg px-3 py-1.5 text-sm font-medium active:scale-95 transition-transform"
-            >
-              {config.link.text}
-            </a>
-          )
-        }
-      </div>
+		<div class="notice-actions">
+			{
+				config.link && config.link.enable !== false && (
+					<a
+						href={config.link.url}
+						target={config.link.external ? "_blank" : "_self"}
+						rel={config.link.external ? "noopener noreferrer" : undefined}
+					>
+						<span>{config.link.text}</span>
+						<Icon name="material-symbols:arrow-right-alt-rounded" />
+					</a>
+				)
+			}
 
-      {
-        config.closable && (
-          <button
-            class="btn-regular rounded-lg h-8 w-8 text-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-            onclick="this.closest('widget-layout').style.display='none'"
-            aria-label={i18n(I18nKey.announcementClose)}
-          >
-            <Icon name="fa7-solid:xmark" class="text-sm" />
-          </button>
-        )
-      }
-    </div>
-  </div>
+			{
+				config.closable && (
+					<button
+						onclick="this.closest('widget-layout').style.display='none'"
+						aria-label={i18n(I18nKey.announcementClose)}
+					>
+						<Icon name="fa7-solid:xmark" />
+					</button>
+				)
+			}
+		</div>
+	</div>
 </WidgetLayout>
+
+<style>
+	:global(widget-layout[data-id="announcement"]) {
+		position: relative;
+		overflow: hidden;
+		background:
+			radial-gradient(circle at 105% -5%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 44%),
+			linear-gradient(145deg, color-mix(in srgb, var(--card-bg) 94%, var(--primary) 6%), var(--card-bg));
+	}
+
+	:global(widget-layout[data-id="announcement"]::after) {
+		position: absolute;
+		right: -2rem;
+		bottom: -3rem;
+		width: 8rem;
+		height: 8rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 16%, transparent);
+		border-radius: 50%;
+		box-shadow:
+			0 0 0 1.2rem color-mix(in srgb, var(--primary) 5%, transparent),
+			0 0 0 2.4rem color-mix(in srgb, var(--primary) 3%, transparent);
+		content: "";
+		pointer-events: none;
+	}
+
+	.notice-title-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin-right: 1rem;
+		color: color-mix(in srgb, var(--primary) 80%, #6b6570);
+		font-size: 0.58rem;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+	}
+
+	.notice-title-chip span {
+		width: 0.42rem;
+		height: 0.42rem;
+		border-radius: 50%;
+		background: var(--primary);
+		box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--primary) 12%, transparent);
+	}
+
+	.notice-body {
+		position: relative;
+		z-index: 1;
+	}
+
+	.notice-kicker {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		margin-bottom: 0.65rem;
+		color: var(--primary);
+		font-size: 0.64rem;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+	}
+
+	.notice-kicker :global(svg) {
+		font-size: 1rem;
+	}
+
+	.notice-body p {
+		margin: 0;
+		color: rgb(82 82 91);
+		font-size: 0.9rem;
+		line-height: 1.75;
+	}
+
+	:global(.dark) .notice-body p {
+		color: rgb(212 212 216);
+	}
+
+	.notice-actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		margin-top: 0.9rem;
+	}
+
+	.notice-actions a {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		min-height: 2rem;
+		padding: 0 0.8rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--primary) 10%, transparent);
+		color: color-mix(in srgb, var(--primary) 82%, #514c54);
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-decoration: none;
+		transition: 0.2s ease;
+	}
+
+	.notice-actions a:hover {
+		gap: 0.55rem;
+		background: color-mix(in srgb, var(--primary) 16%, transparent);
+	}
+
+	.notice-actions a :global(svg) {
+		font-size: 1.05rem;
+	}
+
+	.notice-actions button {
+		display: grid;
+		place-items: center;
+		width: 1.9rem;
+		height: 1.9rem;
+		margin-left: auto;
+		border: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+		border-radius: 50%;
+		background: color-mix(in srgb, var(--card-bg) 78%, transparent);
+		color: rgb(161 161 170);
+		cursor: pointer;
+		transition: 0.2s ease;
+	}
+
+	.notice-actions button:hover {
+		border-color: color-mix(in srgb, #ef6262 35%, transparent);
+		color: #e65555;
+		transform: rotate(8deg);
+	}
+</style>

@@ -1,4 +1,5 @@
 ---
+import { Icon } from "astro-icon/components";
 import WidgetLayout from "@/components/common/WidgetLayout.astro";
 import MusicPlayer from "@/components/features/MusicPlayer.astro";
 import { musicPlayerConfig } from "@/config/musicConfig";
@@ -20,6 +21,39 @@ const showTitle = widgetConfig?.showTitle !== false;
 
 {musicPlayerConfig.showInSidebar !== false && (
 	<WidgetLayout id={`${widgetId}-layout`} class={className} style={style} name={i18n(I18nKey.music)} showTitle={showTitle}>
+		<span slot="title-icon" class="music-title-chip">
+			<Icon name="material-symbols:graphic-eq-rounded" />
+			K-POP
+		</span>
 		<MusicPlayer id={widgetId} />
 	</WidgetLayout>
 )}
+
+<style>
+	:global(widget-layout[data-id^="music-widget-"]) {
+		position: relative;
+		overflow: hidden;
+		background:
+			radial-gradient(circle at 9% 82%, color-mix(in srgb, var(--primary) 13%, transparent), transparent 34%),
+			linear-gradient(150deg, color-mix(in srgb, var(--card-bg) 95%, var(--primary) 5%), var(--card-bg));
+	}
+
+	.music-title-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		margin-right: 1rem;
+		padding: 0.2rem 0.48rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--primary) 8%, transparent);
+		color: color-mix(in srgb, var(--primary) 80%, #6e6670);
+		font-size: 0.55rem;
+		font-weight: 800;
+		letter-spacing: 0.09em;
+	}
+
+	.music-title-chip :global(svg) {
+		font-size: 0.9rem;
+	}
+</style>
