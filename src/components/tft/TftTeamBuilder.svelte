@@ -119,6 +119,12 @@ type PoolGroup = { key: string; label: string; image?: string; band: string; uni
 const originIds = $derived(
 	new Set(data.units.map((unit) => unit.traits[0]?.id).filter(Boolean)),
 );
+const luxTraits = $derived(
+	[...traitMap.values()].filter((t) => originIds.has(t.id)),
+);
+function isLux(unit: Unit) {
+	return unit.id === "DA_Lux18_Base" || unit.traits.some((t) => t.id === "DA_18_LuxUniqueTrait");
+}
 const poolGroups = $derived.by(() => {
 	if (poolMode === "cost") {
 		return [1, 2, 3, 4, 5]
@@ -884,20 +890,40 @@ async function downloadScreenshot() {
 					{/if}
 					<div class="ttb-unit-row" style={`--band: ${group.band}`}>
 						{#each group.units as unit (unit.id)}
-							<button
-								type="button"
-								class="ttb-unit"
-								style={`--cost-color: ${COST_COLORS[unit.cost] ?? "#bbb"}`}
-								aria-label={unit.name}
-								onclick={() => chooseUnit(unit.id)}
-								onmouseenter={(event) => showTooltip(event, { unitId: unit.id })}
-								onmousemove={moveTooltip}
-								onmouseleave={hideTooltip}
-								draggable="true"
-								ondragstart={(event) => handleDragStart(event, `unit:${unit.id}`)}
-							>
-								<img src={unit.image} alt="" loading="lazy" draggable="false" />
-							</button>
+							{#if isLux(unit)}
+								{#each luxTraits as t (t.id)}
+									<button
+										type="button"
+										class="ttb-unit ttb-unit-lux"
+										style={`--cost-color: ${COST_COLORS[unit.cost] ?? "#bbb"}`}
+										aria-label={`${unit.name}·${t.name}`}
+										onclick={() => chooseUnit(unit.id)}
+										onmouseenter={(event) => showTooltip(event, { unitId: unit.id })}
+										onmousemove={moveTooltip}
+										onmouseleave={hideTooltip}
+										draggable="true"
+										ondragstart={(event) => handleDragStart(event, `unit:${unit.id}`)}
+									>
+										<img src={unit.image} alt="" loading="lazy" draggable="false" />
+										<span class="ttb-unit-lux-badge" title={t.name}><img src={t.image} alt="" loading="lazy" /></span>
+									</button>
+								{/each}
+							{:else}
+								<button
+									type="button"
+									class="ttb-unit"
+									style={`--cost-color: ${COST_COLORS[unit.cost] ?? "#bbb"}`}
+									aria-label={unit.name}
+									onclick={() => chooseUnit(unit.id)}
+									onmouseenter={(event) => showTooltip(event, { unitId: unit.id })}
+									onmousemove={moveTooltip}
+									onmouseleave={hideTooltip}
+									draggable="true"
+									ondragstart={(event) => handleDragStart(event, `unit:${unit.id}`)}
+								>
+									<img src={unit.image} alt="" loading="lazy" draggable="false" />
+								</button>
+							{/if}
 						{/each}
 					</div>
 				{/each}
@@ -1443,6 +1469,7 @@ async function downloadScreenshot() {
 		background: color-mix(in srgb, var(--band, transparent) 9%, transparent);
 	}
 	.ttb-unit {
+		position: relative;
 		width: 42px;
 		height: 42px;
 		padding: 0;
@@ -1452,6 +1479,18 @@ async function downloadScreenshot() {
 		cursor: pointer;
 		transition: transform 0.12s ease, filter 0.12s ease;
 	}
+	.ttb-unit-lux-badge {
+		position: absolute;
+		right: 2px;
+		bottom: 2px;
+		width: 16px;
+		height: 16px;
+		border-radius: 4px;
+		overflow: hidden;
+		border: 1px solid #0b1c3a;
+		background: #0b1c3a;
+	}
+	.ttb-unit-lux-badge img { width: 100%; height: 100%; object-fit: cover; display: block; }
 	.ttb-unit:hover { z-index: 2; filter: brightness(1.2); transform: translateY(-2px); }
 	.ttb-unit img { width: 100%; height: 100%; border-radius: 3px; object-fit: cover; }
 	.ttb-item-strip { display: flex; flex-wrap: wrap; gap: 3px; padding: 10px 10px 4px; }
