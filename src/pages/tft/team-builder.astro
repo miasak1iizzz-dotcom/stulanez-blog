@@ -1,0 +1,106 @@
+---
+import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
+import TftTeamBuilder from "@/components/tft/TftTeamBuilder.svelte";
+import { siteConfig } from "@/config";
+import set18Data from "@/data/tft/set18.json";
+import Layout from "@/layouts/Layout.astro";
+
+const title = "S18 阵容规划器";
+const description =
+	"云顶之弈 S18 阵容规划工具：自由站位、羁绊统计、装备配置、阵容码导入和链接分享。";
+const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
+---
+
+<Layout {title} {description}>
+	<HeaderTopRow stickyNavbar={true} {navbarWidthFull} />
+	<main class="tft-tool-main">
+		<div class="tft-page">
+		<nav class="tft-breadcrumb" aria-label="面包屑">
+			<a href="/">首页</a>
+			<span aria-hidden="true">/</span>
+			<a href="/booknav/">功能与收藏</a>
+			<span aria-hidden="true">/</span>
+			<strong>S18 阵容规划器</strong>
+		</nav>
+		<TftTeamBuilder data={set18Data as any} client:load />
+		<div class="tft-source-note">
+			<p>
+				功能设计参考主流阵容规划器的使用习惯，界面与状态逻辑由本站独立实现。游戏数据来自
+				<a href="https://developer.riotgames.com/docs/tft" target="_blank" rel="noreferrer">Riot TFT Data Dragon</a>
+				及
+				<a href="https://www.communitydragon.org/" target="_blank" rel="noreferrer">CommunityDragon</a>。
+			</p>
+		</div>
+		</div>
+	</main>
+
+	<style is:global>
+		body:has(.tft-tool-main) {
+			background:
+				radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 32rem),
+				var(--page-bg);
+		}
+
+		body:has(.tft-tool-main) #top-row {
+			height: 4.5rem !important;
+		}
+
+		.tft-tool-main {
+			min-height: 100vh;
+			padding: 5.5rem 1rem 2rem;
+		}
+
+		.tft-page {
+			display: grid;
+			width: min(1440px, 100%);
+			margin: 0 auto;
+			gap: 10px;
+		}
+
+		.tft-breadcrumb {
+			display: flex;
+			align-items: center;
+			gap: 7px;
+			padding: 0 5px;
+			color: var(--text-50);
+			font-size: 0.72rem;
+		}
+
+		.tft-breadcrumb a {
+			color: inherit;
+			text-decoration: none;
+			transition: color 0.2s ease;
+		}
+
+		.tft-breadcrumb a:hover {
+			color: var(--primary);
+		}
+
+		.tft-breadcrumb strong {
+			color: var(--text-75);
+			font-weight: 600;
+		}
+
+		.tft-source-note {
+			padding: 0 12px;
+			color: var(--text-50);
+			font-size: 0.68rem;
+			line-height: 1.65;
+		}
+
+		.tft-source-note p {
+			margin: 0;
+		}
+
+		.tft-source-note a {
+			color: var(--primary);
+			text-decoration: none;
+		}
+
+		@media (max-width: 640px) {
+			.tft-tool-main {
+				padding: 5rem 0.45rem 1.5rem;
+			}
+		}
+	</style>
+</Layout>
