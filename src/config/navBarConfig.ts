@@ -47,7 +47,15 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		name: "我的",
 		url: "#",
 		icon: "material-symbols:person-play-rounded",
-		children: [LinkPresets.Works, LinkPresets.Booknav],
+		// 动态/相册/作品/工具/打赏/哔哩哔哩 均带 pageKey，页面开启才显示、关闭自动隐藏
+		children: [
+			LinkPresets.Dynamic,
+			LinkPresets.Gallery,
+			LinkPresets.Works,
+			LinkPresets.Booknav,
+			LinkPresets.Bilibili,
+			LinkPresets.Sponsor,
+		],
 	});
 
 	// 关于
