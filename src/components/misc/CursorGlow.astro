@@ -1,0 +1,83 @@
+---
+// 自定义光标光晕：一圈柔和的主题色光环跟随鼠标，悬停在可点元素上放大。
+// 不隐藏原生光标（避免 JS 失败/性能问题），仅叠加一层氛围；触屏隐藏；rAF 节流。
+---
+
+<div id="cursor-glow" class="cursor-glow" aria-hidden="true"></div>
+
+<style>
+	.cursor-glow {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 2rem;
+		height: 2rem;
+		margin: -1rem 0 0 -1rem;
+		border: 1.5px solid color-mix(in oklch, var(--primary) 50%, transparent);
+		border-radius: 50%;
+		pointer-events: none;
+		z-index: 9998;
+		opacity: 0;
+		transform: translate3d(-9999px, -9999px, 0);
+		transition:
+			width 0.2s ease,
+			height 0.2s ease,
+			margin 0.2s ease,
+			opacity 0.2s ease,
+			border-color 0.2s ease;
+	}
+	.cursor-glow.is-active {
+		opacity: 1;
+	}
+	.cursor-glow.is-hover {
+		width: 2.7rem;
+		height: 2.7rem;
+		margin: -1.35rem 0 0 -1.35rem;
+		border-color: color-mix(in oklch, var(--primary) 85%, transparent);
+		background: color-mix(in oklch, var(--primary) 9%, transparent);
+	}
+	@media (hover: none) {
+		.cursor-glow {
+			display: none;
+		}
+	}
+</style>
+
+<script>
+	(function () {
+		const el = document.getElementById("cursor-glow");
+		if (!el) return;
+		const glow: HTMLElement = el;
+		if (window.matchMedia("(hover: none)").matches) return;
+
+		let ticking = false;
+		let shown = false;
+		let px = -1000;
+		let py = -1000;
+
+		function apply() {
+			glow.style.transform = `translate3d(${px}px, ${py}px, 0)`;
+			if (!shown) {
+				glow.classList.add("is-active");
+				shown = true;
+			}
+			ticking = false;
+		}
+		function onMove(e: MouseEvent) {
+			px = e.clientX;
+			py = e.clientY;
+			if (!ticking) {
+				ticking = true;
+				requestAnimationFrame(apply);
+			}
+		}
+		function onOver(e: MouseEvent) {
+			const target = e.target as Element | null;
+			const hoverable = target?.closest("a,button,input,textarea,select,[data-cursor]");
+			glow.classList.toggle("is-hover", !!hoverable);
+		}
+
+		window.addEventListener("mousemove", onMove, { passive: true });
+		window.addEventListener("mouseover", onOver, { passive: true });
+	})();
+</script>
