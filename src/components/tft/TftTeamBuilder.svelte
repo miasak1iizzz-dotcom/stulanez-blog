@@ -157,21 +157,6 @@ const poolGroups = $derived.by(() => {
 		}))
 		.filter((group) => group.units.length) satisfies PoolGroup[];
 });
-const componentItems = $derived(
-	data.items.filter((item) => item.category === "component"),
-);
-const gridItems = $derived.by(() => {
-	if (itemTab === "standard")
-		return data.items.filter((item) => item.category === "standard");
-	if (itemTab === "other")
-		return data.items.filter(
-			(item) => item.category === "emblem" || item.category === "artifact",
-		);
-	return [];
-});
-const standardItems = $derived(
-	data.items.filter((item) => item.category === "standard"),
-);
 const emblemItems = $derived(data.items.filter((item) => item.category === "emblem"));
 const artifactItems = $derived(data.items.filter((item) => item.category === "artifact"));
 const radiantItems = $derived(data.items.filter((item) => item.category === "radiant"));
@@ -925,24 +910,6 @@ async function downloadScreenshot() {
 				</div>
 			</header>
 			{#if itemTab === "standard"}
-				<div class="ttb-item-strip">
-					{#each componentItems as item (item.id)}
-						<button
-							type="button"
-							class="ttb-item"
-							title={item.name}
-							aria-label={item.name}
-							onclick={() => clickItem(item.id)}
-							onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
-							onmousemove={moveTooltip}
-							onmouseleave={hideTooltip}
-							draggable="true"
-							ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
-						>
-							<img src={item.image} alt="" loading="lazy" />
-						</button>
-					{/each}
-				</div>
 				<div class="ttb-item-grid">
 					{#each standardItems as item (item.id)}
 						<button
@@ -988,27 +955,6 @@ async function downloadScreenshot() {
 					<h4>奥恩神器</h4>
 					<div class="ttb-item-grid">
 						{#each artifactItems as item (item.id)}
-							<button
-								type="button"
-								class="ttb-item"
-								title={item.name}
-								aria-label={item.name}
-								onclick={() => clickItem(item.id)}
-								onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
-								onmousemove={moveTooltip}
-								onmouseleave={hideTooltip}
-								draggable="true"
-								ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
-							>
-								<img src={item.image} alt="" loading="lazy" />
-							</button>
-						{/each}
-					</div>
-				</div>
-				<div class="ttb-item-section">
-					<h4>装备散件</h4>
-					<div class="ttb-item-strip">
-						{#each componentItems as item (item.id)}
 							<button
 								type="button"
 								class="ttb-item"
@@ -1283,7 +1229,7 @@ async function downloadScreenshot() {
 	/* 棋盘 */
 	.ttb-boards { display: grid; gap: 14px; align-content: start; }
 	.ttb-board-wrap {
-		padding: 18px 24px;
+		padding: 12px 16px;
 		border: 1px solid var(--tt-line);
 		border-radius: 10px;
 		background: linear-gradient(180deg, #16305c, #122647);
@@ -1504,7 +1450,7 @@ async function downloadScreenshot() {
 	.ttb-unit:hover { z-index: 2; filter: brightness(1.2); transform: translateY(-2px); }
 	.ttb-unit img { width: 100%; height: 100%; border-radius: 3px; object-fit: cover; }
 	.ttb-item-strip { display: flex; flex-wrap: wrap; gap: 3px; padding: 10px 10px 4px; }
-	.ttb-item-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; max-height: 280px; overflow: auto; padding: 8px 10px 10px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
+	.ttb-item-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; max-height: 190px; overflow: auto; padding: 8px 10px 10px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
 	.ttb-item {
 		aspect-ratio: 1;
 		padding: 0;
