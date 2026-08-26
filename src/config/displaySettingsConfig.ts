@@ -54,6 +54,12 @@ export const displaySettingsConfig: DisplaySettingsConfig =
 		// 壁纸轮播开关
 		bannerCarouselSwitchable: true,
 
+		// 内置壁纸缩略图点选（用 public 里我们自己的图）
+		wallpaperPickerSwitchable: true,
+
+		// 开屏动画选择（自有样式，不是对方站点的角色）
+		splashSwitchable: true,
+
 		// 全屏壁纸/透明覆盖模式参数调节开关
 		// 设为 false 关闭所有滑块，或用对象形式单独控制每个滑块
 		overlaySwitchable: {

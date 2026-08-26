@@ -175,3 +175,126 @@
 	align-items: center;
 	justify-content: center;
 }
+
+#display-setting .settings-tabs {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.25rem;
+	padding: 0.25rem;
+	margin: 0.5rem 0 0.25rem;
+	border-radius: 0.75rem;
+	background: var(--btn-regular-bg);
+}
+
+#display-setting .settings-tab {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.25rem;
+	min-width: 0;
+	padding: 0.45rem 0.25rem;
+	border-radius: 0.55rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--btn-content);
+	opacity: 0.72;
+}
+
+#display-setting .settings-tab.is-active {
+	background: var(--primary);
+	color: white;
+	opacity: 1;
+}
+
+#display-setting .wallpaper-thumb-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.4rem;
+	max-height: 13.5rem;
+	overflow-y: auto;
+	padding: 0.1rem;
+}
+
+#display-setting .wallpaper-thumb {
+	position: relative;
+	aspect-ratio: 16 / 10;
+	overflow: hidden;
+	border-radius: 0.45rem;
+	padding: 0;
+	border: 2px solid transparent;
+	background: var(--btn-regular-bg);
+}
+
+#display-setting .wallpaper-thumb img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+#display-setting .wallpaper-thumb.is-selected {
+	border-color: var(--primary);
+}
+
+#display-setting .splash-style-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.4rem;
+}
+
+#display-setting .splash-style-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	padding: 0.3rem;
+	border-radius: 0.55rem;
+	border: 2px solid transparent;
+	background: var(--btn-regular-bg);
+}
+
+#display-setting .splash-style-card.is-selected {
+	border-color: var(--primary);
+}
+
+#display-setting .splash-style-preview {
+	display: block;
+	height: 2.6rem;
+	border-radius: 0.35rem;
+	background: oklch(0.22 0.05 var(--hue));
+}
+
+#display-setting .splash-style-preview[data-style="logo"] {
+	background:
+		radial-gradient(circle at 50% 45%, oklch(0.85 0.12 var(--hue)) 0 0.35rem, transparent 0.38rem),
+		oklch(0.2 0.05 var(--hue));
+}
+
+#display-setting .splash-style-preview[data-style="petal"] {
+	background:
+		radial-gradient(circle at 22% 30%, oklch(0.86 0.12 var(--hue)) 0 0.22rem, transparent 0.24rem),
+		radial-gradient(circle at 70% 24%, oklch(0.82 0.1 var(--hue)) 0 0.18rem, transparent 0.2rem),
+		radial-gradient(circle at 48% 72%, oklch(0.88 0.11 var(--hue)) 0 0.2rem, transparent 0.22rem),
+		oklch(0.22 0.05 var(--hue));
+}
+
+#display-setting .splash-style-preview[data-style="wash"] {
+	background: oklch(0.72 0.16 var(--hue));
+}
+
+#display-setting .splash-style-label {
+	font-size: 0.7rem;
+	line-height: 1.2;
+	color: var(--btn-content);
+}
+
+#display-setting .splash-preview-badge {
+	margin-left: 0.35rem;
+	padding: 0.05rem 0.4rem;
+	border-radius: 999px;
+	font-size: 0.65rem;
+	font-weight: 500;
+	background: var(--btn-regular-bg);
+	color: var(--btn-content);
+	opacity: 0.8;
+}

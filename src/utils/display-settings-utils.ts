@@ -29,6 +29,8 @@ const DISABLED_SETTINGS: DisplaySettingsConfig = {
 	gradientSwitchable: false,
 	bannerTitleSwitchable: false,
 	bannerCarouselSwitchable: false,
+	wallpaperPickerSwitchable: false,
+	splashSwitchable: false,
 	overlaySwitchable: false,
 	sakuraSwitchable: false,
 };

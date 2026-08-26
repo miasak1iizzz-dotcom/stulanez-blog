@@ -371,7 +371,16 @@ export const zh_TW: Translation = {
 	// 設定面板標籤
 	[Key.settingsTabAppearance]: "外觀",
 	[Key.settingsTabWallpaper]: "壁紙",
-	[Key.settingsTabEffects]: "特效",
+	[Key.settingsTabEffects]: "偏好",
+
+	[Key.wallpaperBuiltin]: "內建壁紙",
+	[Key.splashAnimation]: "開屏動畫",
+	[Key.splashPlayOnHome]: "進入首頁時播放",
+	[Key.splashPreviewHint]: "切換樣式會立刻預覽。",
+	[Key.splashPreviewBadge]: "首頁切換可預覽",
+	[Key.splashStyleLogo]: "徽標",
+	[Key.splashStylePetal]: "花瓣",
+	[Key.splashStyleWash]: "色暈",
 
 	// 卡片樣式
 	[Key.cardSettings]: "卡片樣式",

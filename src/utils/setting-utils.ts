@@ -10,12 +10,14 @@ import {
 } from "@constants/constants";
 import type { LIGHT_DARK_MODE, WALLPAPER_MODE } from "@/types/config";
 import {
+	atmosphereConfig,
 	backgroundWallpaper,
 	displaySettingsConfig,
 	expressiveCodeConfig,
 	sakuraConfig,
 	siteConfig,
 } from "../config";
+import type { SplashStyleId } from "../types/atmosphereConfig";
 import { isHomePage as checkIsHomePage } from "./layout-utils";
 
 // Declare global functions
@@ -910,5 +912,123 @@ export function setCardFollowThemeEnabled(enabled: boolean): void {
 		document.body.classList.add("card-follow-theme-hue");
 	} else {
 		document.body.classList.remove("card-follow-theme-hue");
+	}
+}
+
+const WALLPAPER_INDEX_KEY = "bannerWallpaperIndex";
+const SPLASH_ENABLED_KEY = "splashEnabled";
+const SPLASH_STYLE_KEY = "splashStyle";
+const SPLASH_STYLES: SplashStyleId[] = ["logo", "petal", "wash"];
+
+export function getDefaultBannerWallpaperIndex(): number | null {
+	return null;
+}
+
+export function getStoredBannerWallpaperIndex(): number | null {
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.getItem !== "function"
+	) {
+		return getDefaultBannerWallpaperIndex();
+	}
+	const stored = localStorage.getItem(WALLPAPER_INDEX_KEY);
+	if (stored === null) return getDefaultBannerWallpaperIndex();
+	const index = Number.parseInt(stored, 10);
+	return Number.isFinite(index) && index >= 0 ? index : null;
+}
+
+export function setBannerWallpaperIndex(index: number | null): void {
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.setItem !== "function"
+	) {
+		return;
+	}
+	if (index === null) {
+		localStorage.removeItem(WALLPAPER_INDEX_KEY);
+	} else {
+		localStorage.setItem(WALLPAPER_INDEX_KEY, String(index));
+	}
+	if (typeof window !== "undefined") {
+		window.dispatchEvent(
+			new CustomEvent("bannerWallpaperSelect", {
+				detail: { index },
+			}),
+		);
+	}
+}
+
+export function getDefaultSplashEnabled(): boolean {
+	return atmosphereConfig.splash.enable;
+}
+
+export function getDefaultSplashStyle(): SplashStyleId {
+	return atmosphereConfig.splash.defaultStyle;
+}
+
+export function getStoredSplashEnabled(): boolean {
+	if (!displaySettingsConfig.splashSwitchable) {
+		return getDefaultSplashEnabled();
+	}
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.getItem !== "function"
+	) {
+		return getDefaultSplashEnabled();
+	}
+	const stored = localStorage.getItem(SPLASH_ENABLED_KEY);
+	if (stored === null) return getDefaultSplashEnabled();
+	return stored === "true";
+}
+
+export function setSplashEnabled(enabled: boolean): void {
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.setItem !== "function"
+	) {
+		return;
+	}
+	localStorage.setItem(SPLASH_ENABLED_KEY, String(enabled));
+	if (typeof window !== "undefined") {
+		window.dispatchEvent(
+			new CustomEvent("splashEnabledChange", {
+				detail: { enabled },
+			}),
+		);
+	}
+}
+
+function isSplashStyle(value: string | null): value is SplashStyleId {
+	return value !== null && SPLASH_STYLES.includes(value as SplashStyleId);
+}
+
+export function getStoredSplashStyle(): SplashStyleId {
+	if (!displaySettingsConfig.splashSwitchable) {
+		return getDefaultSplashStyle();
+	}
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.getItem !== "function"
+	) {
+		return getDefaultSplashStyle();
+	}
+	const stored = localStorage.getItem(SPLASH_STYLE_KEY);
+	return isSplashStyle(stored) ? stored : getDefaultSplashStyle();
+}
+
+export function setSplashStyle(style: SplashStyleId): void {
+	if (
+		typeof localStorage === "undefined" ||
+		typeof localStorage.setItem !== "function"
+	) {
+		return;
+	}
+	localStorage.setItem(SPLASH_STYLE_KEY, style);
+	if (typeof window !== "undefined") {
+		window.dispatchEvent(
+			new CustomEvent("splashPreview", {
+				detail: { style },
+			}),
+		);
 	}
 }

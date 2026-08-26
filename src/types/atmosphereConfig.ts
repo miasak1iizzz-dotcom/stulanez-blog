@@ -8,6 +8,8 @@ export type TimeProgressMilestone = {
 	date: string; // YYYY-MM-DD
 };
 
+export type SplashStyleId = "logo" | "petal" | "wash";
+
 export type AtmosphereConfig = {
 	hitokoto: {
 		quotes: HitokotoQuote[];
@@ -22,5 +24,10 @@ export type AtmosphereConfig = {
 	};
 	cursor: {
 		enable: boolean;
+	};
+	splash: {
+		enable: boolean;
+		defaultStyle: SplashStyleId;
+		durationMs: number;
 	};
 };
