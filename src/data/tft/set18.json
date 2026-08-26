@@ -1,0 +1,2626 @@
+{
+	"set": 18,
+	"patch": "16.17.1",
+	"updatedAt": "2026-08-26T15:12:13.175Z",
+	"sources": {
+		"planner": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/zh_cn/v1/tftchampions-teamplanner.json",
+		"traits": "https://raw.communitydragon.org/pbe/cdragon/tft/zh_cn.json",
+		"items": "https://ddragon.leagueoflegends.com/cdn/16.17.1/data/zh_CN/tft-item.json"
+	},
+	"units": [
+		{
+			"id": "DA_18_Akali_AD",
+			"name": "阿卡丽",
+			"cost": 1,
+			"plannerCode": 1002,
+			"traits": [
+				{
+					"id": "DA_18_Inferno",
+					"name": "地狱火",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Adaptor",
+					"name": "魔战士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Slayer",
+					"name": "狂战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_akali_ad.webp"
+		},
+		{
+			"id": "DA_18_Ornn",
+			"name": "奥恩",
+			"cost": 1,
+			"plannerCode": 1055,
+			"traits": [
+				{
+					"id": "DA_18_Elderwood",
+					"name": "永恒之森",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Defender",
+					"name": "护卫",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_ornn.webp"
+		},
+		{
+			"id": "DA_18_Sentry",
+			"name": "苍蓝哨戒",
+			"cost": 1,
+			"plannerCode": 1065,
+			"traits": [
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Invoker",
+					"name": "神谕",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_sentry.webp"
+		},
+		{
+			"id": "DA_Cinderling18",
+			"name": "绯红树怪",
+			"cost": 1,
+			"plannerCode": 1015,
+			"traits": [
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Hunter",
+					"name": "猎人",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_cinderling18.webp"
+		},
+		{
+			"id": "DA_Karma18",
+			"name": "卡尔玛",
+			"cost": 1,
+			"plannerCode": 1031,
+			"traits": [
+				{
+					"id": "DA_18_Blossom",
+					"name": "灵魂莲华",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Spellweaver",
+					"name": "法师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_karma18.webp"
+		},
+		{
+			"id": "DA_18_Camille",
+			"name": "卡蜜尔",
+			"cost": 1,
+			"plannerCode": 1013,
+			"traits": [
+				{
+					"id": "DA_18_Coven",
+					"name": "魔女",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Slayer",
+					"name": "狂战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_camille.webp"
+		},
+		{
+			"id": "DA_18_Kobuko",
+			"name": "可酷伯",
+			"cost": 1,
+			"plannerCode": 1085,
+			"traits": [
+				{
+					"id": "DA_18_Sprykin",
+					"name": "约德尔人和朋友",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Brawler",
+					"name": "斗士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_kobuko.webp"
+		},
+		{
+			"id": "DA_18_RekSai",
+			"name": "雷克塞",
+			"cost": 1,
+			"plannerCode": 1059,
+			"traits": [
+				{
+					"id": "DA_18_Blackthorn",
+					"name": "黑荆棘",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Brawler",
+					"name": "斗士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_reksai.webp"
+		},
+		{
+			"id": "DA_18_Leona",
+			"name": "蕾欧娜",
+			"cost": 1,
+			"plannerCode": 1041,
+			"traits": [
+				{
+					"id": "DA_18_Solar",
+					"name": "日蚀骑士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Defender",
+					"name": "护卫",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_leona.webp"
+		},
+		{
+			"id": "DA_18_Rakan",
+			"name": "洛",
+			"cost": 1,
+			"plannerCode": 1056,
+			"traits": [
+				{
+					"id": "DA_18_Fae",
+					"name": "花仙子",
+					"amount": 1
+				},
+				{
+					"id": "DA_Juggernaut18",
+					"name": "主宰",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Vanguard",
+					"name": "重装战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_rakan.webp"
+		},
+		{
+			"id": "DA_18_Varus",
+			"name": "韦鲁斯",
+			"cost": 1,
+			"plannerCode": 1077,
+			"traits": [
+				{
+					"id": "DA_18_Inferno",
+					"name": "地狱火",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Rapidfire",
+					"name": "迅捷射手",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_varus.webp"
+		},
+		{
+			"id": "DA_18_Veigar",
+			"name": "维迦",
+			"cost": 1,
+			"plannerCode": 1078,
+			"traits": [
+				{
+					"id": "DA_18_Blackthorn",
+					"name": "黑荆棘",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Sprykin",
+					"name": "约德尔人和朋友",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Spellweaver",
+					"name": "法师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_veigar.webp"
+		},
+		{
+			"id": "DA_18_Xayah",
+			"name": "霞",
+			"cost": 1,
+			"plannerCode": 1081,
+			"traits": [
+				{
+					"id": "DA_18_Elderwood",
+					"name": "永恒之森",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Fae",
+					"name": "花仙子",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Rapidfire",
+					"name": "迅捷射手",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_xayah.webp"
+		},
+		{
+			"id": "DA_18_Yorick",
+			"name": "约里克",
+			"cost": 1,
+			"plannerCode": 1082,
+			"traits": [
+				{
+					"id": "DA_18_Blossom",
+					"name": "灵魂莲华",
+					"amount": 1
+				},
+				{
+					"id": "DA_Juggernaut18",
+					"name": "主宰",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Summoner",
+					"name": "召唤师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_yorick.webp"
+		},
+		{
+			"id": "DA_18_Alistar",
+			"name": "阿利斯塔",
+			"cost": 2,
+			"plannerCode": 1003,
+			"traits": [
+				{
+					"id": "DA_18_Elderwood",
+					"name": "永恒之森",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Brawler",
+					"name": "斗士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_alistar.webp"
+		},
+		{
+			"id": "DA_Murkwolf18",
+			"name": "暗影狼",
+			"cost": 2,
+			"plannerCode": 1049,
+			"traits": [
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Slayer",
+					"name": "狂战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_murkwolf18.webp"
+		},
+		{
+			"id": "DA_18_Kayle",
+			"name": "凯尔",
+			"cost": 2,
+			"plannerCode": 1034,
+			"traits": [
+				{
+					"id": "DA_18_Solar",
+					"name": "日蚀骑士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Rapidfire",
+					"name": "迅捷射手",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_kayle.webp"
+		},
+		{
+			"id": "DA_18_Caitlyn",
+			"name": "凯特琳",
+			"cost": 2,
+			"plannerCode": 1012,
+			"traits": [
+				{
+					"id": "DA_18_Coven",
+					"name": "魔女",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Hunter",
+					"name": "猎人",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_caitlyn.webp"
+		},
+		{
+			"id": "DA_18_LeBlanc",
+			"name": "乐芙兰",
+			"cost": 2,
+			"plannerCode": 1040,
+			"traits": [
+				{
+					"id": "DA_18_Elderwood",
+					"name": "永恒之森",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Spellweaver",
+					"name": "法师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_leblanc.webp"
+		},
+		{
+			"id": "DA_Gromp18_AP",
+			"name": "魔沼蛙",
+			"cost": 2,
+			"plannerCode": 1026,
+			"traits": [
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Adaptor",
+					"name": "魔战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_gromp18_ap.webp"
+		},
+		{
+			"id": "DA_18_Sejuani",
+			"name": "瑟庄妮",
+			"cost": 2,
+			"plannerCode": 1063,
+			"traits": [
+				{
+					"id": "DA_18_Solar",
+					"name": "日蚀骑士",
+					"amount": 1
+				},
+				{
+					"id": "DA_Juggernaut18",
+					"name": "主宰",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_sejuani.webp"
+		},
+		{
+			"id": "DA_18_Shen",
+			"name": "慎",
+			"cost": 2,
+			"plannerCode": 1067,
+			"traits": [
+				{
+					"id": "DA_18_Inferno",
+					"name": "地狱火",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Defender",
+					"name": "护卫",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_shen.webp"
+		},
+		{
+			"id": "DA_18_Teemo",
+			"name": "提莫",
+			"cost": 2,
+			"plannerCode": 1073,
+			"traits": [
+				{
+					"id": "DA_18_Sprykin",
+					"name": "约德尔人和朋友",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Invoker",
+					"name": "神谕",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_teemo.webp"
+		},
+		{
+			"id": "DA_18_Warwick",
+			"name": "沃里克",
+			"cost": 2,
+			"plannerCode": 1080,
+			"traits": [
+				{
+					"id": "DA_18_Blackthorn",
+					"name": "黑荆棘",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Slayer",
+					"name": "狂战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_warwick.webp"
+		},
+		{
+			"id": "DA_Scuttlecrab18",
+			"name": "峡谷迅捷蟹",
+			"cost": 2,
+			"plannerCode": 1062,
+			"traits": [
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 1
+				},
+				{
+					"id": "DA_Juggernaut18",
+					"name": "主宰",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_scuttlecrab18.webp"
+		},
+		{
+			"id": "DA_18_Elise",
+			"name": "伊莉丝",
+			"cost": 2,
+			"plannerCode": 1021,
+			"traits": [
+				{
+					"id": "DA_18_Coven",
+					"name": "魔女",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Vanguard",
+					"name": "重装战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_elise.webp"
+		},
+		{
+			"id": "DA_18_Yunara",
+			"name": "芸阿娜",
+			"cost": 2,
+			"plannerCode": 1083,
+			"traits": [
+				{
+					"id": "DA_18_Blossom",
+					"name": "灵魂莲华",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Executioner",
+					"name": "裁决使",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_yunara.webp"
+		},
+		{
+			"id": "DA_18_Azir",
+			"name": "阿兹尔",
+			"cost": 3,
+			"plannerCode": 1009,
+			"traits": [
+				{
+					"id": "DA_18_Blackthorn",
+					"name": "黑荆棘",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Executioner",
+					"name": "裁决使",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Summoner",
+					"name": "召唤师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_azir.webp"
+		},
+		{
+			"id": "DA_18_Tristana",
+			"name": "崔丝塔娜",
+			"cost": 3,
+			"plannerCode": 1075,
+			"traits": [
+				{
+					"id": "DA_18_Fae",
+					"name": "花仙子",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Sprykin",
+					"name": "约德尔人和朋友",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Hunter",
+					"name": "猎人",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_tristana.webp"
+		},
+		{
+			"id": "DA_18_Diana",
+			"name": "黛安娜",
+			"cost": 3,
+			"plannerCode": 1018,
+			"traits": [
+				{
+					"id": "DA_18_Lunar",
+					"name": "月蚀骑士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Slayer",
+					"name": "狂战士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Vanguard",
+					"name": "重装战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_diana.webp"
+		},
+		{
+			"id": "DA_Fiddlesticks18",
+			"name": "费德提克",
+			"cost": 3,
+			"plannerCode": 1024,
+			"traits": [
+				{
+					"id": "DA_FloraFatalis18",
+					"name": "绝命花妖",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Defender",
+					"name": "护卫",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Spellweaver",
+					"name": "法师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_fiddlesticks18.webp"
+		},
+		{
+			"id": "DA_18_Hecarim",
+			"name": "赫卡里姆",
+			"cost": 3,
+			"plannerCode": 1027,
+			"traits": [
+				{
+					"id": "DA_18_Elderwood",
+					"name": "永恒之森",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Vanguard",
+					"name": "重装战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_hecarim.webp"
+		},
+		{
+			"id": "DA_18_Cassiopeia",
+			"name": "卡西奥佩娅",
+			"cost": 3,
+			"plannerCode": 1014,
+			"traits": [
+				{
+					"id": "DA_18_Coven",
+					"name": "魔女",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Spellweaver",
+					"name": "法师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_cassiopeia.webp"
+		},
+		{
+			"id": "DA_18_KhaZix",
+			"name": "卡兹克",
+			"cost": 3,
+			"plannerCode": 1036,
+			"traits": [
+				{
+					"id": "DA_18_Rival",
+					"name": "宿敌",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_khazix.webp"
+		},
+		{
+			"id": "DA_KogMaw18_AD",
+			"name": "克格莫",
+			"cost": 3,
+			"plannerCode": 1038,
+			"traits": [
+				{
+					"id": "DA_18_Caustic",
+					"name": "帝王斑蝶",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Adaptor",
+					"name": "魔战士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Invoker",
+					"name": "神谕",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_kogmaw18_ad.webp"
+		},
+		{
+			"id": "DA_18_Rammus",
+			"name": "拉莫斯",
+			"cost": 3,
+			"plannerCode": 1057,
+			"traits": [
+				{
+					"id": "DA_18_Sprykin",
+					"name": "约德尔人和朋友",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Defender",
+					"name": "护卫",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_rammus.webp"
+		},
+		{
+			"id": "DA_18_Rengar",
+			"name": "雷恩加尔",
+			"cost": 3,
+			"plannerCode": 1060,
+			"traits": [
+				{
+					"id": "DA_18_Rival",
+					"name": "宿敌",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_rengar.webp"
+		},
+		{
+			"id": "DA_CrimsonRaptor18",
+			"name": "深红锋喙鸟",
+			"cost": 3,
+			"plannerCode": 1058,
+			"traits": [
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Summoner",
+					"name": "召唤师",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Rapidfire",
+					"name": "迅捷射手",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_crimsonraptor18.webp"
+		},
+		{
+			"id": "DA_Vi18",
+			"name": "蔚",
+			"cost": 3,
+			"plannerCode": 1079,
+			"traits": [
+				{
+					"id": "DA_Primal18",
+					"name": "野兽之灵",
+					"amount": 1
+				},
+				{
+					"id": "DA_Juggernaut18",
+					"name": "主宰",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_vi18.webp"
+		},
+		{
+			"id": "DA_18_MasterYi_AD",
+			"name": "易",
+			"cost": 3,
+			"plannerCode": 1046,
+			"traits": [
+				{
+					"id": "DA_18_Blossom",
+					"name": "灵魂莲华",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Adaptor",
+					"name": "魔战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_masteryi_ad.webp"
+		},
+		{
+			"id": "DA_Krug18",
+			"name": "远古石甲虫",
+			"cost": 3,
+			"plannerCode": 1039,
+			"traits": [
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Brawler",
+					"name": "斗士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_krug18.webp"
+		},
+		{
+			"id": "DA_18_Ahri",
+			"name": "阿狸",
+			"cost": 4,
+			"plannerCode": 1001,
+			"traits": [
+				{
+					"id": "DA_18_Blossom",
+					"name": "灵魂莲华",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Spellweaver",
+					"name": "法师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_ahri.webp"
+		},
+		{
+			"id": "DA_Amumu18",
+			"name": "阿木木",
+			"cost": 4,
+			"plannerCode": 1005,
+			"traits": [
+				{
+					"id": "DA_18_Inferno",
+					"name": "地狱火",
+					"amount": 1
+				},
+				{
+					"id": "DA_Juggernaut18",
+					"name": "主宰",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_amumu18.webp"
+		},
+		{
+			"id": "DA_Sentinel18",
+			"name": "苍蓝雕纹魔像",
+			"cost": 4,
+			"plannerCode": 1064,
+			"traits": [
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Vanguard",
+					"name": "重装战士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Invoker",
+					"name": "神谕",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_sentinel18.webp"
+		},
+		{
+			"id": "DA_18_Aphelios",
+			"name": "厄斐琉斯",
+			"cost": 4,
+			"plannerCode": 1007,
+			"traits": [
+				{
+					"id": "DA_18_Lunar",
+					"name": "月蚀骑士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Rapidfire",
+					"name": "迅捷射手",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_aphelios.webp"
+		},
+		{
+			"id": "DA_Brambleback18",
+			"name": "绯红印记树怪",
+			"cost": 4,
+			"plannerCode": 1011,
+			"traits": [
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Slayer",
+					"name": "狂战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_brambleback18.webp"
+		},
+		{
+			"id": "DA_18_Zyra",
+			"name": "婕拉",
+			"cost": 4,
+			"plannerCode": 1084,
+			"traits": [
+				{
+					"id": "DA_18_ZyraUniqueTrait",
+					"name": "荆棘之兴",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Summoner",
+					"name": "召唤师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_zyra.webp"
+		},
+		{
+			"id": "DA_18_Lillia",
+			"name": "莉莉娅",
+			"cost": 4,
+			"plannerCode": 1042,
+			"traits": [
+				{
+					"id": "DA_18_Fae",
+					"name": "花仙子",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Defender",
+					"name": "护卫",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_lillia.webp"
+		},
+		{
+			"id": "DA_18_Morgana",
+			"name": "莫甘娜",
+			"cost": 4,
+			"plannerCode": 1048,
+			"traits": [
+				{
+					"id": "DA_18_Coven",
+					"name": "魔女",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Invoker",
+					"name": "神谕",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_morgana.webp"
+		},
+		{
+			"id": "DA_18_Malphite",
+			"name": "墨菲特",
+			"cost": 4,
+			"plannerCode": 1044,
+			"traits": [
+				{
+					"id": "DA_18_Blackthorn",
+					"name": "黑荆棘",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Battlemage",
+					"name": "魔岩巨兽",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_malphite.webp"
+		},
+		{
+			"id": "DA_Nidalee18_AP",
+			"name": "奈德丽",
+			"cost": 4,
+			"plannerCode": 1051,
+			"traits": [
+				{
+					"id": "DA_Primal18",
+					"name": "野兽之灵",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Adaptor",
+					"name": "魔战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_nidalee18_ap.webp"
+		},
+		{
+			"id": "DA_18_Sett",
+			"name": "瑟提",
+			"cost": 4,
+			"plannerCode": 1066,
+			"traits": [
+				{
+					"id": "DA_18_Blossom",
+					"name": "灵魂莲华",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Brawler",
+					"name": "斗士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_sett.webp"
+		},
+		{
+			"id": "DA_18_Soraka",
+			"name": "索拉卡",
+			"cost": 4,
+			"plannerCode": 1070,
+			"traits": [
+				{
+					"id": "DA_FloraFatalis18",
+					"name": "绝命花妖",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Executioner",
+					"name": "裁决使",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_soraka.webp"
+		},
+		{
+			"id": "DA_18_Sivir",
+			"name": "希维尔",
+			"cost": 4,
+			"plannerCode": 1068,
+			"traits": [
+				{
+					"id": "DA_Primal18",
+					"name": "野兽之灵",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Hunter",
+					"name": "猎人",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_sivir.webp"
+		},
+		{
+			"id": "DA_18_Ezreal",
+			"name": "伊泽瑞尔",
+			"cost": 4,
+			"plannerCode": 1023,
+			"traits": [
+				{
+					"id": "DA_18_Elderwood",
+					"name": "永恒之森",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Executioner",
+					"name": "裁决使",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_ezreal.webp"
+		},
+		{
+			"id": "DA_18_Ivern",
+			"name": "艾翁",
+			"cost": 5,
+			"plannerCode": 1029,
+			"traits": [
+				{
+					"id": "DA_18_Greenfather",
+					"name": "翠神",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_ivern.webp"
+		},
+		{
+			"id": "DA_18_Ashe",
+			"name": "艾希",
+			"cost": 5,
+			"plannerCode": 1008,
+			"traits": [
+				{
+					"id": "DA_18_Blossom",
+					"name": "灵魂莲华",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Hunter",
+					"name": "猎人",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_ashe.webp"
+		},
+		{
+			"id": "DA_Draven18",
+			"name": "德莱文",
+			"cost": 5,
+			"plannerCode": 1019,
+			"traits": [
+				{
+					"id": "DA_DravenUniqueTrait18",
+					"name": "赏金猎人",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_draven18.webp"
+		},
+		{
+			"id": "DA_18_Kennen",
+			"name": "凯南",
+			"cost": 5,
+			"plannerCode": 1035,
+			"traits": [
+				{
+					"id": "DA_18_Inferno",
+					"name": "地狱火",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Executioner",
+					"name": "裁决使",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_kennen.webp"
+		},
+		{
+			"id": "DA_Lux18_Base",
+			"name": "拉克丝",
+			"cost": 5,
+			"plannerCode": 1043,
+			"traits": [
+				{
+					"id": "DA_18_LuxUniqueTrait",
+					"name": "自然之力！大元素使",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_lux18_base.webp"
+		},
+		{
+			"id": "DA_18_Alune",
+			"name": "拉露恩",
+			"cost": 5,
+			"plannerCode": 1004,
+			"traits": [
+				{
+					"id": "DA_AluneUniqueTrait18",
+					"name": "月华神女",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Lunar",
+					"name": "月蚀骑士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Spellweaver",
+					"name": "法师",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_alune.webp"
+		},
+		{
+			"id": "DA_18_Maokai",
+			"name": "茂凯",
+			"cost": 5,
+			"plannerCode": 1045,
+			"traits": [
+				{
+					"id": "DA_18_Maokai_UniqueTrait",
+					"name": "远古树精",
+					"amount": 1
+				},
+				{
+					"id": "DA_Juggernaut18",
+					"name": "主宰",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_maokai.webp"
+		},
+		{
+			"id": "DA_18_GnarSmall",
+			"name": "纳尔",
+			"cost": 5,
+			"plannerCode": 1025,
+			"traits": [
+				{
+					"id": "DA_18_Elderwood",
+					"name": "永恒之森",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Sprykin",
+					"name": "约德尔人和朋友",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Brawler",
+					"name": "斗士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_gnarsmall.webp"
+		},
+		{
+			"id": "DA_Taric18",
+			"name": "塔里克",
+			"cost": 5,
+			"plannerCode": 1072,
+			"traits": [
+				{
+					"id": "DA_Emerald18",
+					"name": "宝石骑士",
+					"amount": 1
+				},
+				{
+					"id": "DA_18_Vanguard",
+					"name": "重装战士",
+					"amount": 1
+				}
+			],
+			"image": "/assets/tft/set18/units/da_taric18.webp"
+		},
+		{
+			"id": "DA_18_ElderDragon",
+			"name": "远古巨龙",
+			"cost": 5,
+			"plannerCode": 1020,
+			"traits": [
+				{
+					"id": "DA_18_ApexPredator",
+					"name": "顶级掠食者",
+					"amount": 1
+				},
+				{
+					"id": "DA_Riftbeast18",
+					"name": "峡谷野怪",
+					"amount": 2
+				}
+			],
+			"image": "/assets/tft/set18/units/da_18_elderdragon.webp"
+		}
+	],
+	"traits": [
+		{
+			"id": "DA_Emerald18",
+			"name": "宝石骑士",
+			"description": "将1名友军拖至你最强大的那个【塔里克】身上即可将他们进行配对，通过【塔里克】的技能为友军提供强大的加成。",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_emerald18.webp"
+		},
+		{
+			"id": "DA_18_Executioner",
+			"name": "裁决使",
+			"description": "(数值)【裁决使】们获得【技能暴击】和数值%暴击几率。\n(数值)此外，敌人会被施加流血效果，在数值秒内持续受到数值%额外真实伤害。\n(数值)流血效果造成的伤害提升数值%。",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 2,
+					"style": 1
+				},
+				{
+					"min": 3,
+					"max": 3,
+					"style": 3
+				},
+				{
+					"min": 4,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_executioner.webp"
+		},
+		{
+			"id": "DA_18_Greenfather",
+			"name": "翠神",
+			"description": "你最强大的那个【艾翁】在施放技能时获得数值颗种子，且每场对战额外获得数值颗。【艾翁】可消耗数值颗种子在你的棋盘上培育1个格子，为格内的住民提供加成。\n\n种子数：0/数值\n\n当前生物群落：",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_greenfather.webp"
+		},
+		{
+			"id": "DA_18_Inferno",
+			"name": "地狱火",
+			"description": "【地狱火】的伤害会对敌人施加持续数值秒的灼烧和重伤效果。【地狱火】的灼烧效果可以和其它灼烧效果叠加。\n(数值) 数值%灼烧效果，数值%重伤效果\n(数值)在对战后，你的数值个不包含【地狱火】弈子的商店栏位会被引燃，刷新出高一阶的弈子。\n(数值)引燃数值个商店栏位，施加数值%灼烧效果\n(数值)引燃数值个商店栏位，施加数值%灼烧效果",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 2,
+					"style": 1
+				},
+				{
+					"min": 3,
+					"max": 4,
+					"style": 3
+				},
+				{
+					"min": 5,
+					"max": 6,
+					"style": 5
+				},
+				{
+					"min": 7,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_inferno.webp"
+		},
+		{
+			"id": "DA_18_Caustic",
+			"name": "帝王斑蝶",
+			"description": "【帝王斑蝶】的伤害会对敌人施加持续数值秒的数值%魔抗击碎与护甲击碎。\n\n魔抗击碎：降低魔抗值\n护甲击碎：降低护甲值。",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_caustic.webp"
+		},
+		{
+			"id": "DA_18_ApexPredator",
+			"name": "顶级掠食者",
+			"description": "【远古巨龙】占用2个弈子栏位，并提供+2【峡谷野怪】羁绊。",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_apexpredator.webp"
+		},
+		{
+			"id": "DA_18_Brawler",
+			"name": "斗士",
+			"description": "你的队伍获得数值最大生命值。【斗士】们获得更多。\n(数值) 数值% %i:scaleHealth%\n(数值) 数值% %i:scaleHealth%\n(数值) 数值% %i:scaleHealth%",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": 5,
+					"style": 3
+				},
+				{
+					"min": 6,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_brawler.webp"
+		},
+		{
+			"id": "DA_18_Spellweaver",
+			"name": "法师",
+			"description": "你的队伍获得数值%法术加成。【法师】们获得更多，每当1个【法师】施放技能时还会额外提升法术加成。\n(数值) 数值% %i:scaleAP%，每次施放技能+数值% %i:scaleAP%\n(数值) 数值% %i:scaleAP%，每次施放技能+数值% %i:scaleAP%\n(数值) 数值% %i:scaleAP%，每次施放技能+数值% %i:scaleAP%",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": 5,
+					"style": 3
+				},
+				{
+					"min": 6,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_spellweaver.webp"
+		},
+		{
+			"id": "DA_18_Blackthorn",
+			"name": "黑荆棘",
+			"description": "战斗开始前，位于【黑荆棘格】内的友军被献祭，为你的弈子们提供生命值。\n\n【黑荆棘】弈子们基于【祭品】的定位、星级和费用，获得额外属性，\n(数值) 数值 %i:scaleHealth%\n(数值) 数值 %i:scaleHealth%；额外加成提升数值%\n(数值) 数值 %i:scaleHealth%；额外加成提升数值%",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": 5,
+					"style": 3
+				},
+				{
+					"min": 6,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_blackthorn.webp"
+		},
+		{
+			"id": "DA_18_Defender",
+			"name": "护卫",
+			"description": "你的队伍获得数值护甲和魔法抗性。【护卫】获得更多。\n(数值) 数值 \n(数值) 数值 \n(数值) 数值",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": 5,
+					"style": 3
+				},
+				{
+					"min": 6,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_defender.webp"
+		},
+		{
+			"id": "DA_18_Fae",
+			"name": "花仙子",
+			"description": "你的队伍的伤害、治疗强度和护盾强度会吸引【皮克斯仙灵】。\n\n每个【皮克斯仙灵】为【花仙子】弈子们提供物理加成和法术加成，在其生命值降至数值%时，他们基于【皮克斯仙灵】数量治疗生命值。\n(数值) 数值%和数值%治疗强度。\n(数值) 数值%和数值%治疗强度。在吸引了7个【皮克斯仙灵】后，转而开始吸引可提供金币的【黄金皮克斯仙灵】。",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_fae.webp"
+		},
+		{
+			"id": "DA_18_ZyraUniqueTrait",
+			"name": "荆棘之兴",
+			"description": "你的队伍获得数值%伤害减免，在数值或以上株【婕拉】的植物存活时，该数值提升至数值%。",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_zyrauniquetrait.webp"
+		},
+		{
+			"id": "DA_FloraFatalis18",
+			"name": "绝命花妖",
+			"description": "【绝命花妖】弈子们在参与击杀时收割敌人，获得：\n(数值) 数值法力值\n(数值)并为最低生命值的的友军治疗数值%最大生命值。",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": 1,
+					"style": 1
+				},
+				{
+					"min": 2,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_florafatalis18.webp"
+		},
+		{
+			"id": "DA_18_Slayer",
+			"name": "狂战士",
+			"description": "【狂战士】们获得数值%全能吸血。此外，【狂战士】们造成额外伤害，对低于数值%生命值的单位们翻倍。\n(数值) 数值%额外伤害\n(数值) 数值%额外伤害\n(数值) 数值%额外伤害",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": 5,
+					"style": 3
+				},
+				{
+					"min": 6,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_slayer.webp"
+		},
+		{
+			"id": "DA_18_Hunter",
+			"name": "猎人",
+			"description": "【猎人】获得物理加成。如果1个【猎人】在数值秒内没有切换过目标，他们获得数值%伤害增幅。\n(数值) 数值% %i:scaleAD%\n(数值) 数值% %i:scaleAD%\n(数值) 数值% %i:scaleAD%\n(数值) 数值% %i:scaleAD%",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 2,
+					"style": 1
+				},
+				{
+					"min": 3,
+					"max": 3,
+					"style": 3
+				},
+				{
+					"min": 4,
+					"max": 4,
+					"style": 3
+				},
+				{
+					"min": 5,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_hunter.webp"
+		},
+		{
+			"id": "DA_18_Blossom",
+			"name": "灵魂莲华",
+			"description": "在对战后，你的【自然仙灵】将得到强化。\n\n【灵魂莲华】弈子们获得物理加成、法术加成和数值%最大生命值。\n(数值)【自然仙灵】得到升级，数值% %i:scaleAD%%i:scaleAP%\n(数值)商店每次都会刷新出【自然仙灵】，数值% %i:scaleAD%%i:scaleAP%\n(数值)在购买1个【自然仙灵】后，获得数值 金币，数值% %i:scaleAD%%i:scaleAP%\n(数值)每回合你可以购买2个【自然仙灵】，数值% %i:scaleAD%%i:scaleAP%\n(数值)自然之力！！！【自然仙灵】的力量满溢而出，数值% %i:scaleAD%%i:scaleAP%",
+			"breakpoints": [
+				{
+					"min": 3,
+					"max": 4,
+					"style": 1
+				},
+				{
+					"min": 5,
+					"max": 6,
+					"style": 3
+				},
+				{
+					"min": 7,
+					"max": 8,
+					"style": 5
+				},
+				{
+					"min": 9,
+					"max": 10,
+					"style": 5
+				},
+				{
+					"min": 11,
+					"max": null,
+					"style": 6
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_blossom.webp"
+		},
+		{
+			"id": "DA_18_Coven",
+			"name": "魔女",
+			"description": "通过击杀弈子们收集【魔女精粹】，输掉玩家对战回合时还会增加更多。\n\n初始值为数值【魔女精粹】，选择将【魔女精粹】兑换为奖励或是继续收集【魔女精粹】。每项奖励所需的【魔女精粹】数量都会进一步增加。\n(数值)每次击杀+数值【魔女精粹】，每次失败+数值【魔女精粹】\n(数值)每次击杀+数值【魔女精粹】，每次失败+数值【魔女精粹】\n(数值)每次击杀+数值【魔女精粹】，每次失败+数值【魔女精粹】\n(数值)每次击杀+数值【魔女精粹】，每次失败+数值【魔女精粹】",
+			"breakpoints": [
+				{
+					"min": 3,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": 4,
+					"style": 3
+				},
+				{
+					"min": 5,
+					"max": 6,
+					"style": 3
+				},
+				{
+					"min": 7,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_coven.webp"
+		},
+		{
+			"id": "DA_18_Battlemage",
+			"name": "魔岩巨兽",
+			"description": "每成为1名敌人的目标，【魔岩巨兽】获得数值护甲和魔法抗性。",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_battlemage.webp"
+		},
+		{
+			"id": "DA_18_Adaptor",
+			"name": "魔战士",
+			"description": "固有能力：【魔战士】的技能将根据其物理加成和法术加成中较高的属性转换形态。\n\n【魔战士】们获得法术加成或物理加成，取决于两种加成中哪一者更高。\n(数值) 数值%或\n(数值) 数值%或\n(数值) 数值%或",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 2,
+					"style": 1
+				},
+				{
+					"min": 3,
+					"max": 3,
+					"style": 3
+				},
+				{
+					"min": 4,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_adaptor.webp"
+		},
+		{
+			"id": "DA_18_Solar",
+			"name": "日蚀骑士",
+			"description": "(数值)你的弈子们获得数值%最大生命值护盾，并造成数值%额外魔法伤害。每有1个不同的3星弈子，获得额外加成：\n\n1：每有1个3星弈子，提升数值%护盾值和魔法伤害。\n数值：数值% %i:scaleAS%和数值 %i:scaleArmor%%i:scaleMR%\n数值：将数值%额外魔法伤害转换为真实伤害。\n数值：在战斗期间内每过数值秒，1个3星弈子飞升至4星。",
+			"breakpoints": [
+				{
+					"min": 3,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_solar.webp"
+		},
+		{
+			"id": "DA_DravenUniqueTrait18",
+			"name": "赏金猎人",
+			"description": "选择1个【悬赏令】。你最强大的那个【德莱文】可以推进【悬赏令】进度以获取其奖励。在完成1个【悬赏令】后，能够选择另一个。",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_dravenuniquetrait18.webp"
+		},
+		{
+			"id": "DA_18_Invoker",
+			"name": "神谕",
+			"description": "你的队伍获得法力回复，【神谕】获得更多。\n(数值) 数值 %i:scaleManaRegen% | 数值 %i:scaleManaRegen%\n(数值) 数值 %i:scaleManaRegen% | 数值 %i:scaleManaRegen%\n(数值) 数值 %i:scaleManaRegen% | 数值 %i:scaleManaRegen%\n(数值) 数值 %i:scaleManaRegen% | 数值 %i:scaleManaRegen%",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 2,
+					"style": 1
+				},
+				{
+					"min": 3,
+					"max": 3,
+					"style": 3
+				},
+				{
+					"min": 4,
+					"max": 4,
+					"style": 3
+				},
+				{
+					"min": 5,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_invoker.webp"
+		},
+		{
+			"id": "DA_18_Rival",
+			"name": "宿敌",
+			"description": "(数值)仅在登场了1个【宿敌】时激活。\n\n【宿敌】收集参与击杀数，如果参与了对另一名【宿敌】的击杀，获得+3参与击杀数。\n(数值)【宿敌】收集参与击杀数，如果参与了对另一名【宿敌】的击杀，获得+3参与击杀数。\n\n参与击杀会使【卡兹克】进化，永久为他提供你从【裁决使】、【迅捷射手】、【狂战士】或【法师】中选择的一项羁绊。\n\n每参与数值次击杀，【雷恩加尔】提供数值/数值/数值金币。在参与数值次击杀后，你的队伍获得数值％物理加成，此后每次参与击杀再提升数值% %i:scaleAD%。\n\n【卡兹克】参与击杀数：0 / 0\n【雷恩加尔】参与击杀数：0\n已赚取的金币：0\n(数值)【宿敌】可以同时登场，并且他们的技能可以为彼此提供加成",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 5
+				},
+				{
+					"min": 1,
+					"max": 1,
+					"style": 1
+				},
+				{
+					"min": 2,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_rival.webp"
+		},
+		{
+			"id": "DA_Riftbeast18",
+			"name": "峡谷野怪",
+			"description": "(数值)使用【阿尔法印记】为1个【峡谷野怪】提供独特的增益\n(数值)每数值场对战后，你的下一次商店会被【峡谷野怪】们占领。\n(数值)战斗开始时及之后每5秒，【峡谷野怪】们成长并获得\n数值% %i:scaleAD% 数值% %i:scaleAP% 数值% %i:scaleAS%\n+数值 %i:scaleArmor% +数值 %i:scaleMR%  +数值 %i:scaleHealth% +数值 %i:scaleManaRegen%\n(数值)自然之力！！！+数值最大队伍规模",
+			"breakpoints": [
+				{
+					"min": 3,
+					"max": 4,
+					"style": 1
+				},
+				{
+					"min": 5,
+					"max": 6,
+					"style": 3
+				},
+				{
+					"min": 7,
+					"max": 9,
+					"style": 5
+				},
+				{
+					"min": 10,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_riftbeast18.webp"
+		},
+		{
+			"id": "DA_18_Rapidfire",
+			"name": "迅捷射手",
+			"description": "你的队伍获得数值%攻击速度。【迅捷射手】弈子们每次攻击还会获得额外攻击速度，至多叠加数值层。\n(数值)每次攻击+数值% %i:scaleAS%\n(数值)每次攻击+数值% %i:scaleAS%\n(数值)每次攻击+数值% %i:scaleAS%\n(数值)每次攻击+数值% %i:scaleAS%",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 2,
+					"style": 1
+				},
+				{
+					"min": 3,
+					"max": 3,
+					"style": 3
+				},
+				{
+					"min": 4,
+					"max": 4,
+					"style": 3
+				},
+				{
+					"min": 5,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_rapidfire.webp"
+		},
+		{
+			"id": "DA_Primal18",
+			"name": "野兽之灵",
+			"description": "在四种【兽灵赐福】中选择一项获取。\n(数值)\n(数值)",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_primal18.webp"
+		},
+		{
+			"id": "DA_18_Elderwood",
+			"name": "永恒之森",
+			"description": "获得可放置的【永恒之森】植物。\n(数值)一棵【石皮树】和一株【生命花】。\n(数值)第二棵【石皮树】，并且【石皮树】获得数值生命值\n(数值)以及【深林守卫】\n(数值)植物升至2星\n(数值)自然之力！！！植物升至3星，森林拥有了它自己的生命",
+			"breakpoints": [
+				{
+					"min": 3,
+					"max": 4,
+					"style": 1
+				},
+				{
+					"min": 5,
+					"max": 6,
+					"style": 3
+				},
+				{
+					"min": 7,
+					"max": 8,
+					"style": 5
+				},
+				{
+					"min": 9,
+					"max": 10,
+					"style": 5
+				},
+				{
+					"min": 11,
+					"max": null,
+					"style": 6
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_elderwood.webp"
+		},
+		{
+			"id": "DA_18_Maokai_UniqueTrait",
+			"name": "远古树精",
+			"description": "每当数值格内的1名敌人阵亡时，你最强大的那个【远古树精】弈子获得数值永久最大生命值。\n\n当前：0",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_maokai_uniquetrait.webp"
+		},
+		{
+			"id": "DA_18_Sprykin",
+			"name": "约德尔人和朋友",
+			"description": "获得【毛茸茸大朋友】。将1个【约德尔人和朋友】放置在【毛茸茸大朋友】身上以选择其【骑乘者】。\n(数值) 【骑乘者】获得\n数值% %i:scaleHealth%和数值% %i:scaleAS%\n(数值) 数值% %i:scaleHealth% 数值% %i:scaleAS%，【毛茸茸大朋友】数值%的技能加成作用于你的【约德尔人…】弈子们\n(数值) 数值% %i:scaleHealth% 数值% %i:scaleAS%，【毛茸茸大朋友】数值%的技能加成作用于你的【约德尔人…】弈子们。",
+			"breakpoints": [
+				{
+					"min": 3,
+					"max": 4,
+					"style": 1
+				},
+				{
+					"min": 5,
+					"max": 6,
+					"style": 3
+				},
+				{
+					"min": 7,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_sprykin.webp"
+		},
+		{
+			"id": "DA_AluneUniqueTrait18",
+			"name": "月华神女",
+			"description": "你最强大的那个【拉露恩】在每一次施放技能后，推进一次【月相】。当【月相】在弦月或以下时，你的队伍获得数值%伤害减免。在弦月之上时，你的队伍获得数值%伤害增幅。",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_aluneuniquetrait18.webp"
+		},
+		{
+			"id": "DA_18_Lunar",
+			"name": "月蚀骑士",
+			"description": "【月蚀骑士】弈子们及其邻格友军获得攻击速度和法术加成。【月蚀骑士】弈子们额外获得数值%。\n(数值) 数值% %i:scaleAS%，数值% %i:scaleAP%\n(数值) 数值% %i:scaleAS%，数值% %i:scaleAP%\n(数值) 数值% %i:scaleAS%，数值% %i:scaleAP%\n(数值) 数值% %i:scaleAS%，数值% %i:scaleAP%",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 2,
+					"style": 1
+				},
+				{
+					"min": 3,
+					"max": 3,
+					"style": 3
+				},
+				{
+					"min": 4,
+					"max": 4,
+					"style": 3
+				},
+				{
+					"min": 5,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_lunar.webp"
+		},
+		{
+			"id": "DA_18_Summoner",
+			"name": "召唤师",
+			"description": "【召唤师】们会以不同的方式强化其召唤物。\n\n【约里克】：+数值%生命值\n【阿兹尔】：+数值%伤害\n【锋喙鸟】：+数值%伤害\n【婕拉】：+数值植物攻击次数\n(数值)强化召唤物\n(数值)每种效果加成提升50%",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 2,
+					"style": 1
+				},
+				{
+					"min": 3,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_summoner.webp"
+		},
+		{
+			"id": "DA_18_Vanguard",
+			"name": "重装战士",
+			"description": "战斗开始时及降至数值%生命值时，【重装战士】们获得持续数值秒的最大生命值护盾。\n(数值) 数值%最大生命值\n(数值) 数值%最大生命值\n(数值) 数值%最大生命值。在拥有护盾时获得数值%伤害减免。",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": 5,
+					"style": 3
+				},
+				{
+					"min": 6,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_vanguard.webp"
+		},
+		{
+			"id": "DA_Juggernaut18",
+			"name": "主宰",
+			"description": "你的队伍获得伤害减免。【主宰】们获得更多。\n(数值) 数值% %i:scaleDR%或数值% %i:scaleDR%\n(数值) 数值% %i:scaleDR%或数值% %i:scaleDR%\n(数值) 数值% %i:scaleDR%或数值% %i:scaleDR%",
+			"breakpoints": [
+				{
+					"min": 2,
+					"max": 3,
+					"style": 1
+				},
+				{
+					"min": 4,
+					"max": 5,
+					"style": 3
+				},
+				{
+					"min": 6,
+					"max": null,
+					"style": 5
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_juggernaut18.webp"
+		},
+		{
+			"id": "DA_18_LuxUniqueTrait",
+			"name": "自然之力！大元素使",
+			"description": "在备战席或棋盘上拥有1个【自然之力！！！大元素使】时，会将你商店中所有其他【自然之力！！！大元素使】转换为和这个【自然之力！！！大元素使】相同的羁绊。\n\n【自然之力！！！大元素使】为选定的羁绊提供+2计数。",
+			"breakpoints": [
+				{
+					"min": 1,
+					"max": null,
+					"style": 4
+				}
+			],
+			"image": "/assets/tft/set18/traits/da_18_luxuniquetrait.webp"
+		}
+	],
+	"items": [
+		{
+			"id": "DA_Evenshroud",
+			"name": "薄暮法袍",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_evenshroud.webp"
+		},
+		{
+			"id": "DA_Component_BFSword",
+			"name": "暴风大剑",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_bfsword.webp"
+		},
+		{
+			"id": "DA_18_EmblemExecutioner",
+			"name": "裁决使纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemexecutioner.webp"
+		},
+		{
+			"id": "DA_Artifact_MogulsMail",
+			"name": "大亨之铠",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_mogulsmail.webp"
+		},
+		{
+			"id": "DA_ArchangelsStaff",
+			"name": "大天使之杖",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_archangelsstaff.webp"
+		},
+		{
+			"id": "DA_18_EmblemInferno",
+			"name": "地狱火纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_embleminferno.webp"
+		},
+		{
+			"id": "DA_18_EmblemBrawler",
+			"name": "斗士纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblembrawler.webp"
+		},
+		{
+			"id": "DA_Artifact_HellfireHatchet",
+			"name": "恶火小斧",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_hellfirehatchet.webp"
+		},
+		{
+			"id": "DA_18_EmblemSpellweaver",
+			"name": "法师纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemspellweaver.webp"
+		},
+		{
+			"id": "DA_Component_RecurveBow",
+			"name": "反曲之弓",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_recurvebow.webp"
+		},
+		{
+			"id": "DA_Item_Artifact_TalismanOfAscension",
+			"name": "飞升护符",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_item_artifact_talismanofascension.webp"
+		},
+		{
+			"id": "DA_Component_NegatronCloak",
+			"name": "负极斗篷",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_negatroncloak.webp"
+		},
+		{
+			"id": "DA_Artifact_LightshieldCrest",
+			"name": "光盾徽章",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_lightshieldcrest.webp"
+		},
+		{
+			"id": "DA_GuinsoosRageblade",
+			"name": "鬼索的狂暴之刃",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_guinsoosrageblade.webp"
+		},
+		{
+			"id": "DA_HextechGunblade",
+			"name": "海克斯科技枪刃",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_hextechgunblade.webp"
+		},
+		{
+			"id": "DA_KrakensFury",
+			"name": "海妖之怒",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_krakensfury.webp"
+		},
+		{
+			"id": "DA_18_EmblemBlackthorn",
+			"name": "黑荆棘纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemblackthorn.webp"
+		},
+		{
+			"id": "DA_RedBuff",
+			"name": "红霸符",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_redbuff.webp"
+		},
+		{
+			"id": "DA_18_EmblemDefender",
+			"name": "护卫纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemdefender.webp"
+		},
+		{
+			"id": "DA_18_EmblemFae",
+			"name": "花仙子纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemfae.webp"
+		},
+		{
+			"id": "DA_Artifact_AegisOfDusk",
+			"name": "黄昏圣盾",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_aegisofdusk.webp"
+		},
+		{
+			"id": "DA_Artifact_RapidFireCannon",
+			"name": "疾射火炮",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_rapidfirecannon.webp"
+		},
+		{
+			"id": "DA_BrambleVest",
+			"name": "棘刺背心",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_bramblevest.webp"
+		},
+		{
+			"id": "DA_SteadfastHeart",
+			"name": "坚定之心",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_steadfastheart.webp"
+		},
+		{
+			"id": "DA_Artifact_GoldCollector",
+			"name": "金币收集者",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_goldcollector.webp"
+		},
+		{
+			"id": "DA_Component_Spatula",
+			"name": "金铲铲",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_spatula.webp"
+		},
+		{
+			"id": "DA_TacticiansCrown",
+			"name": "金铲铲冠冕",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_tacticianscrown.webp"
+		},
+		{
+			"id": "DA_TacticiansCape",
+			"name": "金锅铲冠冕",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_tacticianscape.webp"
+		},
+		{
+			"id": "DA_Component_FryingPan",
+			"name": "金锅锅",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_fryingpan.webp"
+		},
+		{
+			"id": "DA_TacticiansShield",
+			"name": "金锅锅冠冕",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_tacticiansshield.webp"
+		},
+		{
+			"id": "DA_Artifact_ForbiddenIdol",
+			"name": "禁忌雕像",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_forbiddenidol.webp"
+		},
+		{
+			"id": "DA_DragonsClaw",
+			"name": "巨龙之爪",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_dragonsclaw.webp"
+		},
+		{
+			"id": "DA_GiantSlayer",
+			"name": "巨人杀手",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_giantslayer.webp"
+		},
+		{
+			"id": "DA_Component_GiantsBelt",
+			"name": "巨人腰带",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_giantsbelt.webp"
+		},
+		{
+			"id": "DA_Artifact_TitanicHydra",
+			"name": "巨型九头蛇",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_titanichydra.webp"
+		},
+		{
+			"id": "DA_18_EmblemFloraFatalis",
+			"name": "绝命花妖纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemflorafatalis.webp"
+		},
+		{
+			"id": "DA_Artifact_BlightingJewel",
+			"name": "枯萎珠宝",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_blightingjewel.webp"
+		},
+		{
+			"id": "DA_WarmogsArmor",
+			"name": "狂徒铠甲",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_warmogsarmor.webp"
+		},
+		{
+			"id": "DA_18_EmblemSlayer",
+			"name": "狂战士纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemslayer.webp"
+		},
+		{
+			"id": "DA_BlueBuff",
+			"name": "蓝霸符",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_bluebuff.webp"
+		},
+		{
+			"id": "DA_IonicSpark",
+			"name": "离子火花",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_ionicspark.webp"
+		},
+		{
+			"id": "DA_Artifact_Dawncore",
+			"name": "黎明核心",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_dawncore.webp"
+		},
+		{
+			"id": "DA_Artifact_AegisOfDawn",
+			"name": "黎明圣盾",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_aegisofdawn.webp"
+		},
+		{
+			"id": "DA_Artifact_Mittens",
+			"name": "连指手套",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_mittens.webp"
+		},
+		{
+			"id": "DA_18_EmblemHunter",
+			"name": "猎人纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemhunter.webp"
+		},
+		{
+			"id": "DA_18_EmblemBlossom",
+			"name": "灵魂莲华纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemblossom.webp"
+		},
+		{
+			"id": "DA_Artifact_LudensTempest",
+			"name": "卢登的激荡",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_ludenstempest.webp"
+		},
+		{
+			"id": "DA_Artifact_SilvermereDawn",
+			"name": "密银黎明",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_silvermeredawn.webp"
+		},
+		{
+			"id": "DA_Crownguard",
+			"name": "冕卫",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_crownguard.webp"
+		},
+		{
+			"id": "DA_RabadonsDeathcap",
+			"name": "灭世者的死亡之帽",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_rabadonsdeathcap.webp"
+		},
+		{
+			"id": "DA_18_EmblemCoven",
+			"name": "魔女纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemcoven.webp"
+		},
+		{
+			"id": "DA_Artifact_Manazane",
+			"name": "魔蕴",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_manazane.webp"
+		},
+		{
+			"id": "DA_Morellonomicon",
+			"name": "莫雷洛秘典",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_morellonomicon.webp"
+		},
+		{
+			"id": "DA_NashorsTooth",
+			"name": "纳什之牙",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_nashorstooth.webp"
+		},
+		{
+			"id": "DA_Component_TearOfTheGoddess",
+			"name": "女神之泪",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_tearofthegoddess.webp"
+		},
+		{
+			"id": "DA_StrikersFlail",
+			"name": "强袭者的链枷",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_strikersflail.webp"
+		},
+		{
+			"id": "DA_ThiefsGloves",
+			"name": "窃贼手套",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_thiefsgloves.webp"
+		},
+		{
+			"id": "DA_Component_SparringGloves",
+			"name": "拳套",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_sparringgloves.webp"
+		},
+		{
+			"id": "DA_SunfireCape",
+			"name": "日炎斗篷",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_sunfirecape.webp"
+		},
+		{
+			"id": "DA_Artifact_InfinityForce",
+			"name": "三相之力",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_infinityforce.webp"
+		},
+		{
+			"id": "DA_18_EmblemInvoker",
+			"name": "神谕纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_embleminvoker.webp"
+		},
+		{
+			"id": "DA_ProtectorsVow",
+			"name": "圣盾使的誓约",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_protectorsvow.webp"
+		},
+		{
+			"id": "DA_GargoyleStoneplate",
+			"name": "石像鬼石板甲",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_gargoylestoneplate.webp"
+		},
+		{
+			"id": "DA_Artifact_HorizonFocus",
+			"name": "视界专注",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_horizonfocus.webp"
+		},
+		{
+			"id": "DA_AdaptiveHelm",
+			"name": "适应性头盔",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_adaptivehelm.webp"
+		},
+		{
+			"id": "DA_Quicksilver",
+			"name": "水银",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_quicksilver.webp"
+		},
+		{
+			"id": "DA_Artifact_NavoriFlickerblade",
+			"name": "烁刃",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_navoriflickerblade.webp"
+		},
+		{
+			"id": "DA_SpearOfShojin",
+			"name": "朔极之矛",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_spearofshojin.webp"
+		},
+		{
+			"id": "DA_Artifact_StatikkShiv",
+			"name": "斯塔缇克电刃",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_statikkshiv.webp"
+		},
+		{
+			"id": "DA_SteraksGage",
+			"name": "斯特拉克的挑战护手",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_steraksgage.webp"
+		},
+		{
+			"id": "DA_Artifact_DeathsDefiance",
+			"name": "死亡之蔑",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_deathsdefiance.webp"
+		},
+		{
+			"id": "DA_Deathblade",
+			"name": "死亡之刃",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_deathblade.webp"
+		},
+		{
+			"id": "DA_Artifact_Hullcrusher",
+			"name": "碎舰者",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_hullcrusher.webp"
+		},
+		{
+			"id": "DA_Component_ChainVest",
+			"name": "锁子甲",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_chainvest.webp"
+		},
+		{
+			"id": "DA_TitansResolve",
+			"name": "泰坦的坚决",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_titansresolve.webp"
+		},
+		{
+			"id": "DA_Artifact_SeekersArmguard",
+			"name": "探索者的护臂",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_seekersarmguard.webp"
+		},
+		{
+			"id": "DA_Artifact_GamblersBlade",
+			"name": "投机者之刃",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_gamblersblade.webp"
+		},
+		{
+			"id": "DA_Artifact_TheIndomitable",
+			"name": "顽强不屈",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_theindomitable.webp"
+		},
+		{
+			"id": "DA_Artifact_LichBane",
+			"name": "巫妖之祸",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_lichbane.webp"
+		},
+		{
+			"id": "DA_InfinityEdge",
+			"name": "无尽之刃",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_infinityedge.webp"
+		},
+		{
+			"id": "DA_Component_NeedlesslyLargeRod",
+			"name": "无用大棒",
+			"category": "component",
+			"image": "/assets/tft/set18/items/da_component_needlesslylargerod.webp"
+		},
+		{
+			"id": "DA_Artifact_VoidGauntlet",
+			"name": "虚空护手",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_voidgauntlet.webp"
+		},
+		{
+			"id": "DA_VoidStaff",
+			"name": "虚空之杖",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_voidstaff.webp"
+		},
+		{
+			"id": "DA_18_EmblemRapidfire",
+			"name": "迅捷射手纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemrapidfire.webp"
+		},
+		{
+			"id": "DA_18_EmblemPrimal",
+			"name": "野兽之灵纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemprimal.webp"
+		},
+		{
+			"id": "DA_EdgeOfNight",
+			"name": "夜之锋刃",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_edgeofnight.webp"
+		},
+		{
+			"id": "DA_Bloodthirster",
+			"name": "饮血剑",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_bloodthirster.webp"
+		},
+		{
+			"id": "DA_Artifact_EternalPact",
+			"name": "永恒契约",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_eternalpact.webp"
+		},
+		{
+			"id": "DA_18_EmblemElderwood",
+			"name": "永恒之森纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemelderwood.webp"
+		},
+		{
+			"id": "DA_Artifact_Fishbones",
+			"name": "鱼骨头",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_fishbones.webp"
+		},
+		{
+			"id": "DA_18_EmblemSprykin",
+			"name": "约德尔人和朋友纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemsprykin.webp"
+		},
+		{
+			"id": "DA_18_EmblemLunar",
+			"name": "月蚀骑士纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemlunar.webp"
+		},
+		{
+			"id": "DA_SpiritVisage",
+			"name": "振奋盔甲",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_spiritvisage.webp"
+		},
+		{
+			"id": "DA_HandOfJustice",
+			"name": "正义之手",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_handofjustice.webp"
+		},
+		{
+			"id": "DA_Artifact_WitsEnd",
+			"name": "智慧末刃",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_witsend.webp"
+		},
+		{
+			"id": "DA_Artifact_ZhonyasParadox",
+			"name": "中娅悖论",
+			"category": "artifact",
+			"image": "/assets/tft/set18/items/da_artifact_zhonyasparadox.webp"
+		},
+		{
+			"id": "DA_18_EmblemVanguard",
+			"name": "重装战士纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemvanguard.webp"
+		},
+		{
+			"id": "DA_JeweledGauntlet",
+			"name": "珠光护手",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_jeweledgauntlet.webp"
+		},
+		{
+			"id": "DA_18_EmblemJuggernaut",
+			"name": "主宰纹章",
+			"category": "emblem",
+			"image": "/assets/tft/set18/items/da_18_emblemjuggernaut.webp"
+		},
+		{
+			"id": "DA_LastWhisper",
+			"name": "最后的轻语",
+			"category": "standard",
+			"image": "/assets/tft/set18/items/da_lastwhisper.webp"
+		}
+	]
+}
