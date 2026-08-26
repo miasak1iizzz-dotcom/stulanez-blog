@@ -1,0 +1,217 @@
+---
+import { Icon } from "astro-icon/components";
+
+// 首页「站点版图」：把站内独一无二的内容做成可点的小卡，既填满空首页，也让人一眼看到这个站里有什么。
+// 差异化设计方向 A。设计参考：MingBlog 观/读/听档案、灵的梦境 Bento、楠枝小筑毛玻璃，但配色/内容都是本站的。
+interface PortalCard {
+	key: string;
+	title: string;
+	desc: string;
+	href: string;
+	icon: string;
+	a: string; // 主题色（浅）
+	b: string; // 主题色（深）
+	featured?: boolean;
+	tag?: string;
+}
+
+const cards: PortalCard[] = [
+	{
+		key: "novel",
+		title: "星域幻想",
+		desc: "原创科幻连载 · 冒险与归途",
+		href: "/posts/star-domain-fantasy/",
+		icon: "material-symbols:auto-stories-rounded",
+		a: "#f6a8d0",
+		b: "#3a2242",
+		featured: true,
+		tag: "连载中",
+	},
+	{
+		key: "league",
+		title: "数学超级联赛",
+		desc: "把复习玩成一场联赛",
+		href: "/posts/math-league-2026/",
+		icon: "material-symbols:calculate-rounded",
+		a: "#7fb0e8",
+		b: "#1f3355",
+	},
+	{
+		key: "works",
+		title: "作品",
+		desc: "做过的东西",
+		href: "/works/",
+		icon: "material-symbols:rocket-launch-rounded",
+		a: "#7fd0c4",
+		b: "#1f5a52",
+	},
+	{
+		key: "tft",
+		title: "TFT 组队器",
+		desc: "游戏小工具",
+		href: "/tft/team-builder/",
+		icon: "material-symbols:sports-esports-rounded",
+		a: "#8fd0dd",
+		b: "#1f4a58",
+	},
+	{
+		key: "dynamic",
+		title: "动态",
+		desc: "生活碎片",
+		href: "/dynamic/",
+		icon: "material-symbols:chat-bubble-rounded",
+		a: "#f4a0b4",
+		b: "#7a2b44",
+	},
+	{
+		key: "gallery",
+		title: "相册",
+		desc: "收藏的瞬间",
+		href: "/gallery/",
+		icon: "material-symbols:photo-library-rounded",
+		a: "#f0c084",
+		b: "#6e4a1a",
+	},
+	{
+		key: "booknav",
+		title: "工具箱",
+		desc: "建站常用",
+		href: "/booknav/",
+		icon: "material-symbols:bookmarks-rounded",
+		a: "#b6a4ee",
+		b: "#4a3a78",
+	},
+	{
+		key: "archive",
+		title: "全部文章",
+		desc: "归档一览",
+		href: "/archive/",
+		icon: "material-symbols:archive-rounded",
+		a: "#c9c4d8",
+		b: "#4a455a",
+	},
+];
+---
+
+<section class="home-portal mb-4">
+	<div class="home-portal-head mb-3 flex items-center gap-2">
+		<div
+			class="h-7 w-7 rounded-lg bg-(--primary)/15 text-(--primary) flex items-center justify-center"
+		>
+			<Icon name="material-symbols:grid-view-rounded" class="text-[1.2rem]" />
+		</div>
+		<h2 class="text-base font-bold text-neutral-900 dark:text-neutral-100">
+			站点版图
+		</h2>
+		<span class="text-xs text-neutral-500 dark:text-neutral-400">
+			这个站里不止是文章
+		</span>
+	</div>
+
+	<div
+		class="home-portal-grid grid grid-cols-2 md:grid-cols-3 gap-3"
+	>
+		{
+			cards.map((c) => (
+				<a
+					href={c.href}
+					class:list={[
+						"home-portal-card group relative overflow-hidden rounded-2xl border border-(--line-divider) p-4 flex flex-col justify-between gap-3 transition-all duration-300",
+						c.featured ? "col-span-2 md:col-span-2" : "",
+					]}
+					style={`--pa:${c.a}; --pb:${c.b};`}
+				>
+					<div class="home-portal-glow"></div>
+
+					<div class="flex items-start justify-between relative z-10">
+						<div class="home-portal-icon">
+							<Icon name={c.icon} class="text-[1.6rem]" />
+						</div>
+						<div class="flex items-center gap-1.5">
+							{c.tag && (
+								<span
+									class="home-portal-tag text-[0.65rem] font-medium px-1.5 py-0.5 rounded-full text-(--primary)"
+									style={`background: color-mix(in srgb, var(--pa) 26%, transparent);`}
+								>
+									{c.tag}
+								</span>
+							)}
+							<Icon
+								name="material-symbols:arrow-outward-rounded"
+								class="home-portal-arrow text-[1.4rem]"
+							/>
+						</div>
+					</div>
+
+					<div class="relative z-10">
+						<div
+							class="home-portal-title text-base font-bold text-neutral-900 dark:text-neutral-100 leading-snug"
+						>
+							{c.title}
+						</div>
+						<div
+							class="home-portal-desc text-xs text-neutral-500 dark:text-neutral-400 mt-1"
+						>
+							{c.desc}
+						</div>
+					</div>
+				</a>
+			))
+		}
+	</div>
+</section>
+
+<style>
+	.home-portal-card {
+		min-height: 7.5rem;
+		background: linear-gradient(
+			150deg,
+			color-mix(in srgb, var(--pa) 14%, transparent),
+			color-mix(in srgb, var(--pb) 10%, transparent)
+		);
+	}
+	.home-portal-card:hover {
+		border-color: color-mix(in srgb, var(--pa) 70%, transparent);
+		box-shadow: 0 14px 32px -14px color-mix(in srgb, var(--pa) 55%, transparent);
+		transform: translateY(-3px);
+	}
+	.home-portal-icon {
+		width: 2.9rem;
+		height: 2.9rem;
+		border-radius: 0.9rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: color-mix(in srgb, var(--pa) 80%, #000 0%);
+		background: color-mix(in srgb, var(--pa) 18%, transparent);
+		transition: transform 0.3s ease;
+	}
+	.home-portal-card:hover .home-portal-icon {
+		transform: scale(1.08);
+	}
+	.home-portal-arrow {
+		color: transparent;
+		transform: translateX(-4px);
+		opacity: 0;
+		transition: opacity 0.3s ease, transform 0.3s ease, color 0.3s ease;
+	}
+	.home-portal-card:hover .home-portal-arrow {
+		opacity: 1;
+		transform: translateX(0);
+		color: color-mix(in srgb, var(--pa) 80%, #000 0%);
+	}
+	.home-portal-glow {
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			circle at 88% 8%,
+			color-mix(in srgb, var(--pa) 34%, transparent),
+			transparent 55%
+		);
+		opacity: 0;
+		transition: opacity 0.3s ease;
+	}
+	.home-portal-card:hover .home-portal-glow {
+		opacity: 1;
+	}
+</style>
