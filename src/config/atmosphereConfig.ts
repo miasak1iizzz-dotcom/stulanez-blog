@@ -39,7 +39,7 @@ export const atmosphereConfig: AtmosphereConfig = {
 	},
 	splash: {
 		enable: true,
-		durationMs: 2200,
+		durationMs: 2800,
 		defaultPortrait: "jett",
 		defaultUpper: "upper-a",
 		defaultLower: "lower-a",
