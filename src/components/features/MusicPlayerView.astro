@@ -34,7 +34,7 @@ const viewConfigStr = JSON.stringify({
 <template id="playlist-item-template">
 <div class="playlist-item flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors group">
     <div class="w-8 h-8 rounded-md overflow-hidden shrink-0 relative bg-neutral-200 dark:bg-neutral-700">
-        <img src="" class="item-cover w-full h-full object-cover" loading="lazy" alt="" />
+        <img src="" class="item-cover w-full h-full object-cover" loading="eager" decoding="async" alt="" />
         <!-- Active Indicator overlay with animated equalizer / play icon -->
         <div class="item-active-overlay absolute inset-0 bg-(--primary)/20 hidden items-center justify-center">
             <div class="eq-bars flex items-end gap-[2px] h-3.5">
@@ -297,6 +297,8 @@ const viewConfigStr = JSON.stringify({
             var artist = clone.querySelector('.item-artist');
 
             img.src = track.pic || '';
+            img.loading = 'eager';
+            img.decoding = 'async';
             img.alt = track.name + ' - ' + track.artist;
             title.innerText = track.name;
             artist.innerText = track.artist;
