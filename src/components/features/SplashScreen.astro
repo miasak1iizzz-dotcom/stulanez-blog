@@ -73,6 +73,7 @@ const catalog = {
 				} catch (e) {}
 				var hideTimer = 0;
 				var playing = false;
+				var playSeq = 0;
 				var upperEl = root.querySelector("[data-splash-upper]");
 				var characterEl = root.querySelector("[data-splash-character]");
 				var lowerEl = root.querySelector("[data-splash-lower]");
@@ -150,6 +151,29 @@ const catalog = {
 					return lines[Math.floor(Math.random() * lines.length)] || "";
 				}
 
+				function whenImageReady(img, done) {
+					if (!img || !img.src) {
+						done();
+						return;
+					}
+					if (img.complete && img.naturalWidth) {
+						done();
+						return;
+					}
+					var settled = false;
+					function finishReady() {
+						if (settled) return;
+						settled = true;
+						done();
+					}
+					img.addEventListener("load", finishReady, { once: true });
+					img.addEventListener("error", finishReady, { once: true });
+					if (img.decode) {
+						img.decode().then(finishReady, finishReady);
+					}
+					window.setTimeout(finishReady, 480);
+				}
+
 				function applyArt(portrait, upper, lower) {
 					var portraitEntry = catalog.portraits[portrait] || catalog.portraits[catalog.defaults.portrait];
 					var upperSrc = catalog.uppers[upper] || catalog.uppers[catalog.defaults.upper];
@@ -182,21 +206,25 @@ const catalog = {
 					if (playing && !isPreview) return;
 					if (hideTimer) window.clearTimeout(hideTimer);
 					playing = true;
+					var seq = ++playSeq;
 					var selection = resolveSelection(detail);
 					applyArt(selection.portrait, selection.upper, selection.lower);
 					root.hidden = false;
 					root.classList.toggle("is-preview", !!isPreview);
 					root.classList.remove("is-leaving", "is-playing");
-					void root.offsetWidth;
-					root.classList.add("is-playing");
 					root.setAttribute("aria-hidden", "false");
 					document.documentElement.setAttribute("data-splash-pending", "true");
-					hideTimer = window.setTimeout(function () {
-						root.classList.add("is-leaving");
-						window.setTimeout(function () {
-							finish();
-						}, 420);
-					}, duration);
+					whenImageReady(characterEl, function () {
+						if (seq !== playSeq) return;
+						void root.offsetWidth;
+						root.classList.add("is-playing");
+						hideTimer = window.setTimeout(function () {
+							root.classList.add("is-leaving");
+							window.setTimeout(function () {
+								finish();
+							}, 420);
+						}, duration);
+					});
 				}
 
 				function shouldAutoplay() {
