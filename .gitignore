@@ -50,3 +50,9 @@ package/
 
 .vercel
 .env*
+
+# local identity source files, do not publish
+素材/
+scripts/_incoming-list.json
+scripts/_wallpaper-sizes.json
+

@@ -91,6 +91,8 @@ export const ko: Translation = {
 	[Key.guestbook]: "방명록",
 	[Key.guestbookDescription]:
 		"이곳에 흔적을 남기고 생각과 제안을 공유해 주세요",
+	[Key.changelog]: "변경 로그",
+	[Key.changelogDescription]: "이 사이트가 조금씩 자라는 기록",
 	[Key.untitled]: "제목 없음",
 	[Key.uncategorized]: "미분류",
 	[Key.noTags]: "태그 없음",

@@ -30,7 +30,13 @@ const quote = pickDailyQuote(
 			class={className}
 			style={style}
 		>
-			<blockquote class="m-0 text-neutral-700 dark:text-neutral-200 leading-relaxed">
+			<blockquote class="relative m-0 pl-4 text-[0.95rem] leading-relaxed text-neutral-700 dark:text-neutral-200">
+				<span
+					class="pointer-events-none absolute -left-1 -top-2 select-none text-4xl leading-none text-(--primary)/30"
+					aria-hidden="true"
+				>
+					“
+				</span>
 				{quote.text}
 			</blockquote>
 			{

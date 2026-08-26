@@ -89,6 +89,8 @@ export const zh_CN: Translation = {
 	[Key.booknavEmpty]: "暂无书签",
 	[Key.guestbook]: "留言",
 	[Key.guestbookDescription]: "欢迎在这里留下你的足迹，分享你的想法和建议",
+	[Key.changelog]: "更新日志",
+	[Key.changelogDescription]: "记下站点慢慢长出来的样子",
 	[Key.untitled]: "无标题",
 	[Key.uncategorized]: "未分类",
 	[Key.noTags]: "无标签",

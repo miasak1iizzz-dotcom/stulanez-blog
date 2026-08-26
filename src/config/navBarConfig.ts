@@ -33,11 +33,22 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		],
 	});
 
+	// 更新日志
+	links.push(LinkPresets.Changelog);
+
 	// 友链
 	links.push(LinkPresets.Friends);
 
 	// 留言
 	links.push(LinkPresets.Guestbook);
+
+	// 我的
+	links.push({
+		name: "我的",
+		url: "#",
+		icon: "material-symbols:person-play-rounded",
+		children: [LinkPresets.Booknav],
+	});
 
 	// 关于
 	links.push(LinkPresets.About);
@@ -100,10 +111,15 @@ export const LinkPresets: Record<string, NavBarLink> = {
 		pageKey: "gallery",
 	},
 	Booknav: {
-		name: "书签导航",
+		name: "工具",
 		url: "/booknav/",
 		icon: "material-symbols:bookmarks",
 		pageKey: "booknav",
+	},
+	Changelog: {
+		name: "更新日志",
+		url: "/changelog/",
+		icon: "material-symbols:history",
 	},
 	Bilibili: {
 		name: "哔哩哔哩",

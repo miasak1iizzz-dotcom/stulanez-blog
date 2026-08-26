@@ -1,7 +1,9 @@
 ---
-
 import { getEntry, render } from "astro:content";
 import Markdown from "@components/common/Markdown.astro";
+import { Icon } from "astro-icon/components";
+import ImageWrapper from "@/components/common/ImageWrapper.astro";
+import { booknavPageConfig } from "@/config/booknavConfig";
 import { profileConfig } from "@/config/profileConfig";
 import { siteConfig } from "@/config/siteConfig";
 import I18nKey from "@/i18n/i18nKey";
@@ -9,6 +11,7 @@ import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import { getAuthorAvatarUrl } from "@/utils/schema-image";
 import { buildProfilePage } from "@/utils/schema-utils";
+import { url } from "@/utils/url-utils";
 
 const aboutPost = await getEntry("spec", "about");
 
@@ -26,14 +29,94 @@ const jsonLd = buildProfilePage({
 	avatarUrl,
 	description: profileConfig.bio,
 });
+
+const pageLinks = [
+	{
+		name: i18n(I18nKey.archive),
+		href: url("/archive/"),
+		icon: "material-symbols:archive",
+	},
+	{
+		name: i18n(I18nKey.changelog),
+		href: url("/changelog/"),
+		icon: "material-symbols:history",
+	},
+	{
+		name: i18n(I18nKey.friends),
+		href: url("/friends/"),
+		icon: "material-symbols:link-2-rounded",
+	},
+	{
+		name: i18n(I18nKey.guestbook),
+		href: url("/guestbook/"),
+		icon: "material-symbols:chat",
+	},
+	...(siteConfig.pages.booknav
+		? [
+				{
+					name: booknavPageConfig.title || i18n(I18nKey.booknav),
+					href: url("/booknav/"),
+					icon: "material-symbols:bookmarks",
+				},
+			]
+		: []),
+];
 ---
+
 <MainGridLayout title={i18n(I18nKey.about)} description={i18n(I18nKey.about)}>
-    <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-    <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
-        <div class="card-base z-10 px-9 py-6 relative w-full ">
-            <Markdown class="mt-2">
-                <Content />
-            </Markdown>
-        </div>
-    </div>
+	<script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+	<div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
+		<div class="card-base z-10 px-9 py-6 relative w-full">
+			<div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start pb-6 mb-6 border-b border-(--line-divider)">
+				<div class="w-28 h-28 shrink-0 overflow-hidden rounded-2xl ring-2 ring-(--primary)/20">
+					<ImageWrapper
+						src={profileConfig.avatar || ""}
+						alt={profileConfig.name}
+						class="w-full h-full"
+						loading="eager"
+						fetchpriority="high"
+						widths={[224]}
+						sizes="112px"
+					/>
+				</div>
+				<div class="flex-1 text-center sm:text-left min-w-0">
+					<p class="text-3xl font-bold text-neutral-900 dark:text-neutral-100 m-0">
+						{profileConfig.name}
+					</p>
+					<p class="mt-2 mb-0 text-neutral-500 dark:text-neutral-400">
+						{profileConfig.bio}
+					</p>
+					<div class="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
+						{profileConfig.links.map((item) => (
+							<a
+								rel={item.url.startsWith("/") ? "me" : "me noopener noreferrer"}
+								aria-label={item.name}
+								href={item.url}
+								target={item.url.startsWith("/") ? undefined : "_blank"}
+								class="btn-regular rounded-lg h-10 w-10 active:scale-90"
+							>
+								<Icon name={item.icon} class="text-[1.5rem]" />
+							</a>
+						))}
+					</div>
+				</div>
+			</div>
+
+			<nav class="flex flex-wrap gap-2 mb-8" aria-label={i18n(I18nKey.about)}>
+				{pageLinks.map((item) => (
+					<a
+						href={item.href}
+						class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium bg-black/5 dark:bg-white/10 text-neutral-700 dark:text-neutral-200 hover:text-(--primary) hover:bg-(--primary)/10 transition-colors"
+					>
+						<Icon name={item.icon} class="text-base" />
+						{item.name}
+					</a>
+				))}
+			</nav>
+
+			<Markdown class="mt-2">
+				<Content />
+			</Markdown>
+		</div>
+	</div>
 </MainGridLayout>

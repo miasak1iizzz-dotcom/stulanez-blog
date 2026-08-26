@@ -1,5 +1,3 @@
-# 关于我 / About Me
-
 你好，我是 **Saki**。
 
 这是我的个人站点 **永恒欲望**，域名是 [stulanez.com](https://stulanez.com/)。我会在这里慢慢写下代码、生活，以及还想继续做的事。
@@ -10,4 +8,4 @@
 
 ::github{repo="CuteLeaf/Firefly"}
 
-还在起步。有想说的，之后会写在文章里。
+现在还在起步。想留言可以去 [留言板](/guestbook/)，想交换友链可以去 [友链](/friends/)。
