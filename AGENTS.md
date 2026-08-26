@@ -32,3 +32,20 @@ Use Conventional Commits, matching the current history: `feat: ...`, `fix: ...`,
 ## Security & Configuration Tips
 
 Do not commit secrets, tokens, or service keys in config files. Keep deployment-specific settings in the target platform environment, and review generated files such as `dist`, `src/constants/lqips.json`, and `src/constants/icons.ts` before committing them.
+
+## Codex and Cursor Collaboration
+
+This repository may be edited by Codex and Cursor at the same time. Before any
+write operation, read `docs/AI-COLLABORATION.md` and follow it as the authoritative
+coordination protocol.
+
+- Inspect `.ai-work/claims/` and `git status --short` before editing.
+- Create an ignored claim file from `.ai-work/CLAIM_TEMPLATE.md` before touching
+  source files, and claim exact paths rather than broad directories.
+- Never edit, format, stage, revert, delete, rename, or regenerate files claimed
+  by the other agent.
+- Stage explicit owned paths only. Do not use `git add .`, `git add -A`,
+  `git commit -a`, `git stash`, `git reset --hard`, or `git clean` in the shared
+  worktree.
+- Remove only your own claim after validation and handoff. Existing unclaimed
+  changes still belong to the user or the other agent and must be preserved.

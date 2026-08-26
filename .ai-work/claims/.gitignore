@@ -1,0 +1,3 @@
+# Runtime claim files are local coordination state and must not be committed.
+*
+!.gitignore

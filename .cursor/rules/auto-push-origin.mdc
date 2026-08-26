@@ -8,6 +8,10 @@ alwaysApply: true
 When a coding task is finished (not a question-only turn), commit the relevant files and push to `origin`. Do not wait to be asked again.
 
 - Use Conventional Commits (`feat:`, `fix:`, `chore:`).
+- Obey `docs/AI-COLLABORATION.md`; stage only paths owned by the current Cursor claim.
+- Before committing, verify the staged path list with `git diff --cached --name-only`.
+- Never use `git add .`, `git add -A`, or `git commit -a` in the shared worktree.
 - Push `HEAD` to `origin` only. Never push `upstream` (CuteLeaf/Firefly). Never force-push.
+- If another claim is active, do not pull, rebase, merge, or switch branches. If the push is rejected, report it for coordination instead of rewriting shared history.
 - Do not commit `素材/`, secrets, `.env*`, or unrelated files.
 - If there is nothing to commit, skip. If push fails, report the error.
