@@ -1,4 +1,5 @@
 ---
+import { Icon } from "astro-icon/components";
 import WidgetLayout from "@/components/common/WidgetLayout.astro";
 import { atmosphereConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
@@ -30,22 +31,114 @@ const quote = pickDailyQuote(
 			class={className}
 			style={style}
 		>
-			<blockquote class="relative m-0 pl-4 text-[0.95rem] leading-relaxed text-neutral-700 dark:text-neutral-200">
-				<span
-					class="pointer-events-none absolute -left-1 -top-2 select-none text-4xl leading-none text-(--primary)/30"
-					aria-hidden="true"
-				>
-					“
-				</span>
-				{quote.text}
-			</blockquote>
-			{
-				quote.author && (
-					<p class="mt-2 mb-0 text-right text-sm text-neutral-500 dark:text-neutral-400">
-						—— {quote.author}
-					</p>
-				)
-			}
+			<span slot="title-icon" class="quote-title-icon">
+				<Icon name="material-symbols:format-quote-rounded" />
+				DAILY
+			</span>
+			<div class="quote-card-body">
+				<div class="quote-mark" aria-hidden="true">“</div>
+				<blockquote>{quote.text}</blockquote>
+				<div class="quote-signature">
+					<span></span>
+					{quote.author ? <p>{quote.author}</p> : <p>今日摘录</p>}
+				</div>
+			</div>
 		</WidgetLayout>
 	)
 }
+
+<style>
+	:global(widget-layout[data-id="hitokoto"]) {
+		position: relative;
+		overflow: hidden;
+		background:
+			linear-gradient(135deg, color-mix(in srgb, var(--card-bg) 96%, var(--primary) 4%), var(--card-bg)),
+			var(--card-bg);
+	}
+
+	:global(widget-layout[data-id="hitokoto"]::before) {
+		position: absolute;
+		inset: auto -2.2rem -3.8rem auto;
+		width: 9rem;
+		height: 9rem;
+		border-radius: 45% 55% 62% 38%;
+		background: color-mix(in srgb, var(--primary) 7%, transparent);
+		content: "";
+		transform: rotate(-18deg);
+		pointer-events: none;
+	}
+
+	.quote-title-icon {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		margin-right: 1rem;
+		color: color-mix(in srgb, var(--primary) 78%, #716975);
+		font-size: 0.58rem;
+		font-weight: 800;
+		letter-spacing: 0.13em;
+	}
+
+	.quote-title-icon :global(svg) {
+		font-size: 1rem;
+	}
+
+	.quote-card-body {
+		position: relative;
+		z-index: 1;
+		padding: 0.25rem 0 0.1rem 0.2rem;
+	}
+
+	.quote-mark {
+		position: absolute;
+		top: -1.1rem;
+		left: -0.2rem;
+		color: color-mix(in srgb, var(--primary) 20%, transparent);
+		font-family: Georgia, "Songti SC", serif;
+		font-size: 5.4rem;
+		line-height: 1;
+		pointer-events: none;
+	}
+
+	.quote-card-body blockquote {
+		position: relative;
+		margin: 0;
+		padding: 0.55rem 0.35rem 0.5rem 0.9rem;
+		color: rgb(63 63 70);
+		font-family: Georgia, "Songti SC", serif;
+		font-size: 0.98rem;
+		font-weight: 600;
+		line-height: 1.85;
+		letter-spacing: 0.025em;
+	}
+
+	:global(.dark) .quote-card-body blockquote {
+		color: rgb(228 228 231);
+	}
+
+	.quote-signature {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0.55rem;
+		margin-top: 0.15rem;
+	}
+
+	.quote-signature span {
+		width: 2rem;
+		height: 1px;
+		background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 58%, transparent));
+	}
+
+	.quote-signature p {
+		margin: 0;
+		color: rgb(113 113 122);
+		font-size: 0.72rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+	}
+
+	:global(.dark) .quote-signature p {
+		color: rgb(161 161 170);
+	}
+</style>

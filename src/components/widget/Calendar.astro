@@ -59,20 +59,28 @@ const postUrlPrefix = url("/posts/");
 ---
 
 <WidgetLayout name={i18n(I18nKey.calendar)} showTitle={showTitle} id="calendar-widget" class={className} style={style}>
+  <span slot="title-icon" class="calendar-title-chip">ARCHIVE</span>
   <div class="calendar-container">
-    <div class="flex justify-between items-center mb-2">
-        <button id="prev-month-btn" class="btn-plain rounded-lg w-8 h-8 flex items-center justify-center hover:bg-(--btn-plain-bg-hover) transition-colors" aria-label="Previous Month">
-            <Icon name="fa7-solid:chevron-left" class="text-sm" />
+    <div class="calendar-intro mb-3 flex items-center justify-between px-1">
+      <div class="flex flex-col">
+        <span class="text-[0.52rem] font-extrabold tracking-[0.13em] text-(--primary)">TIME ARCHIVE</span>
+        <strong class="text-[0.96rem] leading-tight font-extrabold text-neutral-800 dark:text-neutral-100">{i18n(I18nKey.calendar)}</strong>
+      </div>
+      <Icon name="material-symbols:calendar-month-outline-rounded" class="text-xl text-(--primary)" />
+    </div>
+    <div class="calendar-nav mb-3 grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-1.5 rounded-xl border border-(--primary)/10 bg-white/40 p-1.5 dark:bg-white/5">
+      <button id="prev-month-btn" class="calendar-nav-btn grid h-8 w-8 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-xs text-neutral-500 transition-colors hover:bg-(--primary)/10 hover:text-(--primary)" aria-label="Previous Month">
+        <Icon name="fa7-solid:chevron-left" />
+      </button>
+      <div id="current-month-display" class="calendar-current min-w-0 cursor-pointer select-none text-center text-sm font-extrabold text-neutral-800 transition-colors hover:text-(--primary) dark:text-neutral-100"></div>
+      <div class="calendar-nav-actions flex gap-1">
+        <button id="reset-month-btn" class="calendar-nav-btn grid h-8 w-8 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-xs text-neutral-500 transition-colors hover:bg-(--primary)/10 hover:text-(--primary)" aria-label="Back to Today">
+          <Icon name="fa7-solid:arrow-rotate-left" />
         </button>
-        <div id="current-month-display" class="text-lg font-bold text-neutral-900 dark:text-neutral-100 cursor-pointer hover:text-(--primary) transition-colors select-none"></div>
-        <div class="flex gap-2">
-            <button id="reset-month-btn" class="btn-plain rounded-lg w-8 h-8 flex items-center justify-center hover:bg-(--btn-plain-bg-hover) transition-colors" aria-label="Back to Today">
-                <Icon name="fa7-solid:arrow-rotate-left" class="text-sm" />
-            </button>
-            <button id="next-month-btn" class="btn-plain rounded-lg w-8 h-8 flex items-center justify-center hover:bg-(--btn-plain-bg-hover) transition-colors" aria-label="Next Month">
-                <Icon name="fa7-solid:chevron-right" class="text-sm" />
-            </button>
-        </div>
+        <button id="next-month-btn" class="calendar-nav-btn grid h-8 w-8 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-xs text-neutral-500 transition-colors hover:bg-(--primary)/10 hover:text-(--primary)" aria-label="Next Month">
+          <Icon name="fa7-solid:chevron-right" />
+        </button>
+      </div>
     </div>
 
     <!-- 日历视图容器 -->
@@ -80,7 +88,7 @@ const postUrlPrefix = url("/posts/");
       <!-- 星期标题 -->
       <div class="weekdays grid grid-cols-7 gap-1 mb-2">
         {weekDays.map(day => (
-          <div class="text-center text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+          <div class="calendar-weekday text-center text-[0.57rem] font-bold text-neutral-400">
             {day}
           </div>
         ))}
@@ -113,7 +121,7 @@ const postUrlPrefix = url("/posts/");
     
     <!-- 文章列表 -->
     <div id="calendar-posts" class="mt-3">
-      <div class="border-t border-neutral-200 dark:border-neutral-700 mb-2" id="calendar-posts-divider" style="display: none;"></div>
+      <div class="calendar-posts-divider" id="calendar-posts-divider" style="display: none;"></div>
       <div class="flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar" id="calendar-posts-list">
         <!-- 将由 JavaScript 填充 -->
       </div>
@@ -618,19 +626,174 @@ const postUrlPrefix = url("/posts/");
 </script>
 
 <style>
+  :global(widget-layout[data-id="calendar-widget"]) {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 39%),
+      linear-gradient(155deg, color-mix(in srgb, var(--card-bg) 96%, var(--primary) 4%), var(--card-bg));
+  }
+
+  .calendar-title-chip {
+    margin-right: 1rem;
+    color: color-mix(in srgb, var(--primary) 76%, #71717a);
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+  }
+
+  .calendar-container {
+    position: relative;
+  }
+
+  .calendar-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.65rem;
+    padding: 0.1rem 0.18rem;
+  }
+
+  .calendar-intro > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.02rem;
+  }
+
+  .calendar-intro span {
+    color: color-mix(in srgb, var(--primary) 76%, #71717a);
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+  }
+
+  .calendar-intro strong {
+    color: rgb(39 39 42);
+    font-size: 0.96rem;
+    font-weight: 800;
+  }
+
+  :global(.dark) .calendar-intro strong {
+    color: rgb(244 244 245);
+  }
+
+  .calendar-intro > :global(svg) {
+    color: color-mix(in srgb, var(--primary) 80%, #71717a);
+    font-size: 1.4rem;
+  }
+
+  .calendar-nav {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.42rem;
+    margin-bottom: 0.72rem;
+    padding: 0.38rem;
+    border: 1px solid color-mix(in srgb, var(--primary) 8%, transparent);
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--card-bg) 76%, transparent);
+    box-shadow: inset 0 1px rgb(255 255 255 / 11%);
+  }
+
+  .calendar-nav-actions {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .calendar-nav-btn {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 0.64rem;
+    background: transparent;
+    color: rgb(113 113 122);
+    font-size: 0.69rem;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .calendar-nav-btn:hover {
+    background: color-mix(in srgb, var(--primary) 9%, transparent);
+    color: var(--primary);
+  }
+
+  .calendar-current {
+    min-width: 0;
+    color: rgb(39 39 42);
+    font-size: 0.9rem;
+    font-weight: 850;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s ease;
+  }
+
+  .calendar-current:hover {
+    color: var(--primary);
+  }
+
+  :global(.dark) .calendar-current {
+    color: rgb(244 244 245);
+  }
+
+  .calendar-weekday {
+    color: rgb(161 161 170);
+    font-size: 0.57rem;
+    font-weight: 750;
+    text-align: center;
+  }
+
   :global(.calendar-day) {
     transition: all 0.2s ease;
     min-height: 32px;
+    border: 1px solid transparent;
+    border-radius: 0.58rem;
+    background: color-mix(in srgb, var(--card-bg) 64%, transparent);
+    font-size: 0.7rem;
   }
 
   :global(.calendar-day[data-has-post="true"]:hover) {
+    border-color: color-mix(in srgb, var(--primary) 18%, transparent);
+    background: color-mix(in srgb, var(--primary) 8%, var(--card-bg));
     transform: translateY(-2px);
+  }
+
+  :global(.calendar-day.ring-2) {
+    border-color: color-mix(in srgb, var(--primary) 66%, transparent);
+    background: color-mix(in srgb, var(--primary) 10%, var(--card-bg));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 12%, transparent);
   }
 
   /* 自定义选中日期样式 */
   :global(.calendar-day-selected) {
-    background-color: var(--btn-regular-bg);
-    border-radius: 0.25rem;
+    border-color: color-mix(in srgb, var(--primary) 28%, transparent);
+    background: color-mix(in srgb, var(--primary) 13%, var(--card-bg));
+    border-radius: 0.58rem;
+  }
+
+  :global(#month-view-container > div),
+  :global(#year-view-container > div) {
+    border: 1px solid color-mix(in srgb, var(--primary) 7%, transparent);
+    border-radius: 0.68rem;
+    background: color-mix(in srgb, var(--card-bg) 68%, transparent);
+  }
+
+  .calendar-posts-divider {
+    height: 1px;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 22%, transparent), transparent);
+  }
+
+  :global(#calendar-posts-list > a) {
+    border: 1px solid transparent;
+    border-radius: 0.62rem;
+    background: color-mix(in srgb, var(--card-bg) 62%, transparent);
+  }
+
+  :global(#calendar-posts-list > a:hover) {
+    border-color: color-mix(in srgb, var(--primary) 12%, transparent);
   }
 
   /* 热力图单元格 */

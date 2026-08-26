@@ -167,17 +167,18 @@ const detailItems: {
   class={className}
   style={style}
 >
-  <div class="flex flex-col gap-2">
+	<span slot="title-icon" class="info-status-chip"><i></i>ONLINE</span>
+	<div class="site-info-shell">
     {/* 始终显示的项目（列表卡片） */}
-    <div class="flex flex-col gap-2">
+		<div class="site-info-primary">
       {
         mainItems.map((item: { icon: string; label: string; value: string; href?: string }) => (
-          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-neutral-100/60 dark:bg-neutral-800/50">
-            <div class="flex items-center gap-2.5">
-              <div class="text-(--primary) text-lg">
+			<div class="site-info-row">
+				<div class="site-info-key">
+					<div class="site-info-icon">
                 <Icon name={item.icon} />
               </div>
-              <span class="text-neutral-700 dark:text-neutral-300 font-medium text-sm">
+					<span>
                 {item.label}
               </span>
             </div>
@@ -186,14 +187,14 @@ const detailItems: {
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-xs font-bold text-neutral-900 dark:text-neutral-100 text-right max-w-[55%] truncate hover:text-(--primary) transition-colors"
+					class="site-info-value"
                 title={item.value}
               >
                 {item.value}
               </a>
             ) : (
               <span
-                class="text-xs font-bold text-neutral-900 dark:text-neutral-100 text-right max-w-[55%] truncate"
+					class="site-info-value"
                 title={item.value}
               >
                 {item.value}
@@ -210,25 +211,22 @@ const detailItems: {
       data-collapse-text={i18n(I18nKey.siteInfoCollapse)}
     >
       <div class="site-info-detail overflow-hidden collapsed">
-        <div class="grid grid-cols-2 gap-2">
+				<div class="site-info-grid">
           {
             detailItems.map(
               (item: { icon: string; label: string; value: string; fullWidth?: boolean }) => (
                 <div class:list={[
-                  "flex flex-col items-center gap-1 py-2 px-1 rounded-lg bg-neutral-100/60 dark:bg-neutral-800/50",
-                  { "col-span-2": item.fullWidth }
+							"site-info-detail-tile",
+							{ "site-info-detail-wide": item.fullWidth }
                 ]}>
-                  <div class="text-(--primary) text-lg">
+							<div class="site-info-detail-icon">
                     <Icon name={item.icon} />
                   </div>
-                  <span class="text-xs text-neutral-500 dark:text-neutral-400">
+							<span class="site-info-detail-label">
                     {item.label}
                   </span>
                   <span
-                    class:list={[
-                      "text-sm font-bold text-neutral-900 dark:text-neutral-100 text-center truncate w-full",
-                      { "text-xs": item.fullWidth }
-                    ]}
+								class="site-info-detail-value"
                     title={item.value}
                   >
                     {item.value}
@@ -240,7 +238,7 @@ const detailItems: {
         </div>
       </div>
       <button
-        class="site-info-toggle-btn btn-plain rounded-lg w-full h-8 flex items-center justify-center gap-1.5 mt-1 text-(--primary) text-sm cursor-pointer"
+				class="site-info-toggle-btn"
       >
         <Icon
           name="material-symbols:keyboard-arrow-down-rounded"
@@ -253,9 +251,185 @@ const detailItems: {
 </WidgetLayout>
 
 <style>
-  site-info-collapse .collapsed {
-    height: 0;
-  }
+	:global(widget-layout[data-id="site-info"]) {
+		position: relative;
+		overflow: hidden;
+		background:
+			radial-gradient(circle at 106% 106%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 45%),
+			linear-gradient(150deg, color-mix(in srgb, var(--card-bg) 96%, var(--primary) 4%), var(--card-bg));
+	}
+
+	.info-status-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin-right: 1rem;
+		color: color-mix(in srgb, var(--primary) 76%, #71717a);
+		font-size: 0.55rem;
+		font-weight: 800;
+		letter-spacing: 0.1em;
+	}
+
+	.info-status-chip i {
+		width: 0.38rem;
+		height: 0.38rem;
+		border-radius: 50%;
+		background: #51c995;
+		box-shadow: 0 0 0 0.2rem rgb(81 201 149 / 12%);
+	}
+
+	.site-info-shell,
+	.site-info-primary {
+		display: flex;
+		flex-direction: column;
+		gap: 0.48rem;
+	}
+
+	.site-info-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		min-height: 2.55rem;
+		padding: 0.42rem 0.55rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 7%, transparent);
+		border-radius: 0.78rem;
+		background: color-mix(in srgb, var(--card-bg) 76%, transparent);
+		box-shadow: inset 0 1px rgb(255 255 255 / 11%);
+		transition: 0.2s ease;
+	}
+
+	.site-info-row:hover {
+		border-color: color-mix(in srgb, var(--primary) 17%, transparent);
+		transform: translateX(1px);
+	}
+
+	.site-info-key {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-width: 0;
+		color: rgb(82 82 91);
+		font-size: 0.7rem;
+		font-weight: 650;
+	}
+
+	:global(.dark) .site-info-key {
+		color: rgb(212 212 216);
+	}
+
+	.site-info-icon {
+		display: grid;
+		place-items: center;
+		width: 1.55rem;
+		height: 1.55rem;
+		border-radius: 0.5rem;
+		background: color-mix(in srgb, var(--primary) 9%, transparent);
+		color: var(--primary);
+		font-size: 0.95rem;
+	}
+
+	.site-info-value {
+		overflow: hidden;
+		max-width: 54%;
+		color: rgb(39 39 42);
+		font-size: 0.66rem;
+		font-weight: 800;
+		text-align: right;
+		text-decoration: none;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	:global(.dark) .site-info-value {
+		color: rgb(244 244 245);
+	}
+
+	a.site-info-value:hover {
+		color: var(--primary);
+	}
+
+	site-info-collapse .collapsed {
+		height: 0;
+	}
+
+	.site-info-detail {
+		transition: height 0.28s ease;
+	}
+
+	.site-info-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.45rem;
+		padding-top: 0.48rem;
+	}
+
+	.site-info-detail-tile {
+		display: flex;
+		align-items: center;
+		flex-direction: column;
+		gap: 0.2rem;
+		min-width: 0;
+		padding: 0.55rem 0.35rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 7%, transparent);
+		border-radius: 0.72rem;
+		background: color-mix(in srgb, var(--primary) 4%, var(--card-bg));
+	}
+
+	.site-info-detail-wide {
+		grid-column: span 2;
+	}
+
+	.site-info-detail-icon {
+		color: var(--primary);
+		font-size: 1rem;
+	}
+
+	.site-info-detail-label {
+		color: rgb(113 113 122);
+		font-size: 0.58rem;
+	}
+
+	.site-info-detail-value {
+		overflow: hidden;
+		width: 100%;
+		color: rgb(63 63 70);
+		font-size: 0.65rem;
+		font-weight: 750;
+		text-align: center;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	:global(.dark) .site-info-detail-label {
+		color: rgb(161 161 170);
+	}
+
+	:global(.dark) .site-info-detail-value {
+		color: rgb(228 228 231);
+	}
+
+	.site-info-toggle-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.3rem;
+		width: 100%;
+		height: 2rem;
+		margin-top: 0.2rem;
+		border: 0;
+		border-radius: 0.65rem;
+		background: transparent;
+		color: color-mix(in srgb, var(--primary) 76%, #71717a);
+		font-size: 0.67rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: 0.2s ease;
+	}
+
+	.site-info-toggle-btn:hover {
+		background: color-mix(in srgb, var(--primary) 7%, transparent);
+	}
 </style>
 
 <script>
