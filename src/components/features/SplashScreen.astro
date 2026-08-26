@@ -35,8 +35,12 @@ const catalog = {
 			data-duration={splash.durationMs}
 			aria-hidden="true"
 		>
-			<img class="splash-upper" data-splash-upper alt="" />
-			<img class="splash-lower" data-splash-lower alt="" />
+			<div class="splash-upper-clip">
+				<img class="splash-upper" data-splash-upper alt="" />
+			</div>
+			<div class="splash-lower-clip">
+				<img class="splash-lower" data-splash-lower alt="" />
+			</div>
 			<div class="splash-band" aria-hidden="true"></div>
 			<div class="splash-title-row">
 				<p class="splash-title splash-title-left">{titleLeft}</p>
@@ -56,7 +60,7 @@ const catalog = {
 				if (!root) return;
 
 				var SESSION_KEY = "stulanez.splash.played";
-				var duration = parseInt(root.getAttribute("data-duration") || "2200", 10);
+				var duration = parseInt(root.getAttribute("data-duration") || "4200", 10);
 				var catalogNode = document.getElementById("splash-catalog");
 				var catalog = { portraits: {}, uppers: {}, lowers: {}, defaults: {} };
 				try {
@@ -122,7 +126,8 @@ const catalog = {
 					);
 					root.hidden = false;
 					root.classList.toggle("is-preview", !!isPreview);
-					root.classList.remove("is-leaving");
+					root.classList.remove("is-leaving", "is-playing");
+					void root.offsetWidth;
 					root.classList.add("is-playing");
 					root.setAttribute("aria-hidden", "false");
 					document.documentElement.setAttribute("data-splash-pending", "true");

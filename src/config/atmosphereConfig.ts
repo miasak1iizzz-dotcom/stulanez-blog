@@ -39,7 +39,7 @@ export const atmosphereConfig: AtmosphereConfig = {
 	},
 	splash: {
 		enable: true,
-		durationMs: 2800,
+		durationMs: 4200,
 		defaultPortrait: "jett",
 		defaultUpper: "upper-a",
 		defaultLower: "lower-a",
@@ -79,25 +79,45 @@ export const atmosphereConfig: AtmosphereConfig = {
 		upperBanners: [
 			{
 				id: "upper-a",
-				name: "特工群像",
+				name: "亚海悬城",
 				image: "/assets/images/splash/banners/upper-a.webp",
 			},
 			{
 				id: "upper-b",
-				name: "毒雾夜行",
+				name: "微风岛屿",
 				image: "/assets/images/splash/banners/upper-b.webp",
+			},
+			{
+				id: "upper-c",
+				name: "日落之城",
+				image: "/assets/images/splash/banners/upper-c.webp",
+			},
+			{
+				id: "upper-d",
+				name: "莲华古城",
+				image: "/assets/images/splash/banners/upper-d.webp",
 			},
 		],
 		lowerBanners: [
 			{
 				id: "lower-a",
-				name: "Q版三人",
+				name: "霓虹町",
 				image: "/assets/images/splash/banners/lower-a.webp",
 			},
 			{
 				id: "lower-b",
-				name: "玫魂",
+				name: "深海明珠",
 				image: "/assets/images/splash/banners/lower-b.webp",
+			},
+			{
+				id: "lower-c",
+				name: "盐海矿镇",
+				image: "/assets/images/splash/banners/lower-c.webp",
+			},
+			{
+				id: "lower-d",
+				name: "幽邃地窟",
+				image: "/assets/images/splash/banners/lower-d.webp",
 			},
 		],
 	},
