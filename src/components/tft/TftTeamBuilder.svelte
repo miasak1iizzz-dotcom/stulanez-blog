@@ -21,6 +21,7 @@ type Item = {
 	category: "component" | "standard" | "emblem" | "artifact";
 	image: string;
 };
+type Augment = { id: string; name: string; image?: string };
 type TftData = {
 	set: number;
 	patch: string;
@@ -28,6 +29,7 @@ type TftData = {
 	units: Unit[];
 	traits: Trait[];
 	items: Item[];
+	augments?: Augment[];
 };
 type BoardUnit = { unitId: string; star: number; items: string[] };
 type TraitStatus = Trait & {
@@ -35,34 +37,51 @@ type TraitStatus = Trait & {
 	activeStyle: number;
 	nextAt: number | null;
 };
+type PoolMode = "cost" | "name" | "origin" | "class";
+type ItemTab = "standard" | "radiant" | "other";
+type TooltipState = { x: number; y: number; unitId?: string; itemId?: string };
 
 interface Props {
 	data: TftData;
 }
 
 const { data }: Props = $props();
-const BOARD_SIZE = 28;
+const BOARD_ROWS = 4;
+const BOARD_COLS = 7;
+const BOARD_SIZE = BOARD_ROWS * BOARD_COLS;
 const SHARE_PARAM = "team";
-const STORAGE_KEY = "stulanez:tft-set18-builder:v1";
+const STORAGE_KEY = "stulanez:tft-set18-builder:v2";
 const plannerPlacement = [24, 17, 22, 19, 26, 10, 14, 12, 5, 8];
-const itemGroups = [
-	{ id: "all", label: "全部" },
-	{ id: "standard", label: "成装" },
-	{ id: "component", label: "散件" },
-	{ id: "emblem", label: "纹章" },
-	{ id: "artifact", label: "神器" },
-] as const;
+const COST_COLORS = ["", "#b6bcc8", "#37d488", "#54c3ff", "#dc38c3", "#f1c555"];
+const STYLE_COLORS = [
+	"#5b6b85",
+	"#b18b66",
+	"#9baebd",
+	"#f5bf38",
+	"#de0ebd",
+	"#37d488",
+	"#54c3ff",
+];
 
 let board = $state<(BoardUnit | null)[]>(Array(BOARD_SIZE).fill(null));
-let activeTab = $state<"units" | "items">("units");
-let search = $state("");
-let itemGroup = $state<(typeof itemGroups)[number]["id"]>("all");
-let selectedCell = $state<number | null>(null);
-let armedUnitId = $state<string | null>(null);
+let enemyBoard = $state<(BoardUnit | null)[]>(Array(BOARD_SIZE).fill(null));
+let enemyVisible = $state(false);
+let showSkins = $state(true);
+let showTips = $state(true);
 let showNames = $state(true);
-let showImport = $state(false);
+let positionsOnly = $state(false);
+let poolMode = $state<PoolMode>("cost");
+let itemTab = $state<ItemTab>("standard");
+let search = $state("");
+let selectedCell = $state<number | null>(null);
+let chosenAugments = $state<string[]>([]);
+let pickerOpen = $state(false);
+let pickerTab = $state<"augments" | "powerups">("augments");
+let pickerSearch = $state("");
+let importOpen = $state(false);
 let plannerCodeInput = $state("");
 let toast = $state("");
+let tooltip = $state<TooltipState | null>(null);
 let hydrated = $state(false);
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -71,30 +90,84 @@ const itemMap = $derived(new Map(data.items.map((item) => [item.id, item])));
 const traitMap = $derived(
 	new Map(data.traits.map((trait) => [trait.id, trait])),
 );
+const augmentMap = $derived(
+	new Map((data.augments ?? []).map((augment) => [augment.id, augment])),
+);
 const selectedBoardUnit = $derived(
 	selectedCell === null ? null : board[selectedCell],
 );
 const selectedUnit = $derived(
 	selectedBoardUnit ? unitMap.get(selectedBoardUnit.unitId) : null,
 );
-const filteredUnits = $derived.by(() => {
+const placedIds = $derived(
+	new Set(board.filter(Boolean).map((slot) => (slot as BoardUnit).unitId)),
+);
+const searchedUnits = $derived.by(() => {
 	const query = search.trim().toLocaleLowerCase("zh-CN");
 	return data.units.filter(
 		(unit) =>
-			!query ||
-			unit.name.toLocaleLowerCase("zh-CN").includes(query) ||
-			unit.traits.some((trait) =>
-				trait.name.toLocaleLowerCase("zh-CN").includes(query),
-			),
+			!placedIds.has(unit.id) &&
+			(!query ||
+				unit.name.toLocaleLowerCase("zh-CN").includes(query) ||
+				unit.traits.some((trait) =>
+					trait.name.toLocaleLowerCase("zh-CN").includes(query),
+				)),
 	);
 });
-const filteredItems = $derived.by(() => {
-	const query = search.trim().toLocaleLowerCase("zh-CN");
-	return data.items.filter(
-		(item) =>
-			(itemGroup === "all" || item.category === itemGroup) &&
-			(!query || item.name.toLocaleLowerCase("zh-CN").includes(query)),
-	);
+type PoolGroup = { key: string; label: string; image?: string; band: string; units: Unit[] };
+const originIds = $derived(
+	new Set(data.units.map((unit) => unit.traits[0]?.id).filter(Boolean)),
+);
+const poolGroups = $derived.by(() => {
+	if (poolMode === "cost") {
+		return [1, 2, 3, 4, 5]
+			.map((cost) => ({
+				key: `cost-${cost}`,
+				label: "",
+				band: COST_COLORS[cost] ?? "transparent",
+				units: searchedUnits
+					.filter((unit) => unit.cost === cost)
+					.sort((a, b) => a.plannerCode - b.plannerCode),
+			}))
+			.filter((group) => group.units.length) satisfies PoolGroup[];
+	}
+	if (poolMode === "name") {
+		return [
+			{
+				key: "name",
+				label: "",
+				band: "transparent",
+				units: [...searchedUnits].sort((a, b) =>
+					a.name.localeCompare(b.name, "zh-CN"),
+				),
+			},
+		] satisfies PoolGroup[];
+	}
+	const wantOrigin = poolMode === "origin";
+	return [...traitMap.values()]
+		.filter((trait) => originIds.has(trait.id) === wantOrigin)
+		.map((trait) => ({
+			key: trait.id,
+			label: trait.name,
+			image: trait.image,
+			band: "transparent",
+			units: searchedUnits.filter((unit) =>
+				unit.traits.some((entry, index) => entry.id === trait.id && wantOrigin === (index === 0)),
+			),
+		}))
+		.filter((group) => group.units.length) satisfies PoolGroup[];
+});
+const componentItems = $derived(
+	data.items.filter((item) => item.category === "component"),
+);
+const gridItems = $derived.by(() => {
+	if (itemTab === "standard")
+		return data.items.filter((item) => item.category === "standard");
+	if (itemTab === "other")
+		return data.items.filter(
+			(item) => item.category === "emblem" || item.category === "artifact",
+		);
+	return [];
 });
 const traitStatuses = $derived.by(() => {
 	const counts = new Map<string, number>();
@@ -107,35 +180,38 @@ const traitStatuses = $derived.by(() => {
 	}
 	return [...counts]
 		.map(([id, count]) => {
-			const trait = traitMap.get(id) ?? {
-				id,
-				name:
-					data.units
-						.flatMap((unit) => unit.traits)
-						.find((entry) => entry.id === id)?.name ?? id,
-				description: "",
-				breakpoints: [],
-				image: "",
-			};
-			const reached = trait.breakpoints.filter((point) => point.min <= count);
-			const current = reached.at(-1);
-			const next = trait.breakpoints.find((point) => point.min > count);
+			const trait = traitMap.get(id);
+			const reached = (trait?.breakpoints ?? []).filter(
+				(point) => point.min <= count,
+			);
+			const next = (trait?.breakpoints ?? []).find(
+				(point) => point.min > count,
+			);
 			return {
-				...trait,
+				id,
+				name: trait?.name ?? id,
+				description: trait?.description ?? "",
+				breakpoints: trait?.breakpoints ?? [],
+				image: trait?.image ?? "",
 				count,
-				activeStyle: current?.style ?? 0,
+				activeStyle: reached.at(-1)?.style ?? 0,
 				nextAt: next?.min ?? null,
 			} satisfies TraitStatus;
 		})
 		.sort(
 			(a, b) =>
-				Number(b.activeStyle > 0) - Number(a.activeStyle > 0) ||
 				b.activeStyle - a.activeStyle ||
 				b.count - a.count ||
 				a.name.localeCompare(b.name, "zh-CN"),
 		);
 });
 const unitCount = $derived(board.filter(Boolean).length);
+const goldTotal = $derived(
+	board.reduce(
+		(sum, slot) => sum + (slot ? (unitMap.get(slot.unitId)?.cost ?? 0) : 0),
+		0,
+	),
+);
 
 $effect(() => {
 	if (typeof window === "undefined" || hydrated) return;
@@ -176,48 +252,68 @@ function notify(message: string) {
 	toastTimer = setTimeout(() => (toast = ""), 2400);
 }
 
-function cloneBoard() {
-	board = board.map((slot) =>
-		slot ? { ...slot, items: [...slot.items] } : null,
-	);
+function cloneBoard(target: "main" | "enemy" = "main") {
+	if (target === "enemy")
+		enemyBoard = enemyBoard.map((slot) =>
+			slot ? { ...slot, items: [...slot.items] } : null,
+		);
+	else
+		board = board.map((slot) =>
+			slot ? { ...slot, items: [...slot.items] } : null,
+		);
 }
 
 function placeUnit(unitId: string, target: number) {
-	const existing = board.findIndex((slot) => slot?.unitId === unitId);
-	if (existing === target) {
-		selectedCell = target;
-		armedUnitId = null;
-		return;
-	}
-	if (existing >= 0) board[existing] = null;
-	board[target] = { unitId, star: 1, items: [] };
-	cloneBoard();
-	selectedCell = target;
-	armedUnitId = null;
+	const target_ = enemyVisible ? enemyBoard : board;
+	const existing = target_.findIndex((slot) => slot?.unitId === unitId);
+	if (existing === target) return;
+	const next = [...target_];
+	if (existing >= 0) next[existing] = null;
+	next[target] = { unitId, star: 1, items: [] };
+	if (enemyVisible) enemyBoard = next;
+	else board = next;
+	cloneBoard(enemyVisible ? "enemy" : "main");
+	selectedCell = null;
 }
 
 function chooseUnit(unitId: string) {
-	const existing = board.findIndex((slot) => slot?.unitId === unitId);
+	const target_ = enemyVisible ? enemyBoard : board;
+	const existing = target_.findIndex((slot) => slot?.unitId === unitId);
 	if (existing >= 0) {
-		selectedCell = existing;
-		armedUnitId = null;
+		if (enemyVisible) enemyBoard[existing] = null;
+		else board[existing] = null;
+		cloneBoard(enemyVisible ? "enemy" : "main");
 		return;
 	}
-	if (selectedCell !== null && !board[selectedCell]) {
-		placeUnit(unitId, selectedCell);
-		return;
-	}
-	const empty = board.findIndex((slot) => !slot);
+	const empty = target_.findIndex((slot) => !slot);
 	if (empty >= 0) placeUnit(unitId, empty);
-	else notify("棋盘已经放满了");
+	else notify(enemyVisible ? "敌方棋盘已经放满了" : "棋盘已经放满了");
 }
 
 function clickCell(index: number) {
-	if (armedUnitId && !board[index]) {
-		placeUnit(armedUnitId, index);
+	const target_ = enemyVisible ? enemyBoard : board;
+	const slot = target_[index];
+	if (!slot) {
+		selectedCell = null;
+		return;
+	}
+	if (selectedCell === index) {
+		if (enemyVisible) enemyBoard[index] = null;
+		else board[index] = null;
+		cloneBoard(enemyVisible ? "enemy" : "main");
+		selectedCell = null;
 		return;
 	}
 	selectedCell = index;
+}
+
+function cycleStar(index: number) {
+	const slot = enemyVisible ? enemyBoard[index] : board[index];
+	if (!slot) return;
+	const star = slot.star === 3 ? 1 : 3;
+	if (enemyVisible) enemyBoard[index] = { ...slot, star };
+	else board[index] = { ...slot, star };
+	cloneBoard(enemyVisible ? "enemy" : "main");
 }
 
 function handleDragStart(event: DragEvent, payload: string) {
@@ -232,35 +328,30 @@ function handleDrop(event: DragEvent, target: number) {
 		placeUnit(payload.slice(5), target);
 		return;
 	}
+	if (payload.startsWith("item:")) {
+		equipItem(payload.slice(5), target);
+		return;
+	}
 	if (!payload.startsWith("board:")) return;
 	const source = Number(payload.slice(6));
-	if (!Number.isInteger(source) || source === target || !board[source]) return;
-	const moving = board[source];
-	board[source] = board[target];
-	board[target] = moving;
-	cloneBoard();
+	const target_ = enemyVisible ? enemyBoard : board;
+	if (!Number.isInteger(source) || source === target || !target_[source]) return;
+	const next = [...target_];
+	const moving = next[source];
+	next[source] = next[target];
+	next[target] = moving;
+	if (enemyVisible) enemyBoard = next;
+	else board = next;
+	cloneBoard(enemyVisible ? "enemy" : "main");
 	selectedCell = target;
 }
 
-function setStar(star: number) {
-	if (selectedCell === null || !board[selectedCell]) return;
-	board[selectedCell] = { ...board[selectedCell], star } as BoardUnit;
-	cloneBoard();
-}
-
-function removeSelected() {
-	if (selectedCell === null) return;
-	board[selectedCell] = null;
-	cloneBoard();
-	selectedCell = null;
-}
-
-function toggleItem(itemId: string) {
-	if (selectedCell === null || !board[selectedCell]) {
-		notify("请先在棋盘上选择一名弈子");
+function equipItem(itemId: string, target: number) {
+	const slot = enemyVisible ? enemyBoard[target] : board[target];
+	if (!slot) {
+		notify("先把弈子放到这个棋格上");
 		return;
 	}
-	const slot = board[selectedCell] as BoardUnit;
 	const items = [...slot.items];
 	const existing = items.indexOf(itemId);
 	if (existing >= 0) items.splice(existing, 1);
@@ -269,16 +360,40 @@ function toggleItem(itemId: string) {
 		notify("每名弈子最多携带 3 件装备");
 		return;
 	}
-	board[selectedCell] = { ...slot, items };
-	cloneBoard();
+	if (enemyVisible) enemyBoard[target] = { ...slot, items };
+	else board[target] = { ...slot, items };
+	cloneBoard(enemyVisible ? "enemy" : "main");
+}
+
+function clickItem(itemId: string) {
+	if (selectedCell === null) {
+		notify("先点击棋盘上的弈子，再点击装备");
+		return;
+	}
+	equipItem(itemId, selectedCell);
 }
 
 function clearBoard() {
-	if (unitCount && !window.confirm("确定清空当前阵容吗？")) return;
-	board = Array(BOARD_SIZE).fill(null);
+	const target = enemyVisible ? enemyBoard : board;
+	const count = target.filter(Boolean).length;
+	if (count && !window.confirm(enemyVisible ? "确定清空敌方棋盘吗？" : "确定清空当前阵容吗？"))
+		return;
+	if (enemyVisible) enemyBoard = Array(BOARD_SIZE).fill(null);
+	else board = Array(BOARD_SIZE).fill(null);
 	selectedCell = null;
-	armedUnitId = null;
 	notify("棋盘已清空");
+}
+
+function toggleAugment(augmentId: string) {
+	const items = [...chosenAugments];
+	const existing = items.indexOf(augmentId);
+	if (existing >= 0) items.splice(existing, 1);
+	else if (items.length < 3) items.push(augmentId);
+	else {
+		notify("最多选择 3 个强化符文");
+		return;
+	}
+	chosenAugments = items;
 }
 
 function encodeTeam() {
@@ -330,7 +445,7 @@ async function copyPlannerCode() {
 	const code = exportPlannerCode();
 	plannerCodeInput = code;
 	await navigator.clipboard.writeText(code);
-	showImport = true;
+	importOpen = true;
 	notify("客户端阵容码已复制");
 }
 
@@ -358,35 +473,22 @@ function importPlannerCode() {
 	}
 	board = nextBoard;
 	selectedCell = null;
+	importOpen = false;
 	notify("阵容码已导入；客户端阵容码不包含站位与装备");
 }
 
-function costColor(cost: number) {
-	return (
-		["#7c8799", "#5dbb75", "#49a7e8", "#b46de5", "#f0b84b", "#ef7b45"][cost] ??
-		"#e0d4a4"
-	);
+function showTooltip(event: MouseEvent, payload: { unitId?: string; itemId?: string }) {
+	if (!showTips) return;
+	const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+	tooltip = { x: rect.x, y: rect.y + rect.height, ...payload };
 }
 
-function traitColor(style: number) {
-	return (
-		[
-			"#596574",
-			"#b18b66",
-			"#9baebd",
-			"#d8a83d",
-			"#78a9dc",
-			"#e2b85b",
-			"#d979f2",
-		][style] ?? "#596574"
-	);
+function hideTooltip() {
+	tooltip = null;
 }
 
-function traitProgress(trait: TraitStatus) {
-	if (!trait.nextAt) return "已达最高层级";
-	return trait.activeStyle
-		? `距下一级还差 ${trait.nextAt - trait.count}`
-		: `${trait.count}/${trait.nextAt}`;
+function styleColor(style: number) {
+	return STYLE_COLORS[style] ?? STYLE_COLORS[0];
 }
 
 function loadImage(src: string) {
@@ -406,7 +508,7 @@ function drawHex(
 ) {
 	context.beginPath();
 	for (let side = 0; side < 6; side++) {
-		const angle = (Math.PI / 180) * (60 * side);
+		const angle = (Math.PI / 180) * (60 * side - 30);
 		const px = x + radius * Math.cos(angle);
 		const py = y + radius * Math.sin(angle);
 		if (side === 0) context.moveTo(px, py);
@@ -421,17 +523,16 @@ async function downloadScreenshot() {
 	canvas.height = 720;
 	const context = canvas.getContext("2d");
 	if (!context) return;
-	const gradient = context.createLinearGradient(0, 0, 1280, 720);
-	gradient.addColorStop(0, "#071a24");
-	gradient.addColorStop(1, "#123b36");
-	context.fillStyle = gradient;
+	context.fillStyle = "#0c1524";
 	context.fillRect(0, 0, 1280, 720);
-	context.fillStyle = "#f3e4b5";
-	context.font = "700 36px system-ui";
-	context.fillText("星域幻想 · S18 阵容规划器", 64, 62);
-	context.fillStyle = "#86aaa2";
-	context.font = "18px system-ui";
-	context.fillText(`${unitCount} 名弈子 · 数据版本 ${data.patch}`, 66, 94);
+	context.fillStyle = "#142a52";
+	context.fillRect(24, 24, 1232, 672);
+	context.fillStyle = "#eaf6ff";
+	context.font = "700 30px Montserrat, system-ui";
+	context.fillText(`SET ${data.set} 阵容 · ${data.patch}`, 60, 84);
+	context.fillStyle = "#8fa3c8";
+	context.font = "16px system-ui";
+	context.fillText(`${unitCount} 弈子 · ${goldTotal} 金币`, 60, 112);
 
 	const images = new Map<string, HTMLImageElement>();
 	await Promise.all(
@@ -447,53 +548,52 @@ async function downloadScreenshot() {
 		}),
 	);
 
-	const radius = 56;
-	for (let index = 0; index < BOARD_SIZE; index++) {
-		const row = Math.floor(index / 7);
-		const column = index % 7;
-		const x = 92 + column * 98 + (row % 2 ? 49 : 0);
-		const y = 160 + row * 97;
-		drawHex(context, x, y, radius);
-		context.fillStyle = "#102f37";
-		context.fill();
-		context.strokeStyle = "#3c625f";
-		context.lineWidth = 3;
-		context.stroke();
+	const radius = 52;
+	for (let index = 0; index < BOARD_SIZE; index += 1) {
+		const row = Math.floor(index / BOARD_COLS);
+		const column = index % BOARD_COLS;
+		const x = 130 + column * 104 + (row % 2 ? 52 : 0);
+		const y = 170 + row * 92;
 		const slot = board[index];
-		if (!slot) continue;
-		const unit = unitMap.get(slot.unitId);
-		const image = images.get(slot.unitId);
-		if (image) {
-			context.save();
-			drawHex(context, x, y, radius - 4);
-			context.clip();
-			context.drawImage(image, x - radius, y - radius, radius * 2, radius * 2);
-			context.restore();
+		const unit = slot ? unitMap.get(slot.unitId) : null;
+		drawHex(context, x, y, radius);
+		context.fillStyle = unit ? (COST_COLORS[unit.cost] ?? "#bbb") : "#0b1c3a";
+		context.fill();
+		if (unit) {
+			drawHex(context, x, y, radius - 5);
+			context.fillStyle = "#0b1c3a";
+			context.fill();
 		}
-		context.strokeStyle = costColor(unit?.cost ?? 0);
-		context.lineWidth = 5;
-		drawHex(context, x, y, radius - 2);
-		context.stroke();
-		context.fillStyle = "#ffd86a";
-		context.font = "700 18px system-ui";
-		context.textAlign = "center";
-		context.fillText("★".repeat(slot.star), x, y - 35);
-		context.fillStyle = "#ffffff";
-		context.font = "700 15px system-ui";
-		context.fillText(unit?.name ?? "", x, y + 42);
+		if (slot && unit) {
+			const image = images.get(slot.unitId);
+			if (image) {
+				context.save();
+				drawHex(context, x, y, radius - 8);
+				context.clip();
+				context.drawImage(image, x - radius, y - radius, radius * 2, radius * 2);
+				context.restore();
+			}
+			context.fillStyle = "#ffffff";
+			context.font = "700 15px system-ui";
+			context.textAlign = "center";
+			context.fillText(unit.name, x, y + radius - 12);
+			context.fillStyle = "#ffd86a";
+			context.font = "700 13px system-ui";
+			context.fillText("★".repeat(slot.star), x, y - radius + 22);
+			context.textAlign = "left";
+		}
 	}
 
-	context.textAlign = "left";
-	context.fillStyle = "#dcebe6";
-	context.font = "700 24px system-ui";
-	context.fillText("羁绊", 850, 140);
+	context.fillStyle = "#dfe8ff";
+	context.font = "700 22px system-ui";
+	context.fillText("羁绊", 940, 170);
 	traitStatuses.slice(0, 12).forEach((trait, index) => {
-		const y = 184 + index * 39;
-		context.fillStyle = traitColor(trait.activeStyle);
-		context.fillRect(850, y - 18, 8, 24);
-		context.fillStyle = trait.activeStyle ? "#f4ead1" : "#8ca09d";
-		context.font = "600 19px system-ui";
-		context.fillText(`${trait.count}  ${trait.name}`, 875, y);
+		const y = 210 + index * 38;
+		context.fillStyle = styleColor(trait.activeStyle);
+		context.fillRect(940, y - 16, 8, 22);
+		context.fillStyle = trait.activeStyle ? "#eaf6ff" : "#8fa3c8";
+		context.font = "600 18px system-ui";
+		context.fillText(`${trait.count}  ${trait.name}`, 962, y);
 	});
 
 	const link = document.createElement("a");
@@ -505,417 +605,910 @@ async function downloadScreenshot() {
 </script>
 
 <svelte:head>
-	<meta name="theme-color" content="#071a24" />
+	<meta name="theme-color" content="#0a1322" />
 </svelte:head>
 
-<div class="builder-shell">
-	<header class="builder-header">
-		<div>
-			<div class="eyebrow">TEAMFIGHT TACTICS · SET {data.set}</div>
-			<h2>星域阵容工坊</h2>
-			<p>在六角棋盘上自由摆放弈子，实时计算羁绊，并为核心英雄配置装备。</p>
+<div class="ttb" onmouseleave={hideTooltip}>
+	<section class="ttb-controls" aria-label="阵容操作">
+		<div class="ttc-set">
+			<span class="ttc-set-badge">SET {data.set}</span>
+			<span class="ttc-patch">{data.patch}</span>
 		</div>
-		<div class="set-badge">
-			<span>S18</span>
-			<small>版本 {data.patch}</small>
-		</div>
-	</header>
+		<span class="ttc-hint">右键选中弈子标为3星</span>
+		<button type="button" class="ttc-btn primary" onclick={copyShareLink}>
+			<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+			分享阵容
+		</button>
+		<button type="button" class="ttc-btn primary" onclick={copyPlannerCode}>
+			<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+			COPY CODE
+		</button>
+		<button type="button" class="ttc-btn ghost" onclick={clearBoard}>
+			<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+			清空棋盘
+		</button>
+		<button type="button" class="ttc-btn ghost" class:on={enemyVisible} onclick={() => (enemyVisible = !enemyVisible)}>
+			<svg viewBox="0 0 24 24"><path d="M7 4v12m0 0-3-3m3 3 3-3M17 20V8m0 0-3 3m3-3 3 3"/></svg>
+			显示敌人棋盘
+		</button>
+		<span class="ttc-flex"></span>
+		<label class="ttc-toggle">
+			<input type="checkbox" bind:checked={showSkins} />
+			<span class="ttc-switch" aria-hidden="true"></span>
+			显示头像皮肤
+		</label>
+		<label class="ttc-toggle">
+			<input type="checkbox" bind:checked={showTips} />
+			<span class="ttc-switch" aria-hidden="true"></span>
+			鼠标悬浮信息
+		</label>
+		<label class="ttc-toggle">
+			<input type="checkbox" bind:checked={showNames} />
+			<span class="ttc-switch" aria-hidden="true"></span>
+			显示弈子名称
+		</label>
+		<label class="ttc-toggle">
+			<input type="checkbox" bind:checked={positionsOnly} />
+			<span class="ttc-switch" aria-hidden="true"></span>
+			仅显示站位
+		</label>
+		<button type="button" class="ttc-btn ghost" onclick={downloadScreenshot}>
+			<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4V8Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+			SCREENSHOT
+		</button>
+		<button type="button" class="ttc-btn primary" onclick={() => (importOpen = !importOpen)}>
+			<svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+			IMPORT CODE
+		</button>
+	</section>
 
-	<div class="action-bar" aria-label="阵容操作">
-		<button type="button" onclick={copyShareLink} title="复制包含站位、星级和装备的链接">
-			<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.1 1.1M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.1-1.1"/></svg>
-			分享链接
-		</button>
-		<button type="button" onclick={copyPlannerCode} title="与国服客户端阵容规划器互通">
-			<svg viewBox="0 0 24 24"><path d="M9 12h6M12 9v6M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
-			阵容码
-		</button>
-		<button type="button" onclick={downloadScreenshot}>
-			<svg viewBox="0 0 24 24"><path d="M4 7h3l1.5-2h7L17 7h3v12H4V7Z"/><circle cx="12" cy="13" r="3.5"/></svg>
-			生成图片
-		</button>
-		<button type="button" class:active={showNames} onclick={() => (showNames = !showNames)}>
-			<svg viewBox="0 0 24 24"><path d="M4 6h16M8 6v14m8-14v14M6 20h4m4 0h4"/></svg>
-			英雄名
-		</button>
-		<button type="button" class="danger" onclick={clearBoard}>
-			<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg>
-			清空
-		</button>
-	</div>
-
-	{#if showImport}
-		<div class="code-panel">
-			<div>
-				<strong>客户端阵容码</strong>
-				<span>可粘贴 S18 阵容码导入；客户端格式只保存英雄，不保存站位、星级和装备。</span>
-			</div>
-			<input bind:value={plannerCodeInput} aria-label="S18 阵容码" placeholder="02…TFTSet18" />
-			<button type="button" onclick={importPlannerCode}>导入</button>
-			<button type="button" class="icon-button" aria-label="关闭阵容码面板" onclick={() => (showImport = false)}>×</button>
-		</div>
-	{/if}
-
-	<div class="workspace">
-		<section class="board-panel" aria-label="S18 六角棋盘">
-			<div class="board-topline">
-				<div><span class="pulse"></span>{unitCount}/28 已上阵</div>
-				<span>{armedUnitId ? `请选择棋盘位置：${unitMap.get(armedUnitId)?.name}` : "拖动头像或点击弈子即可上阵"}</span>
-			</div>
-			<div class="board-grid">
-				{#each board as slot, index}
-					{@const row = Math.floor(index / 7)}
-					{@const column = index % 7}
-					{@const unit = slot ? unitMap.get(slot.unitId) : null}
-					<button
-						type="button"
-						class="hex-cell"
-						class:selected={selectedCell === index}
-						class:armed={Boolean(armedUnitId) && !slot}
-						style={`grid-column: ${column * 2 + 1 + (row % 2)} / span 2; grid-row: ${row + 1}; --cost-color: ${costColor(unit?.cost ?? 0)}`}
-						onclick={() => clickCell(index)}
-						ondblclick={() => slot && selectedCell === index && setStar(slot.star === 3 ? 1 : slot.star + 1)}
-						ondragover={(event) => event.preventDefault()}
-						ondrop={(event) => handleDrop(event, index)}
-						draggable={Boolean(slot)}
-						ondragstart={(event) => handleDragStart(event, `board:${index}`)}
-						aria-label={unit ? `${unit.name}，${slot?.star} 星` : `空棋格 ${index + 1}`}
-					>
-						<span class="hex-surface"></span>
-						{#if unit && slot}
-							<img src={unit.image} alt="" draggable="false" />
-							<span class="star-row" aria-hidden="true">{"★".repeat(slot.star)}</span>
-							{#if showNames}<span class="unit-name">{unit.name}</span>{/if}
-							<span class="item-row">
-								{#each slot.items as itemId}
-									{@const item = itemMap.get(itemId)}
-									{#if item}<img src={item.image} alt={item.name} title={item.name} />{/if}
-								{/each}
-							</span>
-						{/if}
-					</button>
+	<div class="ttb-workspace">
+		<aside class="ttb-traits" aria-label="当前阵容羁绊">
+			<h3>羁绊</h3>
+			<div class="ttb-trait-list">
+				{#each traitStatuses as trait (trait.id)}
+					{@const reached = trait.breakpoints.filter((point) => point.min <= trait.count).at(-1)}
+					<div class="ttb-trait" style={`--style-color: ${styleColor(trait.activeStyle)}`} title={trait.description}>
+						<span class="ttb-trait-icon"><img src={trait.image} alt="" loading="lazy" /></span>
+						<b class:lit={trait.activeStyle > 0}>{trait.count}{reached ? `/${reached.min}` : ""}</b>
+						<span class="ttb-trait-name">{trait.name}</span>
+					</div>
 				{/each}
 			</div>
+			<footer>
+				<span><img src="/assets/tft/set18/units/da_18_kobuko.webp" alt="" />{unitCount}</span>
+				<span><i class="ttc-gold"></i>{goldTotal}</span>
+			</footer>
+		</aside>
 
-			<div class="selection-panel" class:empty={!selectedUnit}>
-				{#if selectedUnit && selectedBoardUnit}
-					<img class="selection-portrait" src={selectedUnit.image} alt="" />
-					<div class="selection-copy">
-						<strong>{selectedUnit.name}</strong>
-						<span>{selectedUnit.cost} 费 · {selectedUnit.traits.map((trait) => trait.name).join(" / ")}</span>
-					</div>
-					<div class="star-control" aria-label="设置星级">
-						{#each [1, 2, 3] as star}
-							<button type="button" class:active={selectedBoardUnit.star === star} onclick={() => setStar(star)}>{star}★</button>
+		<div class="ttb-boards">
+			{#if enemyVisible}
+				<section class="ttb-board-wrap enemy" aria-label="敌方棋盘">
+					<div class="ttb-board">
+						<span class="ttb-mark left" aria-hidden="true">stulanez</span>
+						<span class="ttb-mark right" aria-hidden="true">stulanez</span>
+						{#each [0, 1, 2, 3] as row (row)}
+							<div class="ttb-board-row">
+								{#each [0, 1, 2, 3, 4, 5, 6] as col (col)}
+									{@const index = row * BOARD_COLS + col}
+									{@const slot = enemyBoard[index]}
+									{@const unit = slot ? unitMap.get(slot.unitId) : null}
+									<div
+										class="ttb-hex"
+										class:selected={selectedCell === index && enemyVisible}
+										style={`--cost-color: ${unit ? COST_COLORS[unit.cost] : "transparent"}`}
+										role="button"
+										tabindex="-1"
+										aria-label={unit ? `敌方 ${unit.name}` : "空棋格"}
+										onclick={() => clickCell(index)}
+										oncontextmenu={(event) => { event.preventDefault(); cycleStar(index); }}
+										ondragover={(event) => event.preventDefault()}
+										ondrop={(event) => handleDrop(event, index)}
+										draggable={Boolean(slot)}
+										ondragstart={(event) => handleDragStart(event, `board:${index}`)}
+									>
+										{#if !positionsOnly}
+											{#if unit && slot}
+												{#if showSkins}
+													<img class="ttb-hex-img" src={unit.image} alt="" draggable="false" />
+												{:else}
+													<img class="ttb-hex-img gray" src={unit.image} alt="" draggable="false" />
+												{/if}
+												{#if showTips}
+													<span class="ttb-hex-traits">
+														{#each unit.traits as trait (trait.id)}
+															{@const info = traitMap.get(trait.id)}
+															{#if info}<img src={info.image} alt={info.name} title={info.name} />{/if}
+														{/each}
+													</span>
+												{/if}
+												{#if showNames}
+													<span class="ttb-hex-name">{slot.star > 1 ? "★".repeat(slot.star) : ""}{unit.name}</span>
+												{/if}
+												{#if slot.items.length}
+													<span class="ttb-hex-items">
+														{#each slot.items as itemId (itemId)}
+															{@const item = itemMap.get(itemId)}
+															{#if item}<img src={item.image} alt={item.name} title={item.name} />{/if}
+														{/each}
+													</span>
+												{/if}
+											{/if}
+										{/if}
+									</div>
+								{/each}
+							</div>
 						{/each}
 					</div>
-					<button type="button" class="remove-button" onclick={removeSelected}>移下棋盘</button>
-				{:else}
-					<span>选择棋盘上的弈子，可调整星级、装备或将其移除。</span>
+				</section>
+			{/if}
+			<section class="ttb-board-wrap" aria-label="S18 六角棋盘">
+				<div class="ttb-board">
+					<span class="ttb-mark left" aria-hidden="true">stulanez</span>
+					<span class="ttb-mark right" aria-hidden="true">stulanez</span>
+					{#each [0, 1, 2, 3] as row (row)}
+						<div class="ttb-board-row">
+							{#each [0, 1, 2, 3, 4, 5, 6] as col (col)}
+								{@const index = row * BOARD_COLS + col}
+								{@const slot = board[index]}
+								{@const unit = slot ? unitMap.get(slot.unitId) : null}
+								<div
+									class="ttb-hex"
+									class:selected={selectedCell === index && !enemyVisible}
+									style={`--cost-color: ${unit ? COST_COLORS[unit.cost] : "transparent"}`}
+									role="button"
+									tabindex="-1"
+									aria-label={unit ? `${unit.name}，${slot?.star} 星` : "空棋格"}
+									onclick={() => clickCell(index)}
+									oncontextmenu={(event) => { event.preventDefault(); cycleStar(index); }}
+									onmouseenter={(event) => slot && unit && showTooltip(event, { unitId: unit.id })}
+									onmousemove={moveTooltip}
+									onmouseleave={hideTooltip}
+									ondragover={(event) => event.preventDefault()}
+									ondrop={(event) => handleDrop(event, index)}
+									draggable={Boolean(slot)}
+									ondragstart={(event) => handleDragStart(event, `board:${index}`)}
+								>
+									{#if !positionsOnly && unit && slot}
+										{#if showSkins}
+											<img class="ttb-hex-img" src={unit.image} alt="" draggable="false" />
+										{:else}
+											<img class="ttb-hex-img gray" src={unit.image} alt="" draggable="false" />
+										{/if}
+										{#if showTips}
+											<span class="ttb-hex-traits">
+												{#each unit.traits as trait (trait.id)}
+													{@const info = traitMap.get(trait.id)}
+													{#if info}<img src={info.image} alt={info.name} title={info.name} />{/if}
+												{/each}
+											</span>
+										{/if}
+										{#if showNames}
+											<span class="ttb-hex-name">{slot.star > 1 ? "★".repeat(slot.star) : ""}{unit.name}</span>
+										{/if}
+										{#if slot.items.length}
+											<span class="ttb-hex-items">
+												{#each slot.items as itemId (itemId)}
+													{@const item = itemMap.get(itemId)}
+													{#if item}<img src={item.image} alt={item.name} title={item.name} />{/if}
+												{/each}
+											</span>
+										{/if}
+									{/if}
+								</div>
+							{/each}
+						</div>
+					{/each}
+				</div>
+			</section>
+		</div>
+
+		<div class="ttb-side">
+			<section class="ttb-augments" aria-label="强化符文">
+				<h3>强化符文</h3>
+				{#if chosenAugments.length}
+					<div class="ttb-augment-chips">
+						{#each chosenAugments as id (id)}
+							{@const augment = augmentMap.get(id)}
+							<button type="button" class="ttb-augment-chip" onclick={() => toggleAugment(id)} title="点击移除">
+								{#if augment?.image}<img src={augment.image} alt="" />{/if}
+								<span>{augment?.name ?? id}</span>
+							</button>
+						{/each}
+					</div>
 				{/if}
+				<button type="button" class="ttb-augment-add" aria-label="添加强化符文" onclick={() => (pickerOpen = true)}>+</button>
+			</section>
+			<section class="ttb-bench" aria-label="装备散件">
+				<h3>装备散件</h3>
+				<div class="ttb-bench-grid">
+					{#each componentItems as item (item.id)}
+						<button
+							type="button"
+							title={item.name}
+							aria-label={item.name}
+							onclick={() => clickItem(item.id)}
+							onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
+							onmousemove={moveTooltip}
+							onmouseleave={hideTooltip}
+							draggable="true"
+							ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
+						>
+							<img src={item.image} alt="" loading="lazy" />
+						</button>
+					{/each}
+				</div>
+			</section>
+		</div>
+	</div>
+
+	<div class="ttb-library">
+		<section class="ttb-units" aria-label="弈子库">
+			<header>
+				<label class="ttb-search">
+					<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+					<input bind:value={search} placeholder="搜索单位或羁绊" />
+				</label>
+				<div class="ttb-tabs" role="tablist">
+					<button type="button" role="tab" aria-selected={poolMode === "cost"} class:active={poolMode === "cost"} onclick={() => (poolMode = "cost")}>费用</button>
+					<button type="button" role="tab" aria-selected={poolMode === "name"} class:active={poolMode === "name"} onclick={() => (poolMode = "name")}>名称</button>
+					<button type="button" role="tab" aria-selected={poolMode === "origin"} class:active={poolMode === "origin"} onclick={() => (poolMode = "origin")}>特质</button>
+					<button type="button" role="tab" aria-selected={poolMode === "class"} class:active={poolMode === "class"} onclick={() => (poolMode = "class")}>职业</button>
+				</div>
+			</header>
+			<div class="ttb-unit-scroll">
+				{#each poolGroups as group (group.key)}
+					{#if group.label}
+						<div class="ttb-group-head">
+							{#if group.image}<img src={group.image} alt="" />{/if}
+							<span>{group.label}</span>
+						</div>
+					{/if}
+					<div class="ttb-unit-row" style={`--band: ${group.band}`}>
+						{#each group.units as unit (unit.id)}
+							<button
+								type="button"
+								class="ttb-unit"
+								style={`--cost-color: ${COST_COLORS[unit.cost] ?? "#bbb"}`}
+								aria-label={unit.name}
+								onclick={() => chooseUnit(unit.id)}
+								onmouseenter={(event) => showTooltip(event, { unitId: unit.id })}
+								onmousemove={moveTooltip}
+								onmouseleave={hideTooltip}
+								draggable="true"
+								ondragstart={(event) => handleDragStart(event, `unit:${unit.id}`)}
+							>
+								<img src={unit.image} alt="" loading="lazy" draggable="false" />
+							</button>
+						{/each}
+					</div>
+				{/each}
 			</div>
 		</section>
 
-		<aside class="trait-panel" aria-label="当前阵容羁绊">
-			<div class="panel-heading">
-				<div>
-					<span>SYNERGIES</span>
-					<h3>羁绊统计</h3>
+		<section class="ttb-items" aria-label="装备库">
+			<header>
+				<div class="ttb-tabs" role="tablist">
+					<button type="button" role="tab" aria-selected={itemTab === "standard"} class:active={itemTab === "standard"} onclick={() => (itemTab = "standard")}>可合成装备</button>
+					<button type="button" role="tab" aria-selected={itemTab === "radiant"} class:active={itemTab === "radiant"} onclick={() => (itemTab = "radiant")}>光明武器</button>
+					<button type="button" role="tab" aria-selected={itemTab === "other"} class:active={itemTab === "other"} onclick={() => (itemTab = "other")}>其它</button>
 				</div>
-				<small>{traitStatuses.filter((trait) => trait.activeStyle).length} 个已激活</small>
-			</div>
-			<div class="trait-list">
-				{#if traitStatuses.length}
-					{#each traitStatuses as trait}
-						<div class="trait-entry" class:inactive={!trait.activeStyle} title={trait.description}>
-							<div class="trait-icon" style={`--trait-color: ${traitColor(trait.activeStyle)}`}>
-								{#if trait.image}<img src={trait.image} alt="" />{:else}<span>{trait.name.slice(0, 1)}</span>{/if}
-							</div>
-							<div class="trait-copy">
-								<div><strong>{trait.name}</strong><b>{trait.count}</b></div>
-								<small>{traitProgress(trait)}</small>
-							</div>
-						</div>
+			</header>
+			{#if itemTab !== "radiant"}
+				<div class="ttb-item-strip">
+					{#each componentItems as item (item.id)}
+						<button
+							type="button"
+							class="ttb-item"
+							title={item.name}
+							aria-label={item.name}
+							onclick={() => clickItem(item.id)}
+							onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
+							onmousemove={moveTooltip}
+							onmouseleave={hideTooltip}
+							draggable="true"
+							ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
+						>
+							<img src={item.image} alt="" loading="lazy" />
+						</button>
 					{/each}
+				</div>
+				<div class="ttb-item-grid">
+					{#each gridItems as item (item.id)}
+						<button
+							type="button"
+							class="ttb-item"
+							class:equipped={selectedBoardUnit?.items.includes(item.id)}
+							title={item.name}
+							aria-label={item.name}
+							onclick={() => clickItem(item.id)}
+							onmouseenter={(event) => showTooltip(event, { itemId: item.id })}
+							onmousemove={moveTooltip}
+							onmouseleave={hideTooltip}
+							draggable="true"
+							ondragstart={(event) => handleDragStart(event, `item:${item.id}`)}
+						>
+							<img src={item.image} alt="" loading="lazy" />
+						</button>
+					{/each}
+				</div>
+			{:else}
+				<div class="ttb-empty-note">当前数据源（Data Dragon {data.patch}）暂未提供光明武器数据。</div>
+			{/if}
+		</section>
+	</div>
+
+	{#if pickerOpen}
+		<div class="ttb-overlay" role="dialog" aria-modal="true" aria-label="选择强化符文">
+			<div class="ttb-modal">
+				<header>
+					<label class="ttb-search grow">
+						<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+						<input bind:value={pickerSearch} placeholder="搜索" />
+					</label>
+					<div class="ttb-tabs" role="tablist">
+						<button type="button" role="tab" aria-selected={pickerTab === "augments"} class:active={pickerTab === "augments"} onclick={() => (pickerTab = "augments")}>AUGMENTS</button>
+						<button type="button" role="tab" aria-selected={pickerTab === "powerups"} class:active={pickerTab === "powerups"} onclick={() => (pickerTab = "powerups")}>POWER UPs</button>
+					</div>
+					<button type="button" class="ttc-btn ghost" onclick={() => (pickerOpen = false)}>×</button>
+				</header>
+				{#if (data.augments?.length ?? 0) === 0}
+					<div class="ttb-empty-note tall">
+						当前数据源暂未提供 SET {data.set} 强化符文数据；面板与交互已就绪，数据接入后自动展示。
+					</div>
 				{:else}
-					<div class="empty-traits">
-						<svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m8 10 4-2 4 2v4l-4 2-4-2v-4Z"/></svg>
-						<strong>羁绊将在这里出现</strong>
-						<span>从下方英雄库添加你的第一名弈子</span>
+					<div class="ttb-augment-grid">
+						{#each (data.augments ?? []).filter((augment) => !pickerSearch.trim() || augment.name.toLocaleLowerCase("zh-CN").includes(pickerSearch.trim().toLocaleLowerCase("zh-CN"))) as augment (augment.id)}
+							<button
+								type="button"
+								class="ttb-augment-tile"
+								class:picked={chosenAugments.includes(augment.id)}
+								onclick={() => toggleAugment(augment.id)}
+							>
+								{#if augment.image}<img src={augment.image} alt="" loading="lazy" />{/if}
+								<span>{augment.name}</span>
+							</button>
+						{/each}
 					</div>
 				{/if}
 			</div>
-		</aside>
-	</div>
-
-	<section class="library-panel" aria-label="弈子与装备库">
-		<div class="library-toolbar">
-			<div class="tabs" role="tablist">
-				<button type="button" role="tab" aria-selected={activeTab === "units"} class:active={activeTab === "units"} onclick={() => { activeTab = "units"; search = ""; }}>
-					英雄 <span>{data.units.length}</span>
-				</button>
-				<button type="button" role="tab" aria-selected={activeTab === "items"} class:active={activeTab === "items"} onclick={() => { activeTab = "items"; search = ""; }}>
-					装备 <span>{data.items.length}</span>
-				</button>
-			</div>
-			<label class="search-box">
-				<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-				<input bind:value={search} placeholder={activeTab === "units" ? "搜索英雄或羁绊" : "搜索装备"} />
-				{#if search}<button type="button" aria-label="清空搜索" onclick={() => (search = "")}>×</button>{/if}
-			</label>
 		</div>
+	{/if}
 
-		{#if activeTab === "items"}
-			<div class="item-filters">
-				{#each itemGroups as group}
-					<button type="button" class:active={itemGroup === group.id} onclick={() => (itemGroup = group.id)}>{group.label}</button>
-				{/each}
-				<span>{selectedUnit ? `正在为 ${selectedUnit.name} 配装` : "先选择棋盘上的弈子"}</span>
+	{#if importOpen}
+		<div class="ttb-overlay" role="dialog" aria-modal="true" aria-label="导入阵容码">
+			<div class="ttb-modal small">
+				<header><strong>导入客户端阵容码</strong><button type="button" class="ttc-btn ghost" onclick={() => (importOpen = false)}>×</button></header>
+				<textarea bind:value={plannerCodeInput} aria-label="阵容码" rows="3" placeholder="02…TFTSet18"></textarea>
+				<p>粘贴 S18 客户端阵容码导入；该格式只保存英雄，不保存站位、星级和装备。</p>
+				<footer>
+					<button type="button" class="ttc-btn primary" onclick={importPlannerCode}>导入</button>
+				</footer>
 			</div>
-		{/if}
+		</div>
+	{/if}
 
-		{#if activeTab === "units"}
-			<div class="unit-library">
-				{#each [1, 2, 3, 4, 5] as cost}
-					{@const costUnits = filteredUnits.filter((unit) => unit.cost === cost)}
-					{#if costUnits.length}
-						<div class="cost-group">
-							<div class="cost-heading" style={`--cost-color: ${costColor(cost)}`}><span>{cost}</span><small>金币</small></div>
-							<div class="unit-grid">
-								{#each costUnits as unit}
-									{@const onBoard = board.some((slot) => slot?.unitId === unit.id)}
-									<button
-										type="button"
-										class="unit-card"
-										class:on-board={onBoard}
-										class:armed={armedUnitId === unit.id}
-										style={`--cost-color: ${costColor(cost)}`}
-										onclick={() => chooseUnit(unit.id)}
-										draggable="true"
-										ondragstart={(event) => handleDragStart(event, `unit:${unit.id}`)}
-										title={`${unit.name} · ${unit.traits.map((trait) => trait.name).join(" / ")}`}
-									>
-										<img src={unit.image} alt="" loading="lazy" />
-										<span>{unit.name}</span>
-										{#if onBoard}<b>已上阵</b>{/if}
-									</button>
-								{/each}
-							</div>
-						</div>
-					{/if}
+	{#if tooltip && (tooltip.unitId || tooltip.itemId)}
+		{@const tipUnit = tooltip.unitId ? unitMap.get(tooltip.unitId) : null}
+		{@const tipItem = tooltip.itemId ? itemMap.get(tooltip.itemId) : null}
+		<div class="ttb-tooltip" style={`left: ${Math.min(tooltip.x + 16, typeof window !== "undefined" ? window.innerWidth - 340 : 9999)}px; top: ${Math.min(tooltip.y + 18, typeof window !== "undefined" ? window.innerHeight - 220 : 9999)}px`}>
+			{#if tipUnit}
+				<header>
+					<img src={tipUnit.image} alt="" />
+					<div>
+						<strong>{tipUnit.name}</strong>
+						<span style={`color: ${COST_COLORS[tipUnit.cost]}`}>{tipUnit.cost} 金币</span>
+					</div>
+				</header>
+				<div class="ttb-tip-traits">
+					{#each tipUnit.traits as trait (trait.id)}
+						{@const info = traitMap.get(trait.id)}
+						{#if info}
+							<span><img src={info.image} alt="" />{info.name}</span>
+						{/if}
+					{/each}
+				</div>
+				{#each tipUnit.traits.slice(0, 2) as trait (trait.id)}
+					{@const info = traitMap.get(trait.id)}
+					{#if info?.description}<p>{info.description}</p>{/if}
 				{/each}
-			</div>
-		{:else}
-			<div class="item-grid">
-				{#each filteredItems as item}
-					{@const equipped = selectedBoardUnit?.items.includes(item.id)}
-					<button type="button" class:equipped onclick={() => toggleItem(item.id)} title={item.name}>
-						<img src={item.image} alt="" loading="lazy" />
-						<span>{item.name}</span>
-						{#if equipped}<b>✓</b>{/if}
-					</button>
-				{/each}
-			</div>
-		{/if}
-	</section>
+			{:else if tipItem}
+				<header>
+					<img src={tipItem.image} alt="" />
+					<div><strong>{tipItem.name}</strong><span>{tipItem.category === "component" ? "装备散件" : tipItem.category === "standard" ? "成装" : tipItem.category === "emblem" ? "纹章" : "神器"}</span></div>
+				</header>
+			{/if}
+		</div>
+	{/if}
 
-	<footer class="builder-footer">
-		<span>数据版本 {data.patch} · 最后同步 {new Date(data.updatedAt).toLocaleDateString("zh-CN")}</span>
-		<span>本站与 Riot Games 无隶属或赞助关系；英雄联盟及云顶之弈相关素材归其权利人所有。</span>
-	</footer>
-
-	{#if toast}<div class="toast" role="status">{toast}</div>{/if}
+	{#if toast}<div class="ttb-toast" role="status">{toast}</div>{/if}
 </div>
 
 <style>
-	:global(*) { box-sizing: border-box; }
-	.builder-shell {
-		--ink: #edf7f2;
-		--muted: #8ba8a2;
-		--line: rgba(167, 207, 191, 0.17);
-		--panel: rgba(9, 29, 36, 0.92);
-		--panel-2: rgba(13, 42, 48, 0.86);
-		--gold: #e0bd68;
-		position: relative;
-		isolation: isolate;
+	.ttb {
+		--tt-bg: #0c1526;
+		--tt-panel: #142a52;
+		--tt-panel-deep: #101f3e;
+		--tt-hex: #0b1c3a;
+		--tt-line: #22406e;
+		--tt-text: #eaf6ff;
+		--tt-muted: #8fa3c8;
+		--tt-blue: #0091ff;
+		--tt-violet: #6d4df2;
+		display: grid;
+		gap: 14px;
 		width: 100%;
-		overflow: hidden;
-		border: 1px solid rgba(168, 204, 190, 0.2);
-		border-radius: 24px;
-		background:
-			radial-gradient(circle at 15% 0%, rgba(35, 113, 103, 0.28), transparent 34rem),
-			radial-gradient(circle at 92% 18%, rgba(126, 90, 42, 0.2), transparent 26rem),
-			linear-gradient(150deg, #06171f 0%, #0a252b 55%, #071a21 100%);
-		box-shadow: 0 28px 70px rgba(0, 10, 14, 0.38);
-		color: var(--ink);
-		font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+		color: var(--tt-text);
+		font-family: Montserrat, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 	}
-	.builder-shell::before {
-		position: absolute;
-		inset: 0;
-		z-index: -1;
-		background-image: linear-gradient(rgba(160, 204, 186, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(160, 204, 186, 0.025) 1px, transparent 1px);
-		background-size: 32px 32px;
-		content: "";
-		mask-image: linear-gradient(to bottom, #000, transparent 70%);
-	}
-	button, input { font: inherit; }
-	button { color: inherit; }
-	.builder-header {
+	.ttb :global(button), .ttb button { font: inherit; }
+	.ttb button { color: inherit; }
+
+	/* 控制条 */
+	.ttb-controls {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
+		gap: 10px;
+		padding: 14px 18px;
+		border: 1px solid var(--tt-line);
+		border-radius: 10px;
+		background: var(--tt-panel);
+	}
+	.ttc-set { display: grid; gap: 4px; justify-items: center; }
+	.ttc-set-badge {
+		padding: 5px 12px;
+		border-radius: 7px;
+		background: var(--tt-violet);
+		color: #fff;
+		font-size: 14px;
+		font-weight: 800;
+		letter-spacing: 0.04em;
+	}
+	.ttc-patch { color: var(--tt-blue); font-size: 11px; font-weight: 700; }
+	.ttc-hint { color: var(--tt-muted); font-size: 12px; }
+	.ttc-flex { flex: 1; }
+	.ttc-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 7px;
+		height: 36px;
+		padding: 0 14px;
+		border: 1px solid transparent;
+		border-radius: 8px;
+		font-size: 13px;
+		font-weight: 700;
+		cursor: pointer;
+		transition: 0.15s ease;
+	}
+	.ttc-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
+	.ttc-btn.primary { background: #1a2f5e; border-color: #33508c; color: #dfe8ff; }
+	.ttc-btn.primary:hover { background: #22407a; color: #fff; }
+	.ttc-btn.ghost { border-color: #2c4a7c; background: rgba(11, 28, 58, 0.5); color: #cfe0ff; }
+	.ttc-btn.ghost:hover { border-color: var(--tt-blue); color: #fff; }
+	.ttc-btn.ghost.on { border-color: var(--tt-blue); color: #fff; }
+	.ttc-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		color: #cfe0ff;
+		font-size: 12px;
+		font-weight: 600;
+		cursor: pointer;
+		user-select: none;
+	}
+	.ttc-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+	.ttc-switch {
+		position: relative;
+		width: 30px;
+		height: 16px;
+		border-radius: 8px;
+		background: #22355c;
+		transition: 0.15s ease;
+	}
+	.ttc-switch::after {
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		background: #8fa3c8;
+		content: "";
+		transition: 0.15s ease;
+	}
+	.ttc-toggle input:checked + .ttc-switch { background: #2e5bd8; }
+	.ttc-toggle input:checked + .ttc-switch::after { left: 16px; background: #fff; }
+	.ttc-gold {
+		display: inline-block;
+		width: 14px;
+		height: 14px;
+		border-radius: 50%;
+		background: radial-gradient(circle at 35% 35%, #ffe08a, #d99c1e);
+	}
+
+	/* 主区 */
+	.ttb-workspace {
+		display: grid;
+		grid-template-columns: 224px minmax(0, 1fr) 148px;
+		gap: 14px;
+		align-items: stretch;
+	}
+	.ttb-traits, .ttb-augments, .ttb-bench {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--tt-line);
+		border-radius: 10px;
+		background: var(--tt-panel);
+		overflow: hidden;
+	}
+	.ttb-traits h3, .ttb-augments h3, .ttb-bench h3 {
+		margin: 0;
+		padding: 14px 16px 10px;
+		font-size: 17px;
+		font-weight: 700;
+	}
+	.ttb-trait-list { display: grid; align-content: start; gap: 2px; flex: 1; max-height: 430px; overflow: auto; padding: 0 8px 8px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
+	.ttb-trait { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 6px; }
+	.ttb-trait:hover { background: rgba(11, 28, 58, 0.6); }
+	.ttb-trait-icon { display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px; border-radius: 6px; background: #0b1c3a; overflow: hidden; }
+	.ttb-trait-icon img { width: 24px; height: 24px; object-fit: contain; }
+	.ttb-trait b { min-width: 30px; color: var(--style-color); font-size: 13px; font-weight: 800; text-align: right; }
+	.ttb-trait b.lit { text-shadow: 0 0 8px color-mix(in srgb, var(--style-color) 60%, transparent); }
+	.ttb-trait-name { overflow: hidden; color: #dfe8ff; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+	.ttb-traits footer {
+		display: flex;
+		justify-content: space-around;
+		padding: 10px 12px;
+		border-top: 1px solid var(--tt-line);
+		font-size: 14px;
+		font-weight: 800;
+	}
+	.ttb-traits footer span { display: inline-flex; align-items: center; gap: 6px; }
+	.ttb-traits footer img { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; }
+
+	/* 棋盘 */
+	.ttb-boards { display: grid; gap: 14px; align-content: start; }
+	.ttb-board-wrap {
+		padding: 26px 34px;
+		border: 1px solid var(--tt-line);
+		border-radius: 10px;
+		background: linear-gradient(180deg, #16305c, #122647);
+	}
+	.ttb-board-wrap.enemy .ttb-board-wrap, .ttb-board-wrap.enemy { background: linear-gradient(180deg, #3c1626, #2b1120); border-color: #5c2237; }
+	.ttb-board { position: relative; }
+	.ttb-mark {
+		position: absolute;
+		top: 50%;
+		color: rgba(234, 246, 255, 0.07);
+		font-size: 15px;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		white-space: nowrap;
+		pointer-events: none;
+	}
+	.ttb-mark.left { left: -22px; transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl; }
+	.ttb-mark.right { right: -22px; transform: translateY(-50%); writing-mode: vertical-rl; }
+	.ttb-board-row { display: flex; justify-content: center; }
+	.ttb-board-row + .ttb-board-row { margin-top: -3.6%; }
+	.ttb-board-row:nth-child(even) { transform: translateX(6.7%); }
+	.ttb-hex {
+		position: relative;
+		flex: 0 0 auto;
+		width: calc(100% / 7.6);
+		aspect-ratio: 1 / 1.14;
+		margin: 0 1px;
+		background: var(--cost-color, var(--tt-hex));
+		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+		cursor: pointer;
+	}
+	.ttb-hex::before {
+		position: absolute;
+		inset: 3px;
+		background: var(--tt-hex);
+		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+		content: "";
+	}
+	.ttb-hex:hover::before { background: #0e2447; }
+	.ttb-hex.selected { filter: drop-shadow(0 0 8px rgba(0, 145, 255, 0.8)); }
+	.ttb-board-wrap.enemy .ttb-hex::before { background: #240b16; }
+	.ttb-hex-img {
+		position: absolute;
+		inset: 5px;
+		z-index: 1;
+		width: calc(100% - 10px);
+		height: calc(100% - 10px);
+		object-fit: cover;
+		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+	}
+	.ttb-hex-img.gray { filter: grayscale(1) brightness(0.8); }
+	.ttb-hex-traits {
+		position: absolute;
+		top: -7px;
+		left: 50%;
+		z-index: 3;
+		display: flex;
+		transform: translateX(-50%);
+	}
+	.ttb-hex-traits img {
+		width: 17px;
+		height: 17px;
+		margin: 0 -2px;
+		border: 1.5px solid #dfe8ff;
+		border-radius: 50%;
+		background: #0b1c3a;
+		object-fit: contain;
+	}
+	.ttb-hex-name {
+		position: absolute;
+		right: 6%;
+		bottom: 7%;
+		left: 6%;
+		z-index: 2;
+		overflow: hidden;
+		padding: 1px 2px;
+		border-radius: 3px;
+		background: rgba(4, 10, 22, 0.72);
+		color: #fff;
+		font-size: clamp(8px, 0.72vw, 11px);
+		font-weight: 700;
+		line-height: 1.25;
+		text-align: center;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.ttb-hex-items {
+		position: absolute;
+		right: 4%;
+		bottom: 24%;
+		z-index: 3;
+		display: grid;
+		gap: 1px;
+	}
+	.ttb-hex-items img {
+		width: clamp(10px, 0.95vw, 15px);
+		height: clamp(10px, 0.95vw, 15px);
+		border: 1px solid #d9b55d;
+		border-radius: 2px;
+		background: #0b1c3a;
+		object-fit: cover;
+	}
+
+	/* 右侧栏 */
+	.ttb-side { display: grid; grid-template-rows: 1fr auto; gap: 14px; }
+	.ttb-augment-add {
+		display: grid;
+		place-items: center;
+		width: 44px;
+		height: 44px;
+		margin: 4px auto 18px;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: var(--tt-muted);
+		font-size: 30px;
+		font-weight: 300;
+		cursor: pointer;
+	}
+	.ttb-augment-add:hover { color: #fff; background: rgba(11, 28, 58, 0.7); }
+	.ttb-augment-chips { display: grid; gap: 6px; padding: 0 10px 6px; }
+	.ttb-augment-chip {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		padding: 6px;
+		border: 1px solid var(--tt-line);
+		border-radius: 8px;
+		background: var(--tt-panel-deep);
+		font-size: 11px;
+		cursor: pointer;
+		text-align: left;
+	}
+	.ttb-augment-chip:hover { border-color: var(--tt-blue); }
+	.ttb-augment-chip img { width: 26px; height: 26px; border-radius: 5px; object-fit: cover; }
+	.ttb-bench-grid { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 10px 14px; }
+	.ttb-bench-grid button {
+		width: 34px;
+		height: 34px;
+		padding: 0;
+		border: 1px solid var(--tt-line);
+		border-radius: 6px;
+		background: var(--tt-panel-deep);
+		cursor: grab;
+	}
+	.ttb-bench-grid button:hover { border-color: var(--tt-blue); }
+	.ttb-bench-grid img { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; }
+
+	/* 库区 */
+	.ttb-library {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 316px;
+		gap: 14px;
+	}
+	.ttb-units, .ttb-items {
+		border: 1px solid var(--tt-line);
+		border-radius: 10px;
+		background: var(--tt-panel);
+		overflow: hidden;
+	}
+	.ttb-units header, .ttb-items header {
+		display: flex;
+		align-items: flex-end;
 		justify-content: space-between;
-		gap: 24px;
-		padding: 28px 30px 20px;
-		border-bottom: 1px solid var(--line);
+		gap: 16px;
+		padding: 12px 14px 0;
 	}
-	.eyebrow { margin-bottom: 6px; color: #71c8b3; font-size: 11px; font-weight: 800; letter-spacing: .2em; }
-	.builder-header h2 { margin: 0; color: #f2ead5; font-family: Georgia, "Songti SC", serif; font-size: clamp(25px, 3vw, 38px); letter-spacing: .04em; }
-	.builder-header p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
-	.set-badge { display: grid; place-items: center; min-width: 86px; height: 72px; border: 1px solid rgba(224, 189, 104, .45); border-radius: 14px; background: linear-gradient(145deg, rgba(224, 189, 104, .13), rgba(14, 49, 48, .75)); box-shadow: inset 0 0 24px rgba(224, 189, 104, .08); }
-	.set-badge span { color: #f5d987; font-family: Georgia, serif; font-size: 26px; font-weight: 800; line-height: 1; }
-	.set-badge small { color: #9fb5ae; font-size: 9px; }
-	.action-bar { display: flex; flex-wrap: wrap; gap: 7px; padding: 11px 30px; border-bottom: 1px solid var(--line); background: rgba(3, 15, 20, .35); }
-	.action-bar button, .code-panel button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(20, 57, 61, .55); color: #bed2cc; font-size: 12px; font-weight: 650; cursor: pointer; transition: .18s ease; }
-	.action-bar button:hover, .action-bar button.active, .code-panel button:hover { border-color: rgba(101, 206, 179, .45); background: rgba(40, 101, 91, .38); color: #e8f6f1; transform: translateY(-1px); }
-	.action-bar button.danger { margin-left: auto; }
-	.action-bar button.danger:hover { border-color: rgba(235, 111, 104, .45); background: rgba(122, 45, 45, .3); color: #ffb1aa; }
-	.action-bar svg, .search-box svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
-	.code-panel { display: grid; grid-template-columns: minmax(190px, .9fr) minmax(260px, 1.5fr) auto auto; align-items: center; gap: 10px; padding: 11px 30px; border-bottom: 1px solid var(--line); background: rgba(92, 70, 30, .15); }
-	.code-panel > div { display: grid; gap: 2px; }
-	.code-panel strong { color: #e7d8ad; font-size: 12px; }
-	.code-panel span { color: #859b95; font-size: 10px; }
-	.code-panel input, .search-box input { width: 100%; border: 1px solid var(--line); outline: none; background: rgba(2, 13, 17, .65); color: #e8f1ee; }
-	.code-panel input { height: 34px; padding: 0 11px; border-radius: 8px; font-family: ui-monospace, monospace; font-size: 11px; }
-	.code-panel input:focus, .search-box:focus-within { border-color: rgba(102, 210, 183, .5); box-shadow: 0 0 0 3px rgba(71, 171, 148, .09); }
-	.code-panel .icon-button { width: 34px; padding: 0; font-size: 20px; }
-	.workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(190px, 24%); gap: 14px; padding: 16px; }
-	.board-panel, .trait-panel, .library-panel { border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, rgba(11, 35, 41, .92), rgba(5, 23, 29, .9)); box-shadow: inset 0 1px rgba(255, 255, 255, .025); }
-	.board-panel { min-width: 0; overflow: hidden; }
-	.board-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--line); color: #79968f; font-size: 10px; }
-	.board-topline > div { display: flex; align-items: center; gap: 7px; color: #bdd1ca; font-weight: 700; }
-	.pulse { width: 7px; height: 7px; border-radius: 50%; background: #55d0aa; box-shadow: 0 0 0 4px rgba(85, 208, 170, .1), 0 0 12px #55d0aa; }
-	.board-grid { display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 4px 1px; width: 100%; aspect-ratio: 2.05; padding: 24px 3.5% 28px; background: radial-gradient(ellipse at center, rgba(31, 96, 89, .28), transparent 63%), linear-gradient(180deg, rgba(11, 48, 51, .4), rgba(2, 15, 20, .28)); }
-	.hex-cell { position: relative; min-width: 0; border: 0; outline: 0; background: transparent; cursor: pointer; filter: drop-shadow(0 5px 4px rgba(0, 7, 9, .34)); isolation: isolate; }
-	.hex-surface, .hex-cell > img { position: absolute; inset: 0; width: 100%; height: 100%; clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%); }
-	.hex-surface { z-index: -2; background: linear-gradient(145deg, rgba(39, 85, 83, .45), rgba(9, 31, 38, .86)); box-shadow: inset 0 0 0 2px rgba(118, 159, 151, .28); transition: .16s ease; }
-	.hex-cell > img { z-index: -1; object-fit: cover; opacity: .92; }
-	.hex-cell:has(> img) .hex-surface { background: var(--cost-color); filter: brightness(.95); }
-	.hex-cell:has(> img)::before { position: absolute; inset: 3px; z-index: -1; background: #092028; clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%); content: ""; }
-	.hex-cell:hover .hex-surface, .hex-cell.selected .hex-surface { filter: brightness(1.35); transform: scale(1.035); }
-	.hex-cell.selected { filter: drop-shadow(0 0 8px rgba(244, 213, 124, .65)); }
-	.hex-cell.armed .hex-surface { animation: breathe 1.2s ease-in-out infinite; background: rgba(67, 145, 125, .75); }
-	.star-row { position: absolute; top: 1px; left: 50%; transform: translateX(-50%); color: #ffdc67; font-size: clamp(7px, 1.1vw, 12px); letter-spacing: -2px; text-shadow: 0 1px 3px #3c2900; white-space: nowrap; }
-	.unit-name { position: absolute; right: 8%; bottom: 8%; left: 8%; overflow: hidden; padding: 2px 3px; border-radius: 4px; background: rgba(1, 8, 11, .74); color: #fff; font-size: clamp(7px, .82vw, 11px); font-weight: 750; line-height: 1.2; text-overflow: ellipsis; text-shadow: 0 1px 2px #000; white-space: nowrap; }
-	.item-row { position: absolute; right: -2px; bottom: 17%; display: grid; gap: 1px; }
-	.item-row img { width: clamp(11px, 1.55vw, 19px); height: clamp(11px, 1.55vw, 19px); border: 1px solid #d9b55d; border-radius: 3px; background: #10262d; object-fit: cover; }
-	.selection-panel { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 9px 13px; border-top: 1px solid var(--line); background: rgba(4, 17, 22, .5); }
-	.selection-panel.empty { justify-content: center; color: #708b84; font-size: 11px; text-align: center; }
-	.selection-portrait { width: 42px; height: 42px; border: 2px solid var(--gold); border-radius: 9px; object-fit: cover; }
-	.selection-copy { display: grid; min-width: 0; gap: 3px; }
-	.selection-copy strong { color: #f2e7c5; font-size: 14px; }
-	.selection-copy span { overflow: hidden; max-width: 245px; color: #79978f; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-	.star-control { display: flex; gap: 4px; margin-left: auto; }
-	.star-control button, .remove-button { height: 30px; border: 1px solid var(--line); border-radius: 7px; background: rgba(25, 61, 62, .55); color: #8fa9a2; font-size: 10px; cursor: pointer; }
-	.star-control button { width: 34px; padding: 0; }
-	.star-control button.active { border-color: rgba(233, 190, 82, .55); background: rgba(130, 94, 25, .35); color: #ffdc72; }
-	.remove-button { margin-left: 5px; padding: 0 10px; }
-	.remove-button:hover { border-color: rgba(231, 101, 93, .45); color: #ffaaa4; }
-	.trait-panel { min-width: 0; max-height: 100%; overflow: hidden; }
-	.panel-heading { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px 10px; border-bottom: 1px solid var(--line); }
-	.panel-heading span { color: #5eb39f; font-size: 8px; font-weight: 800; letter-spacing: .18em; }
-	.panel-heading h3 { margin: 1px 0 0; color: #e8dfc8; font-size: 16px; }
-	.panel-heading small { color: #79968e; font-size: 9px; }
-	.trait-list { max-height: 505px; overflow: auto; padding: 7px; scrollbar-color: rgba(106, 146, 137, .4) transparent; scrollbar-width: thin; }
-	.trait-entry { display: flex; align-items: center; gap: 8px; min-height: 47px; padding: 6px; border-bottom: 1px solid rgba(157, 194, 181, .07); }
-	.trait-entry.inactive { opacity: .58; }
-	.trait-icon { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 38px; background: var(--trait-color); clip-path: polygon(50% 0, 94% 24%, 86% 78%, 50% 100%, 14% 78%, 6% 24%); }
-	.trait-icon::before { position: absolute; content: ""; }
-	.trait-icon img { width: 24px; height: 24px; filter: brightness(0) invert(1); object-fit: contain; }
-	.trait-icon span { color: #fff; font-size: 13px; font-weight: 800; }
-	.trait-copy { min-width: 0; flex: 1; }
-	.trait-copy > div { display: flex; align-items: center; justify-content: space-between; gap: 5px; }
-	.trait-copy strong { overflow: hidden; color: #dbe8e3; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-	.trait-copy b { color: #f1d27b; font-size: 12px; }
-	.trait-copy small { color: #718c85; font-size: 8px; }
-	.empty-traits { display: grid; place-items: center; gap: 6px; min-height: 270px; padding: 20px; color: #69847d; text-align: center; }
-	.empty-traits svg { width: 54px; height: 54px; margin-bottom: 5px; fill: none; stroke: #38675f; stroke-width: 1; }
-	.empty-traits strong { color: #91aaa3; font-size: 12px; }
-	.empty-traits span { font-size: 9px; }
-	.library-panel { margin: 0 16px 16px; overflow: hidden; }
-	.library-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 11px 14px; border-bottom: 1px solid var(--line); background: rgba(4, 18, 23, .42); }
-	.tabs { display: flex; gap: 4px; }
-	.tabs button { height: 32px; padding: 0 14px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #78958d; font-size: 11px; font-weight: 700; cursor: pointer; }
-	.tabs button span { display: inline-grid; place-items: center; min-width: 21px; height: 17px; margin-left: 5px; border-radius: 9px; background: rgba(122, 156, 147, .12); font-size: 8px; }
-	.tabs button.active { border-color: rgba(88, 183, 160, .31); background: rgba(37, 93, 84, .3); color: #bfe5da; }
-	.search-box { display: flex; align-items: center; gap: 7px; width: min(270px, 45%); height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: rgba(2, 13, 17, .65); color: #698981; }
-	.search-box input { min-width: 0; height: 100%; padding: 0; border: 0; background: transparent; font-size: 10px; box-shadow: none !important; }
-	.search-box button { border: 0; background: transparent; color: #76918b; cursor: pointer; }
-	.unit-library { max-height: 365px; overflow: auto; padding: 10px 12px; scrollbar-color: rgba(106, 146, 137, .4) transparent; scrollbar-width: thin; }
-	.cost-group { display: grid; grid-template-columns: 43px minmax(0, 1fr); gap: 8px; margin-bottom: 10px; }
-	.cost-heading { display: grid; align-content: center; justify-items: center; min-height: 64px; border-right: 1px solid color-mix(in srgb, var(--cost-color) 45%, transparent); color: var(--cost-color); }
-	.cost-heading span { font-family: Georgia, serif; font-size: 21px; font-weight: 800; }
-	.cost-heading small { font-size: 8px; }
-	.unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
-	.unit-card { position: relative; display: grid; min-width: 0; padding: 0 0 5px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--cost-color) 58%, #122f34); border-radius: 7px; background: #0a252b; cursor: grab; transition: transform .15s ease, filter .15s ease; }
-	.unit-card:hover { z-index: 2; filter: brightness(1.18); transform: translateY(-2px); }
-	.unit-card.on-board { opacity: .5; filter: saturate(.4); }
-	.unit-card.armed { box-shadow: 0 0 0 2px #68cfb5, 0 0 16px rgba(104, 207, 181, .4); }
-	.unit-card img { width: 100%; aspect-ratio: 1; object-fit: cover; }
-	.unit-card span { overflow: hidden; padding: 4px 3px 0; color: #c7d8d3; font-size: 9px; font-weight: 650; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
-	.unit-card b { position: absolute; top: 3px; right: 3px; padding: 2px 4px; border-radius: 4px; background: rgba(2, 12, 15, .78); color: #8ec8b9; font-size: 7px; }
-	.item-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 9px 14px 2px; }
-	.item-filters button { height: 25px; padding: 0 10px; border: 1px solid var(--line); border-radius: 13px; background: transparent; color: #78948d; font-size: 9px; cursor: pointer; }
-	.item-filters button.active { border-color: rgba(218, 179, 87, .4); background: rgba(117, 85, 25, .27); color: #f0d486; }
-	.item-filters span { margin-left: auto; color: #76918a; font-size: 9px; }
-	.item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; max-height: 333px; overflow: auto; padding: 12px 14px; scrollbar-width: thin; }
-	.item-grid button { position: relative; display: grid; justify-items: center; gap: 4px; min-width: 0; padding: 6px 3px; border: 1px solid transparent; border-radius: 8px; background: rgba(15, 45, 50, .5); color: #a8beb8; cursor: pointer; }
-	.item-grid button:hover, .item-grid button.equipped { border-color: rgba(224, 189, 104, .5); background: rgba(95, 70, 27, .27); color: #ead99f; }
-	.item-grid img { width: 38px; height: 38px; border: 1px solid #846b36; border-radius: 6px; object-fit: cover; }
-	.item-grid span { width: 100%; overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
-	.item-grid b { position: absolute; top: 3px; right: 4px; color: #f4d372; font-size: 11px; }
-	.builder-footer { display: flex; justify-content: space-between; gap: 20px; padding: 3px 20px 15px; color: #55736c; font-size: 8px; line-height: 1.5; }
-	.builder-footer span:last-child { text-align: right; }
-	.toast { position: fixed; right: 24px; bottom: 24px; z-index: 100; padding: 11px 16px; border: 1px solid rgba(102, 206, 179, .4); border-radius: 10px; background: rgba(5, 28, 31, .96); box-shadow: 0 12px 40px rgba(0, 0, 0, .35); color: #dff5ee; font-size: 12px; animation: toast-in .22s ease-out; }
-	@keyframes breathe { 50% { filter: brightness(1.5); transform: scale(1.035); } }
-	@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
-	@media (max-width: 900px) {
-		.workspace { grid-template-columns: 1fr; }
-		.trait-panel { order: 2; }
-		.trait-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); max-height: 240px; }
-		.code-panel { grid-template-columns: 1fr auto auto; }
-		.code-panel > div { grid-column: 1 / -1; }
+	.ttb-search {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		width: min(300px, 48%);
+		padding: 6px 4px;
+		border-bottom: 1px solid #2c4a7c;
+		color: var(--tt-muted);
 	}
-	@media (max-width: 640px) {
-		.builder-shell { border-radius: 18px; }
-		.builder-header { padding: 20px 17px 15px; }
-		.builder-header p { display: none; }
-		.set-badge { min-width: 68px; height: 58px; }
-		.action-bar { padding: 9px 12px; }
-		.action-bar button { flex: 1 1 auto; padding: 0 8px; font-size: 10px; }
-		.action-bar button.danger { margin-left: 0; }
-		.code-panel { grid-template-columns: 1fr auto; padding: 10px 12px; }
-		.code-panel input { grid-column: 1 / -1; }
-		.workspace { padding: 9px; }
-		.board-topline > span { display: none; }
-		.board-grid { grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 2px 0; padding: 17px 2.5% 20px; aspect-ratio: 1.75; }
-		.selection-panel { flex-wrap: wrap; }
-		.selection-copy { flex: 1; }
-		.star-control { order: 3; margin-left: 52px; }
-		.remove-button { order: 4; margin-left: auto; }
-		.library-panel { margin: 0 9px 10px; }
-		.library-toolbar { align-items: stretch; flex-direction: column; gap: 8px; }
-		.search-box { width: 100%; }
-		.unit-library { max-height: 430px; }
-		.cost-group { grid-template-columns: 31px minmax(0, 1fr); }
-		.unit-grid { grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); }
-		.item-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
-		.item-filters span { width: 100%; margin: 2px 0 0; }
-		.builder-footer { flex-direction: column; gap: 4px; padding: 3px 13px 13px; }
-		.builder-footer span:last-child { text-align: left; }
-		.toast { right: 12px; bottom: 12px; left: 12px; text-align: center; }
+	.ttb-search.grow { width: min(340px, 46%); }
+	.ttb-search:focus-within { border-bottom-color: var(--tt-blue); }
+	.ttb-search svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2; }
+	.ttb-search input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--tt-text); font-size: 13px; }
+	.ttb-search input::placeholder { color: #56688f; }
+	.ttb-tabs { display: flex; gap: 4px; }
+	.ttb-tabs button {
+		padding: 8px 13px 10px;
+		border: 0;
+		border-bottom: 2px solid transparent;
+		background: transparent;
+		color: var(--tt-muted);
+		font-size: 13px;
+		font-weight: 700;
+		cursor: pointer;
+	}
+	.ttb-tabs button.active { border-bottom-color: var(--tt-blue); color: var(--tt-blue); }
+	.ttb-tabs button:hover { color: #fff; }
+	.ttb-unit-scroll { max-height: 400px; overflow: auto; padding: 10px 12px 14px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
+	.ttb-group-head { display: flex; align-items: center; gap: 7px; padding: 8px 4px 4px; color: #9fb4dd; font-size: 12px; font-weight: 700; }
+	.ttb-group-head img { width: 20px; height: 20px; border-radius: 4px; object-fit: contain; }
+	.ttb-unit-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 5px;
+		margin-bottom: 7px;
+		padding: 6px;
+		border-radius: 6px;
+		background: color-mix(in srgb, var(--band, transparent) 9%, transparent);
+	}
+	.ttb-unit {
+		width: 52px;
+		height: 52px;
+		padding: 0;
+		border: 2px solid var(--cost-color);
+		border-radius: 5px;
+		background: #0b1c3a;
+		cursor: pointer;
+		transition: transform 0.12s ease, filter 0.12s ease;
+	}
+	.ttb-unit:hover { z-index: 2; filter: brightness(1.2); transform: translateY(-2px); }
+	.ttb-unit img { width: 100%; height: 100%; border-radius: 3px; object-fit: cover; }
+	.ttb-item-strip { display: flex; flex-wrap: wrap; gap: 4px; padding: 10px 12px 4px; }
+	.ttb-item-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-height: 330px; overflow: auto; padding: 8px 12px 12px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
+	.ttb-item {
+		aspect-ratio: 1;
+		padding: 0;
+		border: 1px solid #2c4a7c;
+		border-radius: 5px;
+		background: #0b1c3a;
+		cursor: pointer;
+	}
+	.ttb-item:hover { border-color: var(--tt-blue); }
+	.ttb-item.equipped { border-color: #f1c555; box-shadow: 0 0 6px rgba(241, 197, 85, 0.5); }
+	.ttb-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+	.ttb-empty-note { padding: 26px 18px; color: var(--tt-muted); font-size: 13px; text-align: center; }
+	.ttb-empty-note.tall { padding: 60px 30px; }
+
+	/* 弹层 */
+	.ttb-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 90;
+		display: grid;
+		place-items: center;
+		padding: 24px;
+		background: rgba(4, 8, 18, 0.72);
+	}
+	.ttb-modal {
+		display: grid;
+		grid-template-rows: auto 1fr;
+		width: min(720px, 100%);
+		max-height: min(640px, 90vh);
+		border: 1px solid var(--tt-line);
+		border-radius: 12px;
+		background: var(--tt-panel);
+		overflow: hidden;
+	}
+	.ttb-modal.small { width: min(480px, 100%); grid-template-rows: auto auto auto auto; }
+	.ttb-modal header { display: flex; align-items: center; gap: 16px; padding: 14px 16px 10px; }
+	.ttb-modal textarea {
+		margin: 6px 16px;
+		border: 1px solid var(--tt-line);
+		border-radius: 8px;
+		background: var(--tt-panel-deep);
+		color: var(--tt-text);
+		font-family: ui-monospace, monospace;
+		font-size: 12px;
+		resize: vertical;
+	}
+	.ttb-modal p { margin: 0 16px 10px; color: var(--tt-muted); font-size: 12px; }
+	.ttb-modal footer { display: flex; justify-content: flex-end; padding: 0 16px 14px; }
+	.ttb-augment-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; overflow: auto; padding: 8px 16px 16px; scrollbar-width: thin; scrollbar-color: #2c4a7c transparent; }
+	.ttb-augment-tile {
+		display: grid;
+		justify-items: center;
+		gap: 5px;
+		padding: 10px 6px;
+		border: 1px solid transparent;
+		border-radius: 8px;
+		background: transparent;
+		cursor: pointer;
+	}
+	.ttb-augment-tile:hover { background: rgba(11, 28, 58, 0.6); }
+	.ttb-augment-tile.picked { border-color: var(--tt-blue); background: rgba(0, 145, 255, 0.12); }
+	.ttb-augment-tile img { width: 40px; height: 40px; border-radius: 7px; object-fit: cover; }
+	.ttb-augment-tile span { color: #cfe0ff; font-size: 11px; text-align: center; }
+
+	/* 提示 */
+	.ttb-tooltip {
+		position: fixed;
+		z-index: 120;
+		width: 300px;
+		padding: 12px;
+		border: 1px solid var(--tt-line);
+		border-radius: 10px;
+		background: rgba(10, 20, 40, 0.97);
+		box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+		pointer-events: none;
+	}
+	.ttb-tooltip header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+	.ttb-tooltip header img { width: 42px; height: 42px; border-radius: 7px; border: 2px solid #2c4a7c; object-fit: cover; }
+	.ttb-tooltip strong { display: block; font-size: 15px; }
+	.ttb-tooltip header span { font-size: 12px; font-weight: 700; }
+	.ttb-tip-traits { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+	.ttb-tip-traits span { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 3px; border: 1px solid var(--tt-line); border-radius: 6px; background: var(--tt-panel-deep); color: #cfe0ff; font-size: 12px; }
+	.ttb-tip-traits img { width: 18px; height: 18px; border-radius: 4px; object-fit: contain; }
+	.ttb-tooltip p { margin: 4px 0 0; color: #aebfe3; font-size: 12px; line-height: 1.6; }
+	.ttb-toast {
+		position: fixed;
+		right: 24px;
+		bottom: 24px;
+		z-index: 130;
+		padding: 11px 16px;
+		border: 1px solid #2c4a7c;
+		border-radius: 10px;
+		background: rgba(10, 20, 40, 0.97);
+		color: var(--tt-text);
+		font-size: 13px;
+		animation: ttb-toast-in 0.22s ease-out;
+	}
+	@keyframes ttb-toast-in {
+		from { opacity: 0; transform: translateY(8px); }
+	}
+
+	@media (max-width: 1100px) {
+		.ttb-workspace { grid-template-columns: 200px minmax(0, 1fr); }
+		.ttb-side { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; grid-template-rows: none; }
+		.ttb-library { grid-template-columns: 1fr; }
+	}
+	@media (max-width: 760px) {
+		.ttb-workspace { grid-template-columns: 1fr; }
+		.ttb-traits .ttb-trait-list { max-height: 220px; }
+		.ttb-side { grid-template-columns: 1fr; }
+		.ttb-units header, .ttb-items header { flex-direction: column; align-items: stretch; }
+		.ttb-search { width: 100%; }
+		.ttb-unit-scroll { max-height: 320px; }
+		.ttb-hex-name { font-size: 8px; }
 	}
 	@media (prefers-reduced-motion: reduce) {
-		*, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+		.ttb *, .ttb *::before, .ttb *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 	}
 </style>
