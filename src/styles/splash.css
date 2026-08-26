@@ -6,6 +6,10 @@ html[data-splash-pending] {
 	overflow: hidden;
 }
 
+html[data-splash-pending] #canvas_sakura {
+	z-index: 210 !important;
+}
+
 .splash-screen {
 	position: fixed;
 	inset: 0;
@@ -174,16 +178,6 @@ html[data-splash-pending] {
 	z-index: -1;
 }
 
-.splash-sakura {
-	position: absolute;
-	inset: 0;
-	z-index: 5;
-	display: block;
-	width: 100%;
-	height: 100%;
-	pointer-events: none;
-}
-
 .splash-character {
 	position: absolute;
 	left: 0;
@@ -297,10 +291,6 @@ html[data-splash-pending] {
 		animation: none !important;
 		transition: none !important;
 		opacity: 1;
-	}
-
-	.splash-sakura {
-		display: none;
 	}
 
 	.splash-upper-clip,
