@@ -1,118 +1,116 @@
 ---
-// 站点细节装饰：首页卡片纹样 + 页面花底。
-// 全部放在组件内全局样式里，避免触碰 src/styles/ 等共享文件。
-// 作用域限定在 body.is-home，只影响首页。
+// 首页卡片质感增强：让卡片"用料丰富但克制高级"，替代之前的卡通贴纸方案。
+// 全在组件内全局样式，作用域 body.is-home，主题色联动 var(--primary)。
 ---
 
 <style is:global>
 	/* ============================================================
-	 * 背景底纹：首页往下滑后的淡淡花背景 + 极光色块质感（多背景层，安全不碍内容）
+	 * 首页背景：极浅主题色氛围 + 柔和光晕（多背景层，不碍内容）
 	 * ============================================================ */
 	body.is-home {
+		background-color: var(--page-bg);
 		background-image:
 			radial-gradient(
-				46% 46% at 12% 16%,
-				color-mix(in oklch, var(--primary) 10%, transparent),
-				transparent 64%
+				54% 44% at 18% 10%,
+				color-mix(in oklch, var(--primary) 12%, transparent),
+				transparent 55%
 			),
 			radial-gradient(
-				50% 50% at 88% 82%,
+				48% 42% at 86% 84%,
 				color-mix(in oklch, var(--primary) 9%, transparent),
-				transparent 66%
-			),
-			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23e9a9c8' stroke-width='1.4' stroke-opacity='0.24'%3E%3Ccircle cx='40' cy='44' r='2.2' fill='%23e9a9c8' fill-opacity='0.3' stroke='none'/%3E%3Ccircle cx='206' cy='190' r='2.2' fill='%23e9a9c8' fill-opacity='0.3' stroke='none'/%3E%3Ccircle cx='150' cy='34' r='1.8' fill='%23e9a9c8' fill-opacity='0.3' stroke='none'/%3E%3Cpath d='M132 96c-1-8 5-14 12-14 6 0 9 4 8 9-1 6-12 7-20 5z'/%3E%3Cpath d='M136 102c8-2 14 3 14 10 0 5-5 8-10 7-6-2-7-11-4-17z'/%3E%3Cpath d='M128 98c1 8-4 14-11 14-5 0-8-5-6-9 2-6 12-8 17-5z'/%3E%3Cpath d='M125 92c-8-1-10-9-6-14 4-5 10-4 12 1 2 6-2 11-6 13z'/%3E%3Cpath d='M136 109c5 5 12 5 16 0 3-4 1-8-3-9-6-2-11 4-13 9z'/%3E%3Cpath d='M52 168c22-9 44-9 66 0' stroke-dasharray='2 7'/%3E%3Cpath d='M160 150c14-6 28-6 42 0' stroke-dasharray='2 7'/%3E%3C/g%3E%3C/svg%3E");
-		background-repeat: no-repeat, no-repeat, repeat;
-		background-size: 100% 100%, 100% 100%, 240px 240px;
-		background-attachment: scroll, scroll, scroll;
+				transparent 60%
+			);
+		background-repeat: no-repeat, no-repeat;
+		background-size: 100% 100%, 100% 100%;
+		background-attachment: scroll, scroll;
 	}
 
 	/* ============================================================
-	 * 卡片纹样：三色渐变 + SVG 线稿遮罩，放在卡片右下角
+	 * 首页卡片（文章列表 + 侧栏块）：统一的高级质感
+	 * 层：顶部玻璃高光 + 细腻主题渐变底 + 角部氛围光 + 细腻噪点网格
 	 * ============================================================ */
-	body.is-home {
-		--hm-blossom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='95' cy='66' r='6'/%3E%3Cpath d='M95 60C92 45 101 34 113 35c9 1 13 9 9 16-5 9-20 10-27 9z'/%3E%3Cpath d='M100 71c13-3 23 5 23 16 0 9-8 14-16 12-9-3-11-18-7-28z'/%3E%3Cpath d='M91 73c3 12-5 22-16 22-8 0-12-7-9-14 3-9 17-13 25-8z'/%3E%3Cpath d='M87 62c-12-3-15-15-9-24 5-7 14-6 18 1 5 8-2 19-9 23z'/%3E%3Cpath d='M103 77c8 8 20 8 26 0 5-6 2-13-5-15-8-3-16 6-21 15z'/%3E%3C/g%3E%3C/svg%3E");
-		--hm-constellation: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M46 46l42 18 30-26 36 24M88 64l4 38 40-6M92 102l-28 20'/%3E%3C/g%3E%3Cg fill='white'%3E%3Ccircle cx='46' cy='46' r='4'/%3E%3Ccircle cx='88' cy='64' r='4'/%3E%3Ccircle cx='118' cy='38' r='4'/%3E%3Ccircle cx='154' cy='62' r='4'/%3E%3Ccircle cx='92' cy='102' r='4'/%3E%3Ccircle cx='132' cy='96' r='4'/%3E%3Ccircle cx='64' cy='122' r='4'/%3E%3C/g%3E%3C/svg%3E");
-		--hm-paper-plane: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M36 84 150 40 96 130 80 96z'/%3E%3Cpath d='M80 96l70-56'/%3E%3Cpath d='M96 130l-8-24'/%3E%3C/g%3E%3C/svg%3E");
-		--hm-clock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Ccircle cx='95' cy='74' r='44'/%3E%3Cpath d='M95 74V48M95 74l20 10'/%3E%3Cpath d='M66 58l11 11M124 58l-11 11M66 90l11-11M124 90l-11-11'/%3E%3C/g%3E%3C/svg%3E");
-		--hm-orbit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 150'%3E%3Cg fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round'%3E%3Ccircle cx='95' cy='74' r='22'/%3E%3Cellipse cx='95' cy='74' rx='52' ry='20'/%3E%3Cellipse cx='95' cy='74' rx='26' ry='40' transform='rotate(44 95 74)'/%3E%3Ccircle cx='147' cy='60' r='4' fill='white' stroke='none'/%3E%3Ccircle cx='56' cy='96' r='3' fill='white' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
-	}
-
-	/* 默认纹样（所有卡片块都先有这一层），并让卡片作为 ::before 的定位上下文 */
 	body.is-home :is(.post-card-wrapper, widget-layout).card-base {
 		position: relative;
-		--home-card-active-mask: var(--hm-blossom);
-		--home-card-pattern-a: #f6c1d6;
-		--home-card-pattern-b: #d9b6ec;
-		--home-card-pattern-c: #b6d9ee;
+		overflow: hidden;
+		background:
+			linear-gradient(
+				152deg,
+				color-mix(in oklch, var(--primary) 5%, var(--card-bg)) 0%,
+				var(--card-bg) 46%,
+				color-mix(in oklch, var(--primary) 3%, var(--card-bg)) 100%
+			);
+		box-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.04),
+			0 8px 24px -12px color-mix(in oklch, var(--primary) 18%, transparent);
+		border: 1px solid color-mix(in oklch, var(--line-divider) 90%, var(--primary) 4%);
 	}
 
-	/* 首页文章卡片按序轮换纹样 */
-	body.is-home #post-list-container > .post-card-item:nth-child(6n + 2) {
-		--home-card-active-mask: var(--hm-constellation);
-		--home-card-pattern-a: #b3b7f2;
-		--home-card-pattern-b: #c3a6ee;
-		--home-card-pattern-c: #9fd6e6;
-	}
-	body.is-home #post-list-container > .post-card-item:nth-child(6n + 3) {
-		--home-card-active-mask: var(--hm-paper-plane);
-		--home-card-pattern-a: #a6d8dd;
-		--home-card-pattern-b: #f2aec6;
-		--home-card-pattern-c: #b3c6f0;
-	}
-	body.is-home #post-list-container > .post-card-item:nth-child(6n + 4) {
-		--home-card-active-mask: var(--hm-clock);
-		--home-card-pattern-a: #a6cfef;
-		--home-card-pattern-b: #f0c49a;
-		--home-card-pattern-c: #f2d99e;
-	}
-	body.is-home #post-list-container > .post-card-item:nth-child(6n + 5) {
-		--home-card-active-mask: var(--hm-orbit);
-		--home-card-pattern-a: #aeb2f4;
-		--home-card-pattern-b: #c9a8ec;
-		--home-card-pattern-c: #8fd0dd;
-	}
-	body.is-home #post-list-container > .post-card-item:nth-child(6n) {
-		--home-card-active-mask: var(--hm-paper-plane);
-		--home-card-pattern-a: #b9c6e8;
-		--home-card-pattern-b: #f6b8cd;
-		--home-card-pattern-c: #a8dcd6;
-	}
-
-	/* 绘制：三色渐变 + 遮罩，右下角，微旋转 */
+	/* 顶部玻璃高光 */
 	body.is-home :is(.post-card-wrapper, widget-layout).card-base::before {
-		position: absolute;
-		right: -0.65rem;
-		bottom: -0.55rem;
-		z-index: 0;
-		width: 12.2rem;
-		height: 9.65rem;
 		content: "";
+		position: absolute;
+		inset: 0;
 		pointer-events: none;
-		background: linear-gradient(
-			138deg,
-			var(--home-card-pattern-a),
-			var(--home-card-pattern-b) 72%,
-			var(--home-card-pattern-c)
+		background:
+			linear-gradient(
+				180deg,
+				color-mix(in oklch, var(--primary) 9%, transparent) 0%,
+				transparent 38%
+			),
+			linear-gradient(
+				0deg,
+				color-mix(in oklch, var(--primary) 4%, transparent) 0%,
+				transparent 30%
+			);
+		z-index: 0;
+	}
+
+	/* 细网格材质（极浅，只在 hover 时明显一点） */
+	body.is-home :is(.post-card-wrapper, widget-layout).card-base::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 0;
+		background-image: radial-gradient(
+			color-mix(in oklch, var(--primary) 7%, transparent) 1px,
+			transparent 1px
 		);
-		-webkit-mask-image: var(--home-card-active-mask);
-		mask-image: var(--home-card-active-mask);
-		-webkit-mask-position: center;
-		mask-position: center;
-		-webkit-mask-repeat: no-repeat;
-		mask-repeat: no-repeat;
-		-webkit-mask-size: contain;
-		mask-size: contain;
-		opacity: 0.2;
-		transform: rotate(-2deg);
-		transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+		background-size: 22px 22px;
+		-mask-image: radial-gradient(120% 120% at 20% 0%, black 0%, transparent 58%);
+		-webkit-mask-image: radial-gradient(120% 120% at 20% 0%, black 0%, transparent 58%);
+		opacity: 0.5;
+		transition: opacity 0.3s ease;
 	}
 
+	/* 卡片内容提升到纹理之上 */
+	body.is-home :is(.post-card-wrapper, widget-layout).card-base > * {
+		position: relative;
+		z-index: 1;
+	}
+
+	/* hover 轻微提亮 + 顶部高光更明显 */
+	body.is-home :is(.post-card-wrapper, widget-layout).card-base:hover {
+		box-shadow:
+			0 2px 4px rgba(0, 0, 0, 0.05),
+			0 20px 40px -20px color-mix(in oklch, var(--primary) 30%, transparent);
+	}
 	body.is-home :is(.post-card-wrapper, widget-layout).card-base:hover::before {
-		opacity: 0.3;
-		transform: rotate(0deg) scale(1.04);
+		background:
+			linear-gradient(
+				180deg,
+				color-mix(in oklch, var(--primary) 13%, transparent) 0%,
+				transparent 44%
+			),
+			linear-gradient(
+				0deg,
+				color-mix(in oklch, var(--primary) 5%, transparent) 0%,
+				transparent 30%
+			);
 	}
-
-	/* 侧栏块默认轮换：给 widget-layout 也做一点变化（按出现顺序不可靠，这里统一保持默认 blossom） */
+	body.is-home :is(.post-card-wrapper, widget-layout).card-base:hover::after {
+		opacity: 0.8;
+	}
 </style>
 
 {/* 仅承载全局装饰样式，不输出 DOM */}
