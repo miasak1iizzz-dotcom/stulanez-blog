@@ -23,14 +23,15 @@ const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 			<strong>S18 阵容规划器</strong>
 		</nav>
 		<TftTeamBuilder data={set18Data as any} client:load />
-		<div class="tft-source-note">
-			<p>
-				功能设计参考主流阵容规划器的使用习惯，界面与状态逻辑由本站独立实现。游戏数据来自
-				<a href="https://developer.riotgames.com/docs/tft" target="_blank" rel="noreferrer">Riot TFT Data Dragon</a>
-				及
-				<a href="https://www.communitydragon.org/" target="_blank" rel="noreferrer">CommunityDragon</a>。
-			</p>
-		</div>
+			<div class="tft-source-note">
+				<p>
+					界面交互对标 tactics.tools 阵容模拟器一比一复刻，供个人学习与组队规划使用。游戏数据来自
+					<a href="https://developer.riotgames.com/docs/tft" target="_blank" rel="noreferrer">Riot TFT Data Dragon</a>
+					及
+					<a href="https://www.communitydragon.org/" target="_blank" rel="noreferrer">CommunityDragon</a>；
+					本站与 Riot Games 及 tactics.tools 无隶属关系。
+				</p>
+			</div>
 		</div>
 	</main>
 
