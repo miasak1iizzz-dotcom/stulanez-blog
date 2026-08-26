@@ -1,0 +1,67 @@
+---
+// 顶部阅读进度条：跟随滚动进度，rAF 节流、每条 frame 只写一次 width，不触发布局读取。
+// 放在主框架（所有内容页都显示），细线、不阻挡点击。
+---
+
+<div id="reading-progress-bar" class="reading-progress-bar" aria-hidden="true">
+	<div id="reading-progress-fill" class="reading-progress-fill"></div>
+</div>
+
+<style>
+	.reading-progress-bar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 3px;
+		z-index: 9999;
+		pointer-events: none;
+		background: transparent;
+	}
+	.reading-progress-fill {
+		height: 100%;
+		width: 0;
+		background: linear-gradient(
+			90deg,
+			var(--primary),
+			color-mix(in oklch, var(--primary) 62%, white)
+		);
+		border-radius: 0 2px 2px 0;
+		transition: width 0.08s linear;
+	}
+</style>
+
+<script>
+	(function () {
+		const fill = document.getElementById("reading-progress-fill");
+		if (!fill) return;
+		const el: HTMLElement = fill;
+
+		let ticking = false;
+		let bound = false;
+
+		function update() {
+			const doc = document.documentElement;
+			const scrollable = doc.scrollHeight - window.innerHeight;
+			const pct =
+				scrollable > 0
+					? Math.min(100, Math.max(0, (window.scrollY / scrollable) * 100))
+					: 0;
+			el.style.width = pct + "%";
+			ticking = false;
+		}
+		function onScroll() {
+			if (!ticking) {
+				ticking = true;
+				requestAnimationFrame(update);
+			}
+		}
+		if (!bound) {
+			bound = true;
+			window.addEventListener("scroll", onScroll, { passive: true });
+			window.addEventListener("resize", onScroll, { passive: true });
+		}
+		document.addEventListener("astro:page-load", () => update());
+		update();
+	})();
+</script>
