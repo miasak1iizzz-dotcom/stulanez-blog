@@ -39,7 +39,7 @@ type TraitStatus = Trait & {
 	nextAt: number | null;
 };
 type PoolMode = "cost" | "name" | "origin" | "class";
-type ItemTab = "standard" | "radiant" | "other";
+type ItemTab = "standard" | "radiant" | "emblem" | "artifact";
 type TooltipState = { x: number; y: number; unitId?: string; itemId?: string };
 
 interface Props {
@@ -954,7 +954,8 @@ async function downloadScreenshot() {
 				<div class="ttb-tabs" role="tablist">
 					<button type="button" role="tab" aria-selected={itemTab === "standard"} class:active={itemTab === "standard"} onclick={() => (itemTab = "standard")}>可合成装备</button>
 					<button type="button" role="tab" aria-selected={itemTab === "radiant"} class:active={itemTab === "radiant"} onclick={() => (itemTab = "radiant")}>光明武器</button>
-					<button type="button" role="tab" aria-selected={itemTab === "other"} class:active={itemTab === "other"} onclick={() => (itemTab = "other")}>其它</button>
+					<button type="button" role="tab" aria-selected={itemTab === "emblem"} class:active={itemTab === "emblem"} onclick={() => (itemTab = "emblem")}>不可合成纹章</button>
+					<button type="button" role="tab" aria-selected={itemTab === "artifact"} class:active={itemTab === "artifact"} onclick={() => (itemTab = "artifact")}>奥恩神器</button>
 				</div>
 			</header>
 			{#if itemTab === "standard"}
@@ -977,7 +978,7 @@ async function downloadScreenshot() {
 						</button>
 					{/each}
 				</div>
-			{:else if itemTab === "other"}
+			{:else if itemTab === "emblem"}
 				<div class="ttb-item-section">
 					<h4>不可合成纹章</h4>
 					<div class="ttb-item-grid">
@@ -999,6 +1000,7 @@ async function downloadScreenshot() {
 						{/each}
 					</div>
 				</div>
+			{:else if itemTab === "artifact"}
 				<div class="ttb-item-section">
 					<h4>奥恩神器</h4>
 					<div class="ttb-item-grid">
