@@ -1,0 +1,77 @@
+{
+  "title": "从 0 到 45GB 的数字资产库",
+  "subtitle": "DeepSeek 与 GLM 双线协作的多源采集方法论",
+  "overview": {
+    "totalAssets": "60,503",
+    "totalSize": "45 GB",
+    "channels": "21",
+    "mainChannels": 3,
+    "dedup": "内容哈希全去重",
+    "classifier": "内容 + 画风双维度分类",
+    "goal": "别人有的，我也要有；甚至更多"
+  },
+  "channels": [
+    { "name": "Pixiv", "type": "二次元插画", "status": "主力·双线共用", "score": 5, "owner": "DSH+GLM", "note": "无需登录 ajax/search + pages 原图，多线程并发；Referer: pixiv.net；交叉验证结论：pages 无需 cookie（node fetch 才需兜底）" },
+    { "name": "Wallhaven", "type": "高清壁纸", "status": "主力", "score": 4, "owner": "DSH", "note": "公开 API，purity/categories/atleast 过滤，path 直下；本机 CF 标记可走 7897 出口" },
+    { "name": "Civitai", "type": "AI 生图", "status": "主力", "score": 4, "owner": "DSH", "note": "API 返内容 hash + stats，NSFW 放开，限流需退避；Node 超时用 PowerShell" },
+    { "name": "IG gallery-dl+cookie", "type": "Kpop 官方原图", "status": "主力", "score": 5, "owner": "GLM", "note": "3.5 万张主力引擎；--download-archive 媒体 ID 去重；cookie 仓库外" },
+    { "name": "fastdl.app", "type": "IG 单帖原图", "status": "GLM 线", "score": 4, "owner": "GLM", "note": "真浏览器+读验证码+签名层，同会话免验证码；直链 curl 可下" },
+    { "name": "Kpopping", "type": "饭拍·站姐图", "status": "GLM 线", "score": 4, "owner": "GLM", "note": "封面流解码 cdn 原图；软限流 404/500；CF 硬限流换出口" },
+    { "name": "LOL DataDragon+CDragon", "type": "游戏原画", "status": "GLM 线", "score": 4, "owner": "GLM", "note": "官方原画；皮肤元数据走 CDragon（data JSON 403）" },
+    { "name": "B站专栏", "type": "优质大图", "status": "有实物·有风控", "score": 3, "owner": "DSH+GLM", "note": "590 张实证；撞 412 风控，需过风控姿势" },
+    { "name": "Pixabay/Pexels/Unsplash", "type": "综合图库", "status": "需 key", "score": 2, "note": "CC0 质量顶级，但要 API key 才能批量" },
+    { "name": "Danbooru 本家", "type": "成分杂", "status": "不走", "score": 2, "note": "色图多需精细过滤；用户明确不作为主路" },
+    { "name": "Stockcake/DeviantArt/ImgSearch 等", "type": "反爬/key", "status": "弃用", "score": 1, "note": "403/401/需 OAuth，硬抓会封 IP" }
+  ],
+  "categories": [
+    { "name": "风景场景", "desc": "landscape / scenery / city / town / 森林 / 海洋" },
+    { "name": "天空宇宙", "desc": "sky / stars / moon / universe / nightsky / sunset / 星空" },
+    { "name": "人物", "desc": "girl / portrait / 少女 / 美少女 / 角色" },
+    { "name": "奇幻", "desc": "fantasy / 魔法 / 龙女 / 骑士 / 异世界" },
+    { "name": "植物花卉", "desc": "plant / flower / 花海" },
+    { "name": "其他 / AI 生图", "desc": "物件 / 游戏 / 影视 / 原创 / AI 绘画" }
+  ],
+  "styles": [
+    { "name": "赛璐璐动漫", "count": 630 },
+    { "name": "厚涂油画", "count": 324 },
+    { "name": "平涂扁平", "count": 67 },
+    { "name": "素描线稿", "count": 52 },
+    { "name": "水彩淡彩", "count": 28 },
+    { "name": "Q版卡通", "count": 38 },
+    { "name": "真人摄影", "count": 23 },
+    { "name": "3D CG", "count": 23 }
+  ],
+  "pipeline": [
+    "先研究方法：调研渠道连通性 / API / 限流 / 版权",
+    "评估可行性：挑出能批量、能去重、可追溯的源",
+    "写并发采集：多线程抓取 + 内容哈希去重 + manifest",
+    "分类归档：按内容 + 画风建目录，保留来源信息",
+    "上线管理：链接进 Serpent，按目录树浏览 / 标记",
+    "规模化：验收后放量，持续往里吸"
+  ],
+  "pitfalls": [
+    { "title": "URL 去重是重复的根因", "how": "同一内容不同 URL / 翻页会去不掉 → 改用内容 sha256 或 --download-archive 媒体 ID" },
+    { "title": "脚本含中文会 GBK 乱码", "how": ".ps1 里中文路径被按 GBK 读坏写出乱码目录 → 含中文一律 Python，或纯 ASCII + UTF-8 配置" },
+    { "title": "翻页参数会被覆盖", "how": "safebooru 的 page=dapi 被再拼 &page=1 覆盖成 HTML → 用 pid 翻页（DSH 发现，GLM 复认）" },
+    { "title": "限流形态要认清", "how": "404/500=软限流退避；cf-mitigated=换出口 IP；429=按 Retry-After 等（双方互认）" },
+    { "title": "cookie 过期时间坑", "how": "cookies.txt 第 5 列必须 UNIX 时间戳，写 1 会静默报 expired at 1970（GLM 踩）" },
+    { "title": "账号存在 ≠ 有作品", "how": "IG 很多画师号存在但几乎没发图 → 需验证实际媒体量" },
+    { "title": "大库会让管理工具卡死", "how": "Serpent 给 5 万张大图建预览时 worker 超时 → 用轻量小目录，别处理全库" },
+    { "title": "大标签会混 AI 批量图", "how": "Pixiv 大标签+popular_d 混同质/AI 图 → 改用画师/成员名标签 + 逐张目检" }
+  ],
+  "lessons": [
+    { "title": "抓上游源，不扒单站", "text": "参考站（朝朝听雨友链）的图其实都来自少数上游源。掌握可批量上游源（Pixiv/danbooru系/Wallhaven/IG/LOL 官方），才是“别人有我也要、更多”的正解。" },
+    { "title": "先研究再动手", "text": "逐个实测渠道连通性/可批量/限流，挑出能跑的，而不是一看到就猛冲。避免目光短浅钻进单点。" },
+    { "title": "内容去重 + 可追溯", "text": "内容 sha256 去重 + 每主题 manifest（来源/hash/时间）——绝不重复入库，且能溯源。GLM 用 --download-archive 媒体 ID 更省事。" },
+    { "title": "工具要匹配对象", "text": "Node 访问 Civitai 超时就用 PowerShell；本机被 CF 标记就走代理 7897；长跑配看护（日志心跳+自动重启）。" },
+    { "title": "双方协作，各有所长", "text": "DSH 主 AI 生图+二次元（Pixiv/Wallhaven/Civitai 并发+去重+分类）；GLM 主 kpop+LOL+二创（IG gallery-dl/fastdl/kpopping+ddragon）。渠道互补、方法互通。" },
+    { "title": "先给用户看，再放量", "text": "先小批量出真成果给用户验收（风格/质量对不对味），点头后再规模化。" }
+  ],
+  "meta": {
+    "author": "Saki · 永恒欲望",
+    "date": "2026-08-27",
+    "collab": "DeepSeek 一号（DSH）+ GLM 双线协作",
+    "tools": ["多线程并发", "内容哈希去重", "manifest", "Serpent", "多模态目检", "gallery-dl", "代理出口"],
+    "resources": ["朝朝听雨 rainzt.cn", "Pixiv", "Wallhaven", "Civitai", "B站", "IG", "LOL 官方", "pixabay/pexels"]
+  }
+}
