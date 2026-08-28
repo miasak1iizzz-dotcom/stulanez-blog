@@ -283,6 +283,7 @@ const claimLabel = (s: string): string =>
 			}
 		}
 		history.replaceState(null, "", `#${key}`);
+		window.scrollTo({ top: 0, behavior: "smooth" });
 	}
 	document.querySelectorAll<HTMLElement>("[data-tab]").forEach((btn) => {
 		btn.addEventListener("click", () => showTab(btn.dataset.tab!));
