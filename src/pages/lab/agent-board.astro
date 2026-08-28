@@ -7,7 +7,7 @@ import tasksData from "@/data/agent-board/tasks.json";
 import decisionsData from "@/data/agent-board/decisions.json";
 import mailData from "@/data/agent-board/mail.json";
 import experienceData from "@/data/agent-board/experience.json";
-import fs from "node:fs";
+import currentStateRaw from "@/data/agent-board/CURRENT-STATE.md?raw";
 
 interface Agent {
 	id: string;
@@ -64,10 +64,7 @@ const title = "Agent 作战室";
 const description = "永恒欲望多代理协作看板：任务状态机、决策队列、信箱与经验库。";
 const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 
-const currentState = fs.readFileSync(
-	new URL("../../data/agent-board/CURRENT-STATE.md", import.meta.url),
-	"utf-8",
-);
+const currentState = currentStateRaw;
 
 const agentList = agents as Agent[];
 const tasks = (tasksData as { updated: string; tasks: Task[] }).tasks;
