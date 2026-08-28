@@ -35,9 +35,9 @@
     "model": "Codex",
     "port": 4322,
     "color": "#10b981",
-    "role": "协作协议 · TFT 初版",
-    "status": "idle",
-    "currentTask": null,
+    "role": "站点回归 · 协作协议 · TFT",
+    "status": "working",
+    "currentTask": "T-016 网站建设回归",
     "summaries": [
       "docs/CODEX-SUMMARY.md"
     ]
