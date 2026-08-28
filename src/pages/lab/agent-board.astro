@@ -488,4 +488,103 @@ for (const m of [...(mailData as { messages: Msg[] }).messages].reverse()) {
 		.kanban { grid-template-columns: 1fr; }
 		.stats { width: 100%; justify-content: center; }
 	}
+
+	/* ===== 主题自适应色板（亮色默认，暗色跟随 .dark）===== */
+	.board-main {
+		--bd-text: #334155;
+		--bd-text-2: #5b6b82;
+		--bd-text-3: #8494ab;
+		--bd-line: rgba(71, 85, 105, 0.3);
+		--bd-card: rgba(255, 255, 255, 0.55);
+		--bd-hover: rgba(71, 85, 105, 0.08);
+		--bd-ok: #059669;
+		--bd-warn: #b45309;
+		--bd-danger: #dc2626;
+		color: var(--bd-text);
+	}
+	:global(.dark) .board-main {
+		--bd-text: #cdd6e4;
+		--bd-text-2: #9fb0ca;
+		--bd-text-3: #6d7f9c;
+		--bd-line: rgba(143, 163, 200, 0.28);
+		--bd-card: rgba(30, 41, 59, 0.45);
+		--bd-hover: rgba(143, 163, 200, 0.1);
+		--bd-ok: #34d399;
+		--bd-warn: #fbbf24;
+		--bd-danger: #f87171;
+	}
+	.board-main .sub,
+	.board-main .agent-card .role,
+	.board-main .agent-card .port,
+	.board-main .agent-card .vendor,
+	.board-main .kcol h3,
+	.board-main .cnt,
+	.board-main .ttop,
+	.board-main .tcard footer,
+	.board-main .hint,
+	.board-main .mfrom,
+	.board-main .mtime,
+	.board-main .escenario,
+	.board-main .edate,
+	.board-main .board-foot,
+	.board-main .mailbox h3,
+	.board-main .dstatus {
+		color: var(--bd-text-2);
+		opacity: 1;
+	}
+	.board-main .brief,
+	.board-main .blocked-on,
+	.board-main .empty,
+	.board-main .ttb-tabs button,
+	.board-main .ecard .escenario {
+		color: var(--bd-text-3);
+	}
+	.board-main .tcard,
+	.board-main .msg,
+	.board-main .ecard,
+	.board-main .decision,
+	.board-main .agent-card,
+	.board-main .kcol,
+	.board-main .panel,
+	.board-main .stat {
+		background: var(--bd-card);
+		border-color: var(--bd-line);
+	}
+	.board-main .tcard { border-left-color: var(--bd-line); }
+	.board-main .tcard[class*="priority-p0"] { border-left-color: var(--bd-danger); }
+	.board-main .tcard[class*="priority-p1"] { border-left-color: var(--bd-warn); }
+	.board-main .decision { border-color: var(--bd-danger); border-left: 3px solid var(--bd-danger); background: transparent; }
+	.board-main .decision.resolved { border-color: var(--bd-ok); opacity: 0.55; }
+	.board-main .opts li { background: var(--bd-hover); color: var(--bd-text-2); }
+	.board-main .opts li.rec { color: var(--bd-ok); border: 1px solid var(--bd-ok); }
+	.board-main .reply { color: var(--bd-ok); }
+	.board-main .blocked-on { color: var(--bd-danger); }
+	.board-main .stat.warn b { color: var(--bd-warn); }
+	.board-main .stat.decision b { color: var(--bd-danger); }
+	.board-main .stat.ok b { color: var(--bd-ok); }
+	.board-main .msg.done { opacity: 0.55; }
+	.board-main .summary { color: var(--ac, var(--primary)); }
+	.board-main .board-foot code { background: var(--bd-hover); }
+	.board-main .epitfall { color: var(--bd-warn); }
+	.board-main .state pre { background: var(--bd-hover); }
+	.board-main .dot { background: var(--ac, var(--primary)); }
+	.board-main .agent-card,
+	.board-main .kcol,
+	.board-main .panel,
+	.board-main .ecard,
+	.board-main .stat,
+	.board-main .opts li,
+	.board-main .ecard {
+		border-color: var(--bd-line);
+	}
+	.board-main .agent-card:hover,
+	.board-main .ttb-tabs button:hover {
+		background: var(--bd-hover);
+	}
+
+	@media (max-width: 640px) {
+		.board-main { padding: 4.5rem 0.6rem 2rem; }
+		.kanban { grid-template-columns: 1fr; }
+		.stats { width: 100%; justify-content: center; }
+	}
 </style>
