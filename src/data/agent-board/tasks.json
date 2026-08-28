@@ -74,7 +74,7 @@
 		{
 			"id": "T-008",
 			"title": "10G 二次元/AI 冲刺",
-			"owner": "deepseek-1",
+			"owner": "deepseek",
 			"state": "done",
 			"priority": "P1",
 			"deps": [],
@@ -97,7 +97,7 @@
 			"owner": "bigmodel",
 			"state": "backlog",
 			"priority": "P1",
-			"deps": ["deepseek-1 收工确认"],
+			"deps": ["deepseek 收工确认"],
 			"brief": "画风夹 vs pixiv_* 主题夹 内容 hash 级合并，同名遗留 141 清理",
 			"artifacts": []
 		},

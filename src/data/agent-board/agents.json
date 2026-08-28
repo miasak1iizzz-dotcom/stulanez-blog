@@ -9,31 +9,19 @@
 		"role": "全栈 · 资产管线 · 分类整理",
 		"status": "idle",
 		"currentTask": null,
-		"summary": "docs/glm-work-retrospective.md"
+		"summaries": ["docs/glm-work-retrospective.md"]
 	},
 	{
-		"id": "deepseek-1",
-		"name": "DeepSeek 一号",
+		"id": "deepseek",
+		"name": "DeepSeek",
 		"vendor": "deepseek",
-		"model": "DeepSeek",
+		"model": "DeepSeek（一/二号实例）",
 		"port": 4323,
 		"color": "#3b82f6",
-		"role": "二次元/AI 生图 · Serpent 资产线 · K-pop 播放器",
-		"status": "idle",
-		"currentTask": null,
-		"summary": "docs/AGENT-1-SUMMARY.md"
-	},
-	{
-		"id": "deepseek-2",
-		"name": "DeepSeek 二号",
-		"vendor": "deepseek",
-		"model": "DeepSeek",
-		"port": 4323,
-		"color": "#60a5fa",
-		"role": "TFT 规划器 · 站点功能",
-		"status": "idle",
-		"currentTask": null,
-		"summary": "docs/AGENT-2-SUMMARY.md"
+		"role": "二次元/AI 生图 · Serpent 资产线 · K-pop 播放器 · TFT 对齐",
+		"status": "working",
+		"currentTask": "10G 素材冲刺",
+		"summaries": ["docs/AGENT-1-SUMMARY.md", "docs/AGENT-2-SUMMARY.md"]
 	},
 	{
 		"id": "codex",
@@ -45,7 +33,7 @@
 		"role": "协作协议 · TFT 初版",
 		"status": "idle",
 		"currentTask": null,
-		"summary": "docs/CODEX-SUMMARY.md"
+		"summaries": ["docs/CODEX-SUMMARY.md"]
 	},
 	{
 		"id": "cursor",
@@ -57,7 +45,7 @@
 		"role": "外观 UX · 显示设置",
 		"status": "idle",
 		"currentTask": null,
-		"summary": "docs/CURSOR-CODEX-BRIEFING.md"
+		"summaries": ["docs/CURSOR-CODEX-BRIEFING.md"]
 	},
 	{
 		"id": "user",
@@ -69,6 +57,6 @@
 		"role": "方向决策 · 验收 · 资源",
 		"status": "idle",
 		"currentTask": null,
-		"summary": null
+		"summaries": []
 	}
 ]
