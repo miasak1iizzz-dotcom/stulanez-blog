@@ -1,0 +1,74 @@
+[
+	{
+		"id": "bigmodel",
+		"name": "GLM",
+		"vendor": "zhipu",
+		"model": "GLM-5.3",
+		"port": 4325,
+		"color": "#a78bfa",
+		"role": "全栈 · 资产管线 · 分类整理",
+		"status": "idle",
+		"currentTask": null,
+		"summary": "docs/glm-work-retrospective.md"
+	},
+	{
+		"id": "deepseek-1",
+		"name": "DeepSeek 一号",
+		"vendor": "deepseek",
+		"model": "DeepSeek",
+		"port": 4323,
+		"color": "#3b82f6",
+		"role": "二次元/AI 生图 · Serpent 资产线 · K-pop 播放器",
+		"status": "idle",
+		"currentTask": null,
+		"summary": "docs/AGENT-1-SUMMARY.md"
+	},
+	{
+		"id": "deepseek-2",
+		"name": "DeepSeek 二号",
+		"vendor": "deepseek",
+		"model": "DeepSeek",
+		"port": 4323,
+		"color": "#60a5fa",
+		"role": "TFT 规划器 · 站点功能",
+		"status": "idle",
+		"currentTask": null,
+		"summary": "docs/AGENT-2-SUMMARY.md"
+	},
+	{
+		"id": "codex",
+		"name": "Codex",
+		"vendor": "openai",
+		"model": "Codex",
+		"port": 4322,
+		"color": "#10b981",
+		"role": "协作协议 · TFT 初版",
+		"status": "idle",
+		"currentTask": null,
+		"summary": "docs/CODEX-SUMMARY.md"
+	},
+	{
+		"id": "cursor",
+		"name": "Cursor",
+		"vendor": "grok",
+		"model": "Grok 4.6",
+		"port": 4321,
+		"color": "#f59e0b",
+		"role": "外观 UX · 显示设置",
+		"status": "idle",
+		"currentTask": null,
+		"summary": "docs/CURSOR-CODEX-BRIEFING.md"
+	},
+	{
+		"id": "user",
+		"name": "Saki",
+		"vendor": "human",
+		"model": "人类指挥官",
+		"port": null,
+		"color": "#fbbf24",
+		"role": "方向决策 · 验收 · 资源",
+		"status": "idle",
+		"currentTask": null,
+		"summary": null
+	}
+]

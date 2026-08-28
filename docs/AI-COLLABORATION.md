@@ -76,3 +76,17 @@
 ## 7. 推荐的任务拆分
 
 并行工作尽量按低耦合边界拆分，例如：内容与文案、单个页面组件、独立样式模块、图片资源处理、配置或构建流程。涉及 `package.json`、锁文件、全局布局、全局样式和站点配置的任务尽量串行；若改动规模较大，优先为代理建立独立 Git worktree，而不是共享同一工作树。
+
+
+## Agent 看板中心（2026-08-28 起）
+
+多代理协作状态统一沉淀在 `src/data/agent-board/`（随仓库提交），站点渲染于 `/lab/agent-board/`（noindex 内部面板）。
+
+- `agents.json` 代理注册表：新代理入册 = 加一条（id/vendor/model/port/color/inbox/summary），看板自动渲染
+- `tasks.json` 任务状态机：backlog → doing → blocked/review → done；**领任务/完成/阻塞必须即时更新此文件**
+- `decisions.json` 决策队列：需要用户拍板的事项写这里（问题+选项+推荐），批量等待回答；**琐碎选择自行决策，不进队列**
+- `mail.json` 点对点信箱：交接/提问/通报写这里，处理完标 done
+- `CURRENT-STATE.md` 全局现状（<200 行）：**任何代理开新对话必读；收工时更新**
+- `experience.json` 经验库：**开工前先查，收工后写回新经验**
+
+规则：写入前照常走认领卡与 git 纪律；`.ai-work/` 与 `_kp-meta/` 仍为临时区不提交。大规模文件操作前退出 Serpent。

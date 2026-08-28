@@ -1,0 +1,29 @@
+{
+	"updated": "2026-08-28",
+	"items": [
+		{
+			"id": "D-001",
+			"question": "IG 老图深挖（1500/号）是否执行",
+			"options": ["执行（增量约 +2-5G，防重档案只补老图）", "暂不，600/号够用"],
+			"recommendation": "执行，后台增量零风险",
+			"status": "pending",
+			"askedBy": "bigmodel"
+		},
+		{
+			"id": "D-002",
+			"question": "二创返工的验收标准（什么样的算「神图」）",
+			"options": ["等用户删修样本定标准", "bigmodel 先按目检出一版参考集"],
+			"recommendation": "用户删修 kpop 旧批时顺手划样本，二创照做",
+			"status": "pending",
+			"askedBy": "bigmodel"
+		},
+		{
+			"id": "D-003",
+			"question": "微博/小红书/抖音 cookie 是否提供（开三条国内图源线）",
+			"options": ["提供（F12 → Application → Cookies）", "暂不开线"],
+			"recommendation": "B站线已验证同模式可行，cookie 到位 1 小时内通",
+			"status": "pending",
+			"askedBy": "bigmodel"
+		}
+	]
+}
