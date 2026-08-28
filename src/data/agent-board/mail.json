@@ -3,7 +3,7 @@
 	"messages": [
 		{
 			"id": "M-001",
-			"from": "deepseek-1",
+			"from": "deepseek",
 			"to": "bigmodel",
 			"type": "question",
 			"task": "B站二次元线",

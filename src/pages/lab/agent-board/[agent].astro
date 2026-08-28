@@ -1,0 +1,241 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
+import { siteConfig } from "@/config";
+import agentsData from "@/data/agent-board/agents.json";
+import tasksData from "@/data/agent-board/tasks.json";
+import mailData from "@/data/agent-board/mail.json";
+import { getClaimsFor, readDoc, type AgentInfo, type Task, type ClaimCard, type Msg } from "@/utils/agent-board";
+
+export async function getStaticPaths() {
+	const agents = (await import("@/data/agent-board/agents.json")).default as AgentInfo[];
+	return agents
+		.filter((a) => a.id !== "user")
+		.map((a) => ({ params: { agent: a.id }, props: { agent: a } }));
+}
+
+const { agent } = Astro.props as { agent: AgentInfo };
+const agentById = new Map<string, AgentInfo>(agentsData.map((a) => [a.id, a]));
+const nameOf = (id: string) => agentById.get(id)?.name ?? id;
+
+const tasks = (tasksData as { updated: string; tasks: Task[] }).tasks.filter(
+	(t) => t.owner.toLowerCase().includes(agent.id),
+);
+const columns = [
+	{ key: "doing", label: "进行中", items: tasks.filter((t) => t.state === "doing") },
+	{ key: "blocked", label: "受阻", items: tasks.filter((t) => t.state === "blocked") },
+	{ key: "review", label: "待验收", items: tasks.filter((t) => t.state === "review") },
+	{ key: "done", label: "已完成", items: tasks.filter((t) => t.state === "done") },
+];
+const claims: ClaimCard[] = getClaimsFor(agent.id);
+const messages: Msg[] = (mailData as { messages: Msg[] }).messages.filter(
+	(m) => m.from.toLowerCase().includes(agent.id) || m.to.toLowerCase().includes(agent.id),
+);
+const summaryDocs = agent.summaries
+	.map((s) => ({ path: s, title: s.split("/").pop()?.replace(/\.md$/, "") ?? s, body: readDoc(s) }))
+	.filter((d) => d.body);
+
+const title = `${agent.name} · Agent 空间`;
+const description = `${agent.name} 的工作总结、认领卡与任务进度。`;
+const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
+
+const stateLabel: Record<string, string> = {
+	backlog: "待办", doing: "进行中", blocked: "受阻", review: "待验收", done: "已完成",
+};
+const claimStatus: Record<string, string> = {
+	active: "进行中", handoff: "已交接", done: "已完成", paused: "已暂停",
+};
+---
+
+<Layout {title} {description}>
+	<HeaderTopRow stickyNavbar={true} navbarWidthFull={navbarWidthFull} />
+	<main class="space-main">
+		<div class="wrap">
+			<a class="back" href="/lab/agent-board/">← 返回协作中心</a>
+
+			<header class="hero" style={`--ac:${agent.color}`}>
+				<div class="hero-l">
+					<span class="avatar">{agent.name.charAt(0)}</span>
+					<div>
+						<h1>{agent.name}</h1>
+						<p class="h-model">{agent.vendor} · {agent.model}{agent.port ? ` · 端口 ${agent.port}` : ""}</p>
+					</div>
+				</div>
+				<p class="h-role">{agent.role}</p>
+			</header>
+
+			<section class="grid-2">
+				<div class="panel">
+					<h2>任务进度</h2>
+					{columns.map((col) => (
+						col.items.length > 0 && (
+							<div class="t-group">
+								<h3>{col.label} · {col.items.length}</h3>
+								{col.items.map((t) => (
+									<div class="t-item">
+										<b>{t.title}</b>
+										<p>{t.brief}</p>
+										<span class="t-prio">{t.priority === "P0" ? "紧急" : t.priority === "P1" ? "高" : t.priority === "P2" ? "中" : "低"}</span>
+									</div>
+								))}
+							</div>
+						)
+					))}
+					{tasks.every((t) => t.state !== "doing" && t.state !== "blocked" && t.state !== "review") && (
+						<p class="empty">当前没有进行中的任务</p>
+					)}
+				</div>
+				<div class="panel">
+					<h2>认领卡 <span class="cnt">{claims.length}</span></h2>
+					{claims.length === 0 && <p class="empty">暂无认领</p>}
+					{claims.map((c) => (
+						<div class="claim">
+							<div class="c-head">
+								<b>{c.file}</b>
+								<span class:list={["c-status", { on: c.status.startsWith("active") }]}>{c.status.startsWith("active") ? "进行中" : c.status.startsWith("handoff") ? "已交接" : c.status.startsWith("done") || c.status.startsWith("completed") ? "已完成" : c.status.startsWith("paused") || c.status.startsWith("await") ? "已暂停" : c.status.includes("unknown") ? "未知" : c.status}</span>
+							</div>
+							<p class="c-task">{c.task}</p>
+						</div>
+					))}
+				</div>
+			</section>
+
+			<section class="panel">
+				<h2>工作总结</h2>
+				{summaryDocs.length === 0 && <p class="empty">暂无总结文档</p>}
+				{summaryDocs.map((doc) => (
+					<details class="doc-fold">
+						<summary>{doc.title}</summary>
+						<pre class="doc">{doc.body}</pre>
+					</details>
+				))}
+			</section>
+
+			<section class="panel">
+				<h2>相关信件</h2>
+				{messages.length === 0 && <p class="empty">暂无信件</p>}
+				{messages.map((m) => (
+					<div class="msg">
+						<span class="m-route">{nameOf(m.from)} → {nameOf(m.to)} · {m.time}</span>
+						<p class="m-body">{m.body}</p>
+						{m.reply && <p class="m-reply">↳ {m.reply}</p>}
+					</div>
+				))}
+			</section>
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.space-main {
+		--sd-text: #2f3b4c;
+		--sd-text-2: #5b6b82;
+		--sd-text-3: #8494ab;
+		--sd-line: rgba(71, 85, 105, 0.22);
+		--sd-card: rgba(255, 255, 255, 0.65);
+		--sd-hover: rgba(71, 85, 105, 0.07);
+		min-height: 100vh;
+		padding: 5.5rem 1rem 3rem;
+		background:
+			radial-gradient(circle at 8% -5%, color-mix(in srgb, var(--ac, var(--primary)) 10%, transparent), transparent 32rem),
+			var(--page-bg);
+		color: var(--sd-text);
+	}
+	:global(.dark) .space-main {
+		--sd-text: #d7e0ee;
+		--sd-text-2: #9fb0ca;
+		--sd-text-3: #6d7f9c;
+		--sd-line: rgba(159, 176, 202, 0.22);
+		--sd-card: rgba(17, 26, 41, 0.55);
+		--sd-hover: rgba(159, 176, 202, 0.09);
+		background:
+			radial-gradient(circle at 8% -5%, color-mix(in srgb, var(--ac, var(--primary)) 12%, transparent), transparent 32rem),
+			var(--page-bg, #0b1220);
+	}
+	.wrap { width: min(1100px, 100%); margin: 0 auto; display: grid; gap: 1.5rem; }
+	.back {
+		justify-self: start;
+		font-size: 0.75rem; text-decoration: none;
+		color: var(--sd-text-3);
+	}
+	.back:hover { color: var(--ac, var(--primary)); }
+
+	.hero {
+		display: flex; flex-direction: column; gap: 0.6rem;
+		padding: 1.6rem 1.8rem;
+		border: 1px solid color-mix(in srgb, var(--ac, var(--primary)) 32%, transparent);
+		border-radius: 18px;
+		background: linear-gradient(140deg, color-mix(in srgb, var(--ac, var(--primary)) 12%, transparent), transparent 60%), var(--sd-card);
+	}
+	.hero-l { display: flex; align-items: center; gap: 1rem; }
+	.avatar {
+		display: grid; place-items: center;
+		width: 56px; height: 56px; border-radius: 18px;
+		background: linear-gradient(140deg, var(--ac, var(--primary)), color-mix(in srgb, var(--ac, var(--primary)) 40%, #0ea5e9));
+		color: #fff; font-size: 1.5rem; font-weight: 700;
+	}
+	.hero h1 { margin: 0; font-size: 1.7rem; }
+	.h-model { margin: 0.15rem 0 0; font-size: 0.72rem; color: var(--sd-text-3); }
+	.h-role { margin: 0; font-size: 0.8rem; color: var(--sd-text-2); }
+
+	.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+	.panel {
+		border: 1px solid var(--sd-line); border-radius: 16px;
+		background: var(--sd-card); padding: 1.1rem 1.2rem;
+	}
+	.panel h2 { margin: 0 0 0.8rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+	.cnt {
+		padding: 0.05rem 0.55rem; border-radius: 99px;
+		background: var(--sd-hover); font-size: 0.65rem;
+	}
+	.t-group { margin-bottom: 1rem; }
+	.t-group h3 { margin: 0 0 0.4rem; font-size: 0.72rem; color: var(--sd-text-3); }
+	.t-item {
+		padding: 0.5rem 0.7rem; margin-bottom: 0.4rem;
+		border: 1px solid var(--sd-line); border-radius: 9px;
+	}
+	.t-item b { font-size: 0.76rem; }
+	.t-item p { margin: 0.15rem 0 0; font-size: 0.65rem; color: var(--sd-text-3); line-height: 1.4; }
+	.t-prio { float: right; font-size: 0.58rem; color: var(--sd-text-3); }
+	.empty { font-size: 0.7rem; color: var(--sd-text-3); opacity: 0.7; }
+
+	.claim {
+		padding: 0.55rem 0.7rem; margin-bottom: 0.45rem;
+		border: 1px solid var(--sd-line); border-radius: 9px;
+	}
+	.c-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+	.c-head b { font-size: 0.72rem; font-weight: 600; }
+	.c-status {
+		font-size: 0.56rem; padding: 0.1rem 0.5rem; border-radius: 99px;
+		background: var(--sd-hover); color: var(--sd-text-2);
+	}
+	.c-status.on { background: color-mix(in srgb, #34d399 15%, transparent); color: var(--sd-ok, #34d399); }
+	.c-task { margin: 0.2rem 0 0; font-size: 0.66rem; color: var(--sd-text-2); line-height: 1.4; }
+
+	.doc-fold {
+		border: 1px solid var(--sd-line); border-radius: 10px;
+		margin-bottom: 0.6rem; overflow: hidden;
+	}
+	.doc-fold summary {
+		padding: 0.55rem 0.8rem; cursor: pointer;
+		font-size: 0.78rem; font-weight: 600;
+		background: var(--sd-hover);
+	}
+	.doc-fold[open] summary { border-bottom: 1px solid var(--sd-line); }
+	.doc {
+		margin: 0; padding: 1rem 1.1rem;
+		max-height: 480px; overflow: auto;
+		font-size: 0.7rem; line-height: 1.85; white-space: pre-wrap;
+	}
+
+	.msg {
+		padding: 0.55rem 0.8rem; margin-bottom: 0.5rem;
+		border-left: 2px solid var(--ac, var(--primary)); border-radius: 0 8px 8px 0;
+		background: var(--sd-hover);
+	}
+	.m-route { font-size: 0.6rem; color: var(--sd-text-3); }
+	.m-body { margin: 0.2rem 0; font-size: 0.74rem; line-height: 1.55; }
+	.m-reply { margin: 0.15rem 0 0; font-size: 0.68rem; color: #34d399; }
+
+	@media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+</style>
