@@ -54,14 +54,6 @@ interface Exp {
 	date: string;
 }
 
-interface Stat {
-	doing: number;
-	blocked: number;
-	decisions: number;
-	done: number;
-	claimsActive: number;
-}
-
 const title = "Agent 作战室";
 const description = "永恒欲望多代理协作看板：任务、认领、进度与经验库。";
 const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
@@ -75,11 +67,11 @@ const claims = getClaims();
 
 const byState = (s: string): Task[] => tasks.filter((t) => t.state === s);
 const columns = [
-	{ key: "backlog", label: "待办", items: byState("backlog") },
-	{ key: "doing", label: "进行中", items: byState("doing") },
-	{ key: "blocked", label: "受阻", items: byState("blocked") },
-	{ key: "review", label: "待验收", items: byState("review") },
-	{ key: "done", label: "已完成", items: byState("done") },
+	{ key: "backlog", label: "待办", dot: "bg-zinc-400", items: byState("backlog") },
+	{ key: "doing", label: "进行中", dot: "bg-blue-400", items: byState("doing") },
+	{ key: "blocked", label: "受阻", dot: "bg-red-400", items: byState("blocked") },
+	{ key: "review", label: "待验收", dot: "bg-amber-400", items: byState("review") },
+	{ key: "done", label: "已完成", dot: "bg-emerald-400", items: byState("done") },
 ];
 const agentById = new Map<string, AgentInfo>(agents.map((a) => [a.id, a]));
 const nameOf = (id: string): string => agentById.get(id)?.name ?? id;
@@ -91,382 +83,200 @@ for (const c of claims) {
 }
 const activeClaims = claims.filter((c) => c.status.startsWith("active"));
 
-const stats: Stat = {
-	doing: byState("doing").length,
-	blocked: byState("blocked").length,
-	decisions: decisions.filter((d) => d.status === "pending").length,
-	done: byState("done").length,
-	claimsActive: activeClaims.length,
-};
+const stats: Array<[number, string, string]> = [
+	[byState("doing").length, "进行中", "text-blue-500"],
+	[byState("blocked").length, "受阻", "text-red-500"],
+	[decisions.filter((d) => d.status === "pending").length, "待拍板", "text-rose-500"],
+	[byState("done").length, "已完成", "text-emerald-500"],
+	[activeClaims.length, "活跃认领", "text-amber-500"],
+];
 const domains: string[] = [...new Set(exps.map((e) => e.domain))];
 const mailByTo: Record<string, Msg[]> = {};
 for (const m of [...messages].reverse()) (mailByTo[m.to] ??= []).push(m);
+
+const prioLabel = (p: string): string => (p === "P0" ? "紧急" : p === "P1" ? "高" : p === "P2" ? "中" : "低");
+const prioClass = (p: string): string =>
+	p === "P0" ? "text-red-500 dark:text-red-400" : p === "P1" ? "text-amber-600 dark:text-amber-400" : "text-zinc-400";
 ---
 
 <Layout {title} {description}>
 	<HeaderTopRow stickyNavbar={true} navbarWidthFull={navbarWidthFull} />
-	<main class="board-main">
-		<div class="wrap">
-			<header class="hero">
-				<div>
-					<p class="kicker">ETERNAL DESIRE · AGENT CENTER</p>
-					<h1>多代理协作中心</h1>
-					<p class="sub">任务 · 认领 · 进度 · 经验，全部沉淀在这里。最后同步 {tasksData.updated}</p>
-				</div>
-				<div class="stats">
-					<div class="stat"><b>{stats.doing}</b><span>进行中</span></div>
-					<div class="stat warn"><b>{stats.blocked}</b><span>受阻</span></div>
-					<div class="stat decision"><b>{stats.decisions}</b><span>待拍板</span></div>
-					<div class="stat ok"><b>{stats.done}</b><span>已完成</span></div>
-					<div class="stat"><b>{stats.claimsActive}</b><span>活跃认领</span></div>
-				</div>
-			</header>
+	<main class="mx-auto w-full max-w-7xl px-4 pt-24 pb-16 min-h-screen">
+		<header class="mb-8">
+			<p class="text-[11px] tracking-[0.35em] text-zinc-400 dark:text-zinc-500 mb-2">ETERNAL DESIRE · AGENT CENTER</p>
+			<h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">多代理协作中心</h1>
+			<p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">任务 · 认领 · 进度 · 经验，全部沉淀在这里。最后同步 {tasksData.updated}</p>
+			<div class="mt-5 grid grid-cols-2 sm:grid-cols-5 gap-3">
+				{stats.map(([n, label, color]) => (
+					<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 px-4 py-3">
+						<p class={`text-2xl font-bold ${color}`}>{n}</p>
+						<p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{label}</p>
+					</div>
+				))}
+			</div>
+		</header>
 
-			<section class="agents">
-				<h2 class="sec-title">作战成员</h2>
-				<div class="agent-grid">
-					{agents.map((a) => {
-						const myClaims = claimsByAgent.get(a.id) ?? [];
-						const myTasks = tasks.filter((t) => t.owner.toLowerCase().includes(a.id));
-						const doing = myTasks.filter((t) => t.state === "doing").length;
-						const clickable = a.id !== "user";
-						const body = (
-							<>
-								<div class="a-head">
-									<span class="a-avatar" style={`--ac:${a.color}`}>{a.name.charAt(0)}</span>
-									<div class="a-id">
-										<b>{a.name}</b>
-										<span class="a-vendor">{a.model}</span>
+		<section class="mb-10">
+			<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">作战成员</h2>
+			<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+				{agents.map((a) => {
+					const myClaims = claimsByAgent.get(a.id) ?? [];
+					const myTasks = tasks.filter((t) => t.owner.toLowerCase().includes(a.id));
+					const doing = myTasks.filter((t) => t.state === "doing").length;
+					const clickable = a.id !== "user";
+					const inner = (
+						<>
+							<div class="flex items-center gap-3">
+								<span
+									class="grid place-items-center w-10 h-10 rounded-xl text-white font-bold text-sm shrink-0"
+									style={`background:linear-gradient(135deg,${a.color},color-mix(in srgb,${a.color} 55%,#0ea5e9))`}
+								>{a.name.charAt(0)}</span>
+								<div class="min-w-0">
+									<p class="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">{a.name}</p>
+									<p class="text-[11px] text-zinc-400 dark:text-zinc-500 truncate">{a.model}</p>
+								</div>
+								<span
+									class:list={["ml-auto text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0",
+										a.status === "working" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"]}
+								>{a.status === "working" ? "工作中" : "空闲"}</span>
+							</div>
+							<p class="mt-2.5 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2">{a.role}</p>
+							<div class="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center gap-3 text-[11px] text-zinc-400 dark:text-zinc-500">
+								<span>{a.port ? `端口 ${a.port}` : "本地"}</span>
+								<span>{myClaims.length} 认领</span>
+								<span>{doing} 进行</span>
+								{clickable && <span class="ml-auto text-zinc-400 dark:text-zinc-500">进入空间 →</span>}
+							</div>
+						</>
+					);
+					return clickable ? (
+						<a
+							href={`/lab/agent-board/${a.id}/`}
+							data-no-swup
+							class="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-zinc-300 dark:hover:border-zinc-700"
+						>{inner}</a>
+					) : (
+						<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 opacity-80">{inner}</div>
+					);
+				})}
+			</div>
+		</section>
+
+		<section class="mb-10">
+			<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">任务看板</h2>
+			<div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
+				{columns.map((col) => (
+					<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 p-3">
+						<div class="flex items-center gap-2 mb-3 px-1">
+							<span class={`w-2 h-2 rounded-full ${col.dot}`} />
+							<h3 class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{col.label}</h3>
+							<span class="ml-auto text-xs text-zinc-400 dark:text-zinc-500">{col.items.length}</span>
+						</div>
+						<div class="space-y-2">
+							{col.items.map((t) => (
+								<article class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
+									<div class="flex items-center justify-between mb-1">
+										<span class="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">{t.id}</span>
+										<span class={`text-[10px] font-medium ${prioClass(t.priority)}`}>{prioLabel(t.priority)}</span>
 									</div>
-									<span class:list={["a-status", { working: a.status === "working" }]}>{a.status === "working" ? "工作中" : "空闲"}</span>
-								</div>
-								<p class="a-role">{a.role}</p>
-								<div class="a-meta">
-									<span>{a.port ? `端口 ${a.port}` : "本地"}</span>
-									<span>{myClaims.length} 张认领卡</span>
-									<span>{doing} 项进行中</span>
-								</div>
-								{clickable && <span class="a-enter">进入空间 →</span>}
-							</>
-						);
-						return clickable ? (
-							<a class:list={["agent-card", { working: a.status === "working" }]} style={`--ac:${a.color}`} href={`/lab/agent-board/${a.id}/`}>{body}</a>
-						) : (
-							<div class="agent-card" style={`--ac:${a.color}`}>{body}</div>
-						);
-					})}
-				</div>
-			</section>
-
-			<section class="kanban">
-				<h2 class="sec-title">任务看板</h2>
-				<div class="kgrid">
-					{columns.map((col) => (
-						<div class="kcol">
-							<div class="khead">
-								<h3>{col.label}</h3>
-								<span class="cnt">{col.items.length}</span>
-							</div>
-							<div class="cards">
-								{col.items.map((t) => (
-									<article class:list={["tcard", { p0: t.priority === "P0", p1: t.priority === "P1" }]}>
-										<div class="t-top">
-											<span class="t-id">{t.id}</span>
-											<span class="t-prio">{t.priority === "P0" ? "紧急" : t.priority === "P1" ? "高" : t.priority === "P2" ? "中" : "低"}</span>
-										</div>
-										<h4>{t.title}</h4>
-										<p class="t-brief">{t.brief}</p>
-										{t.state === "blocked" && (
-											<p class="t-blocked">⛔ {t.deps?.length ? `等待：${t.deps.join("、")}` : "等待用户"}</p>
-										)}
-										<div class="t-foot">
-											<span>{t.owner}</span>
-											{t.artifacts?.length > 0 && <span>产出 {t.artifacts.length}</span>}
-										</div>
-									</article>
-								))}
-								{col.items.length === 0 && <p class="t-empty">暂无</p>}
-							</div>
-						</div>
-					))}
-				</div>
-			</section>
-
-			<section class="duo">
-				<div class="panel">
-					<h2 class="sec-title">待拍板事项</h2>
-					{decisions.map((d) => (
-						<div class:list={["decision", { ok: d.status !== "pending" }]}>
-							<p class="d-q">{d.question}</p>
-							<ul class="d-opts">
-								{d.options.map((o, i) => (
-									<li class:list={{ rec: i === 0 }}>{o}{i === 0 && " ⭐"}</li>
-								))}
-							</ul>
-							<p class="d-s">{d.status === "pending" ? "⏳ 等你拍板" : "✅ 已定"}</p>
-						</div>
-					))}
-				</div>
-				<div class="panel">
-					<h2 class="sec-title">站内信</h2>
-					{Object.entries(mailByTo).map(([to, msgs]) => (
-						<div class="mbox-group">
-							<h3 class="m-to">给 {nameOf(to)}</h3>
-							{msgs.map((m) => (
-								<div class="msg">
-									<span class="m-route">来自 {nameOf(m.from)}</span>
-									<p class="m-body">{m.body}</p>
-									{m.reply && <p class="m-reply">↳ {m.reply}</p>}
-									<span class="m-time">{m.time}</span>
-								</div>
-							))}
-						</div>
-					))}
-				</div>
-			</section>
-
-			<section class="state">
-				<h2 class="sec-title">全局现状（新对话必读）</h2>
-				<pre class="state-doc">{currentStateMd}</pre>
-			</section>
-
-			<section class="exp">
-				<h2 class="sec-title">经验库 <span class="exp-cnt">{exps.length} 条 · 开工先查 · 收工写回</span></h2>
-				{domains.map((domain) => (
-					<div class="domain">
-						<h3>{domain}</h3>
-						<div class="e-grid">
-							{exps.filter((e) => e.domain === domain).map((e) => (
-								<article class="e-card">
-									<h4>{e.title}</h4>
-									<p class="e-scene">{e.scenario}</p>
-									<p class="e-method">{e.method}</p>
-									{e.pitfall && <p class="e-warn">⚠ {e.pitfall}</p>}
-									<span class="e-date">{e.date}</span>
+									<h4 class="text-[13px] font-medium text-zinc-800 dark:text-zinc-200 leading-snug">{t.title}</h4>
+									<p class="mt-1 text-[11px] text-zinc-400 dark:text-zinc-500 line-clamp-2">{t.brief}</p>
+									{t.state === "blocked" && (
+										<p class="mt-1.5 text-[10px] text-red-400">⛔ {t.deps?.length ? `等待：${t.deps.join("、")}` : "等待用户"}</p>
+									)}
+									<div class="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[10px] text-zinc-400 dark:text-zinc-500">
+										<span>{t.owner}</span>
+										{t.artifacts?.length > 0 && <span>📦 {t.artifacts.length}</span>}
+									</div>
 								</article>
 							))}
+							{col.items.length === 0 && <p class="text-xs text-zinc-400 dark:text-zinc-600 text-center py-4">暂无</p>}
 						</div>
 					</div>
 				))}
-			</section>
+			</div>
+		</section>
 
-			<footer class="foot">
-				<p>数据文件 <code>src/data/agent-board/</code> · 协作协议 <code>docs/AI-COLLABORATION.md</code> · 本地看板随 dev server 实时刷新</p>
-			</footer>
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+			<section>
+				<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">待拍板事项</h2>
+				<div class="space-y-3">
+					{decisions.map((d) => (
+						<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+							<div class="flex items-start justify-between gap-3">
+								<p class="text-sm font-medium text-zinc-800 dark:text-zinc-200">{d.question}</p>
+								<span class:list={["shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium",
+									d.status === "pending" ? "bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"]}>
+									{d.status === "pending" ? "待拍板" : "已定"}
+								</span>
+							</div>
+							<div class="mt-2.5 flex flex-wrap gap-1.5">
+								{d.options.map((o, i) => (
+									<span class:list={["text-xs px-2.5 py-1 rounded-md border",
+										i === 0 ? "border-emerald-300 text-emerald-600 dark:border-emerald-500/40 dark:text-emerald-400" : "border-zinc-200 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"]}>
+										{i === 0 && "★ "}{o}
+									</span>
+								))}
+							</div>
+							<p class="mt-1.5 text-[10px] text-zinc-400 dark:text-zinc-500">提问：{d.askedBy}</p>
+						</div>
+					))}
+				</div>
+			</section>
+			<section>
+				<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">站内信</h2>
+				<div class="space-y-5">
+					{Object.entries(mailByTo).map(([to, msgs]) => (
+						<div>
+							<h3 class="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">给 {nameOf(to)}</h3>
+							{msgs.map((m) => (
+								<div class="border-l-2 border-zinc-200 dark:border-zinc-700 pl-3 py-2 mb-2">
+									<p class="text-[10px] text-zinc-400 dark:text-zinc-500">来自 {nameOf(m.from)} · {m.time}</p>
+									<p class="text-xs text-zinc-700 dark:text-zinc-300 mt-0.5">{m.body}</p>
+									{m.reply && <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1">↳ {m.reply}</p>}
+								</div>
+							))}
+						</div>
+					))}
+				</div>
+			</section>
 		</div>
+
+		<section class="mb-10">
+			<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">全局现状 <span class="normal-case font-normal text-zinc-400">新对话必读</span></h2>
+			<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+				<pre class="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap font-sans">{currentStateMd}</pre>
+			</div>
+		</section>
+
+		<section>
+			<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">经验库 <span class="normal-case font-normal">{exps.length} 条 · 开工先查 · 收工写回</span></h2>
+			{domains.map((domain) => (
+				<div class="mb-6">
+					<h3 class="text-sm font-semibold text-zinc-600 dark:text-zinc-300 mb-3">{domain}</h3>
+					<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+						{exps.filter((e) => e.domain === domain).map((e) => (
+							<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+								<div class="flex items-start justify-between gap-2">
+									<h4 class="text-[13px] font-semibold text-zinc-800 dark:text-zinc-200">{e.title}</h4>
+									<span class="text-[10px] text-zinc-400 dark:text-zinc-500 shrink-0">{e.date}</span>
+								</div>
+								<p class="mt-1 text-[11px] text-zinc-400 dark:text-zinc-500">{e.scenario}</p>
+								<p class="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{e.method}</p>
+								{e.pitfall && <p class="mt-2 text-[11px] text-amber-600 dark:text-amber-500/90">⚠ {e.pitfall}</p>}
+							</div>
+						))}
+					</div>
+				</div>
+			))}
+		</section>
+
+		<footer class="mt-8 text-center">
+			<p class="text-[11px] text-zinc-400 dark:text-zinc-600">数据文件 <code class="text-zinc-500">src/data/agent-board/</code> · 协作协议 <code class="text-zinc-500">docs/AI-COLLABORATION.md</code> · 本地看板随 dev server 实时刷新</p>
+		</footer>
 	</main>
 </Layout>
 
 <style>
-	.board-main {
-		--bd-text: #2f3b4c;
-		--bd-text-2: #5b6b82;
-		--bd-text-3: #8494ab;
-		--bd-line: rgba(71, 85, 105, 0.22);
-		--bd-card: rgba(255, 255, 255, 0.65);
-		--bd-hover: rgba(71, 85, 105, 0.07);
-		--bd-ok: #059669;
-		--bd-warn: #b45309;
-		--bd-danger: #dc2626;
-		min-height: 100vh;
-		padding: 5.5rem 1rem 3rem;
-		background:
-			radial-gradient(circle at 10% -5%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 34rem),
-			var(--page-bg);
-		color: var(--bd-text);
-	}
-	:global(.dark) .board-main {
-		--bd-text: #d7e0ee;
-		--bd-text-2: #9fb0ca;
-		--bd-text-3: #6d7f9c;
-		--bd-line: rgba(159, 176, 202, 0.22);
-		--bd-card: rgba(17, 26, 41, 0.55);
-		--bd-hover: rgba(159, 176, 202, 0.09);
-		--bd-ok: #34d399;
-		--bd-warn: #fbbf24;
-		--bd-danger: #f87171;
-		background:
-			radial-gradient(circle at 10% -5%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 34rem),
-			var(--page-bg, #0b1220);
-	}
-	.wrap { width: min(1360px, 100%); margin: 0 auto; display: grid; gap: 2rem; }
-	.sec-title { margin: 0 0 0.9rem; font-size: 1.02rem; display: flex; align-items: center; gap: 0.5rem; }
-	.sec-title::before { content: ""; width: 4px; height: 1em; border-radius: 2px; background: var(--primary); }
-	.exp-cnt { font-size: 0.65rem; color: var(--bd-text-3); font-weight: 400; margin-left: 0.5rem; }
-
-	.hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-	.kicker { margin: 0 0 0.3rem; font-size: 0.62rem; letter-spacing: 0.35em; opacity: 0.4; }
-	.hero h1 {
-		margin: 0;
-		font-size: 2.1rem;
-		background: linear-gradient(120deg, var(--primary), color-mix(in srgb, var(--primary) 40%, #f472b6));
-		-webkit-background-clip: text;
-		background-clip: text;
-		color: transparent;
-	}
-	.sub { margin: 0.4rem 0 0; font-size: 0.78rem; color: var(--bd-text-3); }
-	.stats { display: flex; gap: 0.55rem; flex-wrap: wrap; }
-	.stat {
-		display: grid; justify-items: center; gap: 0.1rem;
-		padding: 0.55rem 1.05rem;
-		border: 1px solid var(--bd-line); border-radius: 12px;
-		background: var(--bd-card);
-	}
-	.stat b { font-size: 1.3rem; line-height: 1.1; }
-	.stat span { font-size: 0.62rem; color: var(--bd-text-3); }
-	.stat.warn b { color: var(--bd-warn); }
-	.stat.decision b { color: var(--bd-danger); }
-	.stat.ok b { color: var(--bd-ok); }
-
-	.agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.9rem; }
-	.agent-card {
-		position: relative;
-		display: block;
-		padding: 1rem 1.05rem 0.9rem;
-		border: 1px solid color-mix(in srgb, var(--ac, var(--primary)) 32%, transparent);
-		border-radius: 16px;
-		background:
-			linear-gradient(160deg, color-mix(in srgb, var(--ac, var(--primary)) 9%, transparent), transparent 55%),
-			var(--bd-card);
-		text-decoration: none;
-		color: inherit;
-		transition: transform 0.18s ease, box-shadow 0.18s ease;
-	}
-	a.agent-card:hover {
-		transform: translateY(-3px);
-		box-shadow: 0 12px 32px color-mix(in srgb, var(--ac, var(--primary)) 18%, transparent);
-	}
-	.a-head { display: flex; align-items: center; gap: 0.55rem; }
-	.a-avatar {
-		display: grid; place-items: center;
-		width: 38px; height: 38px; border-radius: 12px;
-		background: linear-gradient(140deg, var(--ac, var(--primary)), color-mix(in srgb, var(--ac, var(--primary)) 40%, #0ea5e9));
-		color: #fff; font-weight: 700; font-size: 1rem;
-	}
-	.a-id { display: grid; line-height: 1.25; }
-	.a-id b { font-size: 0.92rem; }
-	.a-vendor { font-size: 0.6rem; color: var(--bd-text-3); }
-	.a-status {
-		margin-left: auto;
-		font-size: 0.58rem; font-weight: 700;
-		padding: 0.15rem 0.55rem; border-radius: 99px;
-		background: var(--bd-hover); color: var(--bd-text-2);
-	}
-	.a-status.working { background: color-mix(in srgb, #34d399 18%, transparent); color: var(--bd-ok); }
-	.a-role { margin: 0.55rem 0 0; font-size: 0.68rem; line-height: 1.5; color: var(--bd-text-2); }
-	.a-meta {
-		display: flex; gap: 0.7rem;
-		margin-top: 0.55rem; padding-top: 0.5rem;
-		border-top: 1px dashed var(--bd-line);
-		font-size: 0.6rem; color: var(--bd-text-3);
-	}
-	.a-enter {
-		position: absolute; right: 1rem; bottom: 0.75rem;
-		font-size: 0.62rem; color: var(--ac, var(--primary)); opacity: 0;
-		transition: opacity 0.18s ease;
-	}
-	a.agent-card:hover .a-enter { opacity: 1; }
-
-	.kgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; }
-	.kcol {
-		border: 1px solid var(--bd-line); border-radius: 14px;
-		background: var(--bd-card);
-		padding: 0.75rem; min-height: 220px;
-	}
-	.khead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem; }
-	.khead h3 { margin: 0; font-size: 0.78rem; }
-	.cnt {
-		padding: 0.05rem 0.5rem; border-radius: 99px;
-		background: var(--bd-hover); color: var(--bd-text-2);
-		font-size: 0.62rem;
-	}
-	.cards { display: grid; gap: 0.5rem; }
-	.tcard {
-		padding: 0.55rem 0.65rem;
-		border: 1px solid var(--bd-line); border-left: 3px solid var(--bd-text-3);
-		border-radius: 10px; background: var(--bd-card);
-	}
-	.tcard.p0 { border-left-color: var(--bd-danger); }
-	.tcard.p1 { border-left-color: var(--bd-warn); }
-	.t-top { display: flex; justify-content: space-between; font-size: 0.55rem; color: var(--bd-text-3); }
-	.tcard h4 { margin: 0.25rem 0; font-size: 0.76rem; line-height: 1.4; }
-	.t-brief { margin: 0.15rem 0 0; font-size: 0.62rem; color: var(--bd-text-3); line-height: 1.45; }
-	.t-blocked { margin: 0.3rem 0 0; font-size: 0.6rem; color: var(--bd-danger); }
-	.t-foot {
-		display: flex; justify-content: space-between;
-		margin-top: 0.4rem; font-size: 0.56rem; color: var(--bd-text-3);
-	}
-	.t-empty { text-align: center; font-size: 0.65rem; color: var(--bd-text-3); opacity: 0.6; }
-
-	.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
-	.panel {
-		border: 1px solid var(--bd-line); border-radius: 14px;
-		background: var(--bd-card); padding: 1rem 1.1rem;
-	}
-	.decision {
-		padding: 0.7rem 0.85rem; margin-bottom: 0.6rem;
-		border: 1px solid var(--bd-danger); border-left-width: 3px; border-radius: 10px;
-		background: color-mix(in srgb, var(--bd-danger) 6%, transparent);
-	}
-	.decision.ok { border-color: var(--bd-ok); opacity: 0.55; }
-	.d-q { margin: 0 0 0.4rem; font-size: 0.82rem; font-weight: 600; }
-	.d-opts { margin: 0; padding: 0; list-style: none; }
-	.d-opts li {
-		display: inline-block;
-		margin: 0.15rem 0.3rem 0.15rem 0; padding: 0.18rem 0.6rem;
-		border-radius: 99px; font-size: 0.65rem;
-		background: var(--bd-hover); color: var(--bd-text-2);
-	}
-	.d-opts li.rec { border: 1px solid var(--bd-ok); color: var(--bd-ok); }
-	.d-s { margin: 0.35rem 0 0; font-size: 0.6rem; color: var(--bd-text-3); }
-	.mbox-group { margin-bottom: 1.1rem; }
-	.m-to { margin: 0 0 0.4rem; font-size: 0.75rem; font-weight: 700; }
-	.msg {
-		padding: 0.5rem 0.7rem; margin-bottom: 0.45rem;
-		border-left: 2px solid var(--primary); border-radius: 0 8px 8px 0;
-		background: var(--bd-hover);
-	}
-	.m-route { font-size: 0.58rem; color: var(--bd-text-3); }
-	.m-body { margin: 0.2rem 0; font-size: 0.72rem; line-height: 1.5; }
-	.m-reply { margin: 0.15rem 0 0; font-size: 0.68rem; color: var(--bd-ok); }
-	.m-time { font-size: 0.56rem; color: var(--bd-text-3); }
-
-	.state {
-		border: 1px solid var(--bd-line); border-radius: 14px;
-		background: var(--bd-card); padding: 1rem 1.1rem;
-	}
-	.state-doc {
-		margin: 0; padding: 1rem 1.2rem;
-		border-radius: 10px; background: var(--bd-hover);
-		font-size: 0.74rem; line-height: 1.8; white-space: pre-wrap;
-	}
-
-	.domain { margin-bottom: 1.5rem; }
-	.domain h3 {
-		margin: 0 0 0.7rem; padding-left: 0.6rem;
-		border-left: 3px solid var(--primary);
-		font-size: 0.85rem;
-	}
-	.e-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 0.75rem; }
-	.e-card {
-		padding: 0.75rem 0.9rem;
-		border: 1px solid var(--bd-line); border-radius: 12px;
-		background: var(--bd-card);
-	}
-	.e-card h4 { margin: 0 0 0.3rem; font-size: 0.82rem; }
-	.e-scene { margin: 0; font-size: 0.62rem; color: var(--bd-text-3); }
-	.e-method { margin: 0.4rem 0 0; font-size: 0.7rem; line-height: 1.6; }
-	.e-warn { margin: 0.4rem 0 0; font-size: 0.64rem; color: var(--bd-warn); line-height: 1.5; }
-	.e-date { font-size: 0.55rem; color: var(--bd-text-3); }
-
-	.foot { text-align: center; font-size: 0.62rem; color: var(--bd-text-3); }
-	.foot code { padding: 0.08rem 0.4rem; border-radius: 5px; background: var(--bd-hover); }
-
-	@media (max-width: 1100px) { .kgrid { grid-template-columns: repeat(2, 1fr); } .duo { grid-template-columns: 1fr; } }
-	@media (max-width: 640px) {
-		.board-main { padding: 4.5rem 0.6rem 2rem; }
-		.kgrid { grid-template-columns: 1fr; }
-		.stats { width: 100%; justify-content: center; }
-		.hero h1 { font-size: 1.6rem; }
-	}
+	/* Agent 作战室 — 使用站点 Tailwind 主题令牌，无手搓样式 */
 </style>
