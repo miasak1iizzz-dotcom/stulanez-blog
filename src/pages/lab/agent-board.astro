@@ -13,46 +13,11 @@ import {
 	ownerToAgentId,
 	type AgentInfo,
 	type ClaimCard,
+	type Decision,
+	type Exp,
+	type Msg,
+	type Task,
 } from "@/utils/agent-board";
-
-interface Task {
-	id: string;
-	title: string;
-	owner: string;
-	state: string;
-	priority: string;
-	deps: string[];
-	brief: string;
-	artifacts: string[];
-}
-interface Decision {
-	id: string;
-	question: string;
-	options: string[];
-	recommendation: string;
-	status: string;
-	askedBy: string;
-}
-interface Msg {
-	id: string;
-	from: string;
-	to: string;
-	type: string;
-	task: string;
-	body: string;
-	reply: string | null;
-	time: string;
-	status: string;
-}
-interface Exp {
-	id: string;
-	domain: string;
-	title: string;
-	scenario: string;
-	method: string;
-	pitfall?: string;
-	date: string;
-}
 
 const title = "Agent 作战室";
 const description = "永恒欲望多代理协作看板：任务、认领、进度与经验库。";
@@ -66,6 +31,9 @@ const exps = (experienceData as { entries: Exp[] }).entries;
 const claims = getClaims();
 
 const byState = (s: string): Task[] => tasks.filter((t) => t.state === s);
+const stateLabel: Record<string, string> = {
+	backlog: "待办", doing: "进行中", blocked: "受阻", review: "待验收", done: "已完成",
+};
 const columns = [
 	{ key: "backlog", label: "待办", dot: "bg-zinc-400", items: byState("backlog") },
 	{ key: "doing", label: "进行中", dot: "bg-blue-400", items: byState("doing") },
@@ -83,13 +51,38 @@ for (const c of claims) {
 }
 const activeClaims = claims.filter((c) => c.status.startsWith("active"));
 
-const stats: Array<[number, string, string]> = [
-	[byState("doing").length, "进行中", "text-blue-500"],
-	[byState("blocked").length, "受阻", "text-red-500"],
-	[decisions.filter((d) => d.status === "pending").length, "待拍板", "text-rose-500"],
-	[byState("done").length, "已完成", "text-emerald-500"],
-	[activeClaims.length, "活跃认领", "text-amber-500"],
+const agentCards = agents
+	.filter((a) => a.id !== "user")
+	.map((a) => ({
+		id: a.id,
+		name: a.name,
+		model: a.model,
+		color: a.color,
+		role: a.role,
+		port: a.port,
+		href: `/lab/agent-board/${a.id}/`,
+		working: a.status === "working",
+		claimsCount: (claimsByAgent.get(a.id) ?? []).length,
+		doingCount: tasks.filter(
+			(t) => t.owner.toLowerCase().includes(a.id) && t.state === "doing",
+		).length,
+	}));
+
+const stats: Array<{ n: number; label: string; color: string }> = [
+	{ n: byState("doing").length, label: "进行中", color: "text-blue-500" },
+	{ n: byState("blocked").length, label: "受阻", color: "text-red-500" },
+	{ n: decisions.filter((d) => d.status === "pending").length, label: "待拍板", color: "text-rose-500" },
+	{ n: byState("done").length, label: "已完成", color: "text-emerald-500" },
+	{ n: activeClaims.length, label: "活跃认领", color: "text-amber-500" },
 ];
+const navTabs = [
+	{ key: "overview", label: "总览" },
+	{ key: "kanban", label: "任务看板" },
+	{ key: "decisions", label: "决策队列" },
+	{ key: "mail", label: "站内信" },
+	{ key: "experience", label: "经验库" },
+];
+const pendingDecisions = decisions.filter((d) => d.status === "pending");
 const domains: string[] = [...new Set(exps.map((e) => e.domain))];
 const mailByTo: Record<string, Msg[]> = {};
 for (const m of [...messages].reverse()) (mailByTo[m.to] ??= []).push(m);
@@ -97,76 +90,83 @@ for (const m of [...messages].reverse()) (mailByTo[m.to] ??= []).push(m);
 const prioLabel = (p: string): string => (p === "P0" ? "紧急" : p === "P1" ? "高" : p === "P2" ? "中" : "低");
 const prioClass = (p: string): string =>
 	p === "P0" ? "text-red-500 dark:text-red-400" : p === "P1" ? "text-amber-600 dark:text-amber-400" : "text-zinc-400";
+const claimLabel = (s: string): string =>
+	s.startsWith("active") ? "进行中" : s.startsWith("handoff") ? "已交接" : s.startsWith("done") || s.startsWith("completed") ? "已完成" : s.startsWith("paused") || s.startsWith("await") ? "已暂停" : s.includes("unknown") ? "未知" : s;
 ---
 
 <Layout {title} {description}>
 	<HeaderTopRow stickyNavbar={true} navbarWidthFull={navbarWidthFull} />
 	<main class="mx-auto w-full max-w-7xl px-4 pt-24 pb-16 min-h-screen">
-		<header class="mb-8">
+		<header class="mb-6">
 			<p class="text-[11px] tracking-[0.35em] text-zinc-400 dark:text-zinc-500 mb-2">ETERNAL DESIRE · AGENT CENTER</p>
-			<h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">多代理协作中心</h1>
-			<p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">任务 · 认领 · 进度 · 经验，全部沉淀在这里。最后同步 {tasksData.updated}</p>
+			<h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">多代理协作中心</h1>
+			<p class="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">最后同步 {tasksData.updated}</p>
 			<div class="mt-5 grid grid-cols-2 sm:grid-cols-5 gap-3">
-				{stats.map(([n, label, color]) => (
-					<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 px-4 py-3">
-						<p class={`text-2xl font-bold ${color}`}>{n}</p>
-						<p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{label}</p>
+				{stats.map((s) => (
+					<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3">
+						<p class={`text-2xl font-bold ${s.color}`}>{s.n}</p>
+						<p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{s.label}</p>
 					</div>
 				))}
 			</div>
 		</header>
 
-		<section class="mb-10">
-			<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">作战成员</h2>
-			<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-				{agents.map((a) => {
-					const myClaims = claimsByAgent.get(a.id) ?? [];
-					const myTasks = tasks.filter((t) => t.owner.toLowerCase().includes(a.id));
-					const doing = myTasks.filter((t) => t.state === "doing").length;
-					const clickable = a.id !== "user";
-					const inner = (
-						<>
-							<div class="flex items-center gap-3">
-								<span
-									class="grid place-items-center w-10 h-10 rounded-xl text-white font-bold text-sm shrink-0"
-									style={`background:linear-gradient(135deg,${a.color},color-mix(in srgb,${a.color} 55%,#0ea5e9))`}
-								>{a.name.charAt(0)}</span>
-								<div class="min-w-0">
-									<p class="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">{a.name}</p>
-									<p class="text-[11px] text-zinc-400 dark:text-zinc-500 truncate">{a.model}</p>
-								</div>
-								<span
-									class:list={["ml-auto text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0",
-										a.status === "working" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"]}
-								>{a.status === "working" ? "工作中" : "空闲"}</span>
-							</div>
-							<p class="mt-2.5 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2">{a.role}</p>
-							<div class="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center gap-3 text-[11px] text-zinc-400 dark:text-zinc-500">
-								<span>{a.port ? `端口 ${a.port}` : "本地"}</span>
-								<span>{myClaims.length} 认领</span>
-								<span>{doing} 进行</span>
-								{clickable && <span class="ml-auto text-zinc-400 dark:text-zinc-500">进入空间 →</span>}
-							</div>
-						</>
-					);
-					return clickable ? (
-						<a
-							href={`/lab/agent-board/${a.id}/`}
-							data-no-swup
-							class="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-zinc-300 dark:hover:border-zinc-700"
-						>{inner}</a>
-					) : (
-						<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 opacity-80">{inner}</div>
-					);
-				})}
-			</div>
-		</section>
+		<nav class="flex items-center gap-1 border-b border-zinc-200 dark:border-zinc-800 mb-6" aria-label="看板视图">
+			{navTabs.map((t, i) => (
+				<button
+					type="button"
+					id={`tabbtn-${t.key}`}
+					data-tab={t.key}
+					class:list={[
+						"px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors",
+						i === 0 ? "border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-50" : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200",
+					]}
+				>{t.label}</button>
+			))}
+		</nav>
 
-		<section class="mb-10">
-			<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">任务看板</h2>
+		<div id="tab-overview">
+			<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+				{agentCards.map((a) => (
+					<a
+						href={a.href}
+						data-no-swup
+						class="block rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 transition-colors hover:border-zinc-300 dark:hover:border-zinc-700"
+					>
+						<div class="flex items-center gap-3">
+							<span
+								class="grid place-items-center w-10 h-10 rounded-lg text-white font-bold text-sm shrink-0"
+								style={`background:linear-gradient(135deg,${a.color},color-mix(in srgb,${a.color} 55%,#0ea5e9))`}
+							>{a.name.charAt(0)}</span>
+							<div class="min-w-0">
+								<p class="font-semibold text-sm text-zinc-900 dark:text-zinc-100 truncate">{a.name}</p>
+								<p class="text-[11px] text-zinc-400 dark:text-zinc-500 truncate">{a.model}</p>
+							</div>
+							<span
+								class:list={["ml-auto text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0",
+									a.working ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"]}
+							>{a.working ? "工作中" : "空闲"}</span>
+						</div>
+						<p class="mt-2.5 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2">{a.role}</p>
+						<div class="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center gap-3 text-[11px] text-zinc-400 dark:text-zinc-500">
+							<span>{a.port ? `端口 ${a.port}` : "本地"}</span>
+							<span>{a.claimsCount} 认领</span>
+							<span>{a.doingCount} 进行</span>
+							<span class="ml-auto text-zinc-400 dark:text-zinc-500">进入空间 →</span>
+						</div>
+					</a>
+				))}
+			</div>
+			<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+				<h2 class="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">全局现状</h2>
+				<pre class="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap font-sans">{currentStateMd}</pre>
+			</div>
+		</div>
+
+		<div id="tab-kanban" hidden>
 			<div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
 				{columns.map((col) => (
-					<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 p-3">
+					<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
 						<div class="flex items-center gap-2 mb-3 px-1">
 							<span class={`w-2 h-2 rounded-full ${col.dot}`} />
 							<h3 class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{col.label}</h3>
@@ -175,88 +175,77 @@ const prioClass = (p: string): string =>
 						<div class="space-y-2">
 							{col.items.map((t) => (
 								<article class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
-									<div class="flex items-center justify-between mb-1">
-										<span class="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">{t.id}</span>
-										<span class={`text-[10px] font-medium ${prioClass(t.priority)}`}>{prioLabel(t.priority)}</span>
-									</div>
-									<h4 class="text-[13px] font-medium text-zinc-800 dark:text-zinc-200 leading-snug">{t.title}</h4>
-									<p class="mt-1 text-[11px] text-zinc-400 dark:text-zinc-500 line-clamp-2">{t.brief}</p>
-									{t.state === "blocked" && (
-										<p class="mt-1.5 text-[10px] text-red-400">⛔ {t.deps?.length ? `等待：${t.deps.join("、")}` : "等待用户"}</p>
-									)}
-									<div class="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[10px] text-zinc-400 dark:text-zinc-500">
-										<span>{t.owner}</span>
-										{t.artifacts?.length > 0 && <span>📦 {t.artifacts.length}</span>}
-									</div>
-								</article>
+								<div class="flex items-center justify-between mb-1">
+									<span class="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">{t.id}</span>
+									<span class={`text-[10px] font-medium ${prioClass(t.priority)}`}>{prioLabel(t.priority)}</span>
+								</div>
+								<h4 class="text-[13px] font-medium text-zinc-800 dark:text-zinc-200 leading-snug">{t.title}</h4>
+								<p class="mt-1 text-[11px] text-zinc-400 dark:text-zinc-500 line-clamp-2">{t.brief}</p>
+								{t.state === "blocked" && (
+									<p class="mt-1.5 text-[10px] text-red-400">⛔ 等待用户确认</p>
+								)}
+								<div class="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[10px] text-zinc-400 dark:text-zinc-500">
+									<span>{t.owner}</span>
+									{t.artifacts?.length > 0 && <span>📦 {t.artifacts.length}</span>}
+								</div>
+							</article>
 							))}
 							{col.items.length === 0 && <p class="text-xs text-zinc-400 dark:text-zinc-600 text-center py-4">暂无</p>}
 						</div>
 					</div>
 				))}
 			</div>
-		</section>
-
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-			<section>
-				<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">待拍板事项</h2>
-				<div class="space-y-3">
-					{decisions.map((d) => (
-						<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-							<div class="flex items-start justify-between gap-3">
-								<p class="text-sm font-medium text-zinc-800 dark:text-zinc-200">{d.question}</p>
-								<span class:list={["shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium",
-									d.status === "pending" ? "bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"]}>
-									{d.status === "pending" ? "待拍板" : "已定"}
-								</span>
-							</div>
-							<div class="mt-2.5 flex flex-wrap gap-1.5">
-								{d.options.map((o, i) => (
-									<span class:list={["text-xs px-2.5 py-1 rounded-md border",
-										i === 0 ? "border-emerald-300 text-emerald-600 dark:border-emerald-500/40 dark:text-emerald-400" : "border-zinc-200 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"]}>
-										{i === 0 && "★ "}{o}
-									</span>
-								))}
-							</div>
-							<p class="mt-1.5 text-[10px] text-zinc-400 dark:text-zinc-500">提问：{d.askedBy}</p>
-						</div>
-					))}
-				</div>
-			</section>
-			<section>
-				<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">站内信</h2>
-				<div class="space-y-5">
-					{Object.entries(mailByTo).map(([to, msgs]) => (
-						<div>
-							<h3 class="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">给 {nameOf(to)}</h3>
-							{msgs.map((m) => (
-								<div class="border-l-2 border-zinc-200 dark:border-zinc-700 pl-3 py-2 mb-2">
-									<p class="text-[10px] text-zinc-400 dark:text-zinc-500">来自 {nameOf(m.from)} · {m.time}</p>
-									<p class="text-xs text-zinc-700 dark:text-zinc-300 mt-0.5">{m.body}</p>
-									{m.reply && <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1">↳ {m.reply}</p>}
-								</div>
-							))}
-						</div>
-					))}
-				</div>
-			</section>
 		</div>
 
-		<section class="mb-10">
-			<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">全局现状 <span class="normal-case font-normal text-zinc-400">新对话必读</span></h2>
-			<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-				<pre class="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap font-sans">{currentStateMd}</pre>
+		<div id="tab-decisions" hidden>
+			<div class="space-y-3 max-w-3xl">
+				{decisions.map((d) => (
+					<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+						<div class="flex items-start justify-between gap-3">
+							<p class="text-sm font-medium text-zinc-800 dark:text-zinc-200">{d.question}</p>
+							<span class:list={["shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium",
+								d.status === "pending" ? "bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"]}>
+								{d.status === "pending" ? "待拍板" : "已定"}
+							</span>
+						</div>
+						<div class="mt-2.5 flex flex-wrap gap-1.5">
+							{d.options.map((o, i) => (
+								<span class:list={["text-xs px-2.5 py-1 rounded-md border",
+									i === 0 ? "border-emerald-300 text-emerald-600 dark:border-emerald-500/40 dark:text-emerald-400" : "border-zinc-200 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"]}>
+									{i === 0 && "★ "}{o}
+								</span>
+							))}
+						</div>
+						<p class="mt-1.5 text-[10px] text-zinc-400 dark:text-zinc-500">提问：{d.askedBy}</p>
+					</div>
+				))}
 			</div>
-		</section>
+		</div>
 
-		<section>
-			<h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-4">经验库 <span class="normal-case font-normal">{exps.length} 条 · 开工先查 · 收工写回</span></h2>
+		<div id="tab-mail" hidden>
+			<div class="space-y-6 max-w-3xl">
+				{Object.entries(mailByTo).map(([to, msgs]) => (
+					<div>
+						<h3 class="text-sm font-semibold text-zinc-600 dark:text-zinc-300 mb-2">给 {nameOf(to)}</h3>
+						{msgs.map((m) => (
+							<div class="border-l-2 border-zinc-200 dark:border-zinc-700 pl-3 py-2 mb-2">
+								<p class="text-[10px] text-zinc-400 dark:text-zinc-500">来自 {nameOf(m.from)} · {m.time}</p>
+								<p class="text-xs text-zinc-700 dark:text-zinc-300 mt-0.5">{m.body}</p>
+								{m.reply && <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1">↳ {m.reply}</p>}
+							</div>
+						))}
+					</div>
+				))}
+			</div>
+		</div>
+
+		<div id="tab-experience" hidden>
 			{domains.map((domain) => (
-				<div class="mb-6">
+				<div class="mb-8">
 					<h3 class="text-sm font-semibold text-zinc-600 dark:text-zinc-300 mb-3">{domain}</h3>
 					<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
 						{exps.filter((e) => e.domain === domain).map((e) => (
-							<div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+							<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
 								<div class="flex items-start justify-between gap-2">
 									<h4 class="text-[13px] font-semibold text-zinc-800 dark:text-zinc-200">{e.title}</h4>
 									<span class="text-[10px] text-zinc-400 dark:text-zinc-500 shrink-0">{e.date}</span>
@@ -269,14 +258,35 @@ const prioClass = (p: string): string =>
 					</div>
 				</div>
 			))}
-		</section>
+		</div>
 
-		<footer class="mt-8 text-center">
+		<footer class="mt-10">
 			<p class="text-[11px] text-zinc-400 dark:text-zinc-600">数据文件 <code class="text-zinc-500">src/data/agent-board/</code> · 协作协议 <code class="text-zinc-500">docs/AI-COLLABORATION.md</code> · 本地看板随 dev server 实时刷新</p>
 		</footer>
 	</main>
 </Layout>
 
-<style>
-	/* Agent 作战室 — 使用站点 Tailwind 主题令牌，无手搓样式 */
-</style>
+<script>
+	const TAB_KEYS = ["overview", "kanban", "decisions", "mail", "experience"];
+	function showTab(key: string) {
+		for (const k of TAB_KEYS) {
+			document.getElementById(`tab-${k}`)?.toggleAttribute("hidden", k !== key);
+			const btn = document.getElementById(`tabbtn-${k}`);
+			if (btn) {
+				btn.classList.toggle("border-zinc-900", k === key);
+				btn.classList.toggle("dark:border-zinc-100", k === key);
+				btn.classList.toggle("text-zinc-900", k === key);
+				btn.classList.toggle("dark:text-zinc-50", k === key);
+				btn.classList.toggle("border-transparent", k !== key);
+				btn.classList.toggle("text-zinc-500", k !== key);
+				btn.classList.toggle("dark:text-zinc-400", k !== key);
+			}
+		}
+		history.replaceState(null, "", `#${key}`);
+	}
+	document.querySelectorAll<HTMLElement>("[data-tab]").forEach((btn) => {
+		btn.addEventListener("click", () => showTab(btn.dataset.tab!));
+	});
+	const initial = location.hash.slice(1);
+	showTab(TAB_KEYS.includes(initial) ? initial : "overview");
+</script>
