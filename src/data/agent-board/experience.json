@@ -1,5 +1,5 @@
 {
-	"updated": "2026-08-28",
+	"updated": "2026-08-29",
 	"entries": [
 		{
 			"id": "E-001",
@@ -127,6 +127,16 @@
 			"method": "捕获组用 [^\"\\\\\\\\]+ 且 decodeURIComponent 后 strip 尾部反斜杠",
 			"pitfall": "JSON 转义 \\ 混进捕获组→URL 带 %5C 全 404",
 			"date": "2026-08-28"
+		},
+		{
+			"id": "E-015",
+			"domain": "SEO/安全",
+			"title": "内部面板要同时 noindex 与排除 sitemap",
+			"scenario": "静态生成的内部协作页仍部署在公开域名",
+			"method": "路由级输出 robots=noindex,nofollow,noarchive，并在 @astrojs/sitemap filter 中排除整段路径",
+			"pitfall": "文档写着“内部面板”不会自动阻止索引；只改 robots.txt 还可能让爬虫看不到页面级 noindex",
+			"evidence": "/lab/agent-board/** 生成页元数据 + sitemap 构建产物",
+			"date": "2026-08-29"
 		}
 	]
 }

@@ -1,5 +1,5 @@
 {
-	"updated": "2026-08-28",
+	"updated": "2026-08-29",
 	"tasks": [
 		{
 			"id": "T-001",
@@ -154,12 +154,16 @@
 		{
 			"id": "T-016",
 			"title": "网站建设回归",
-			"owner": "all",
-			"state": "backlog",
+			"owner": "codex",
+			"state": "doing",
 			"priority": "P0",
-			"deps": ["T-011"],
-			"brief": "资产线降级为维护，主力回站点内容/页面/功能",
-			"artifacts": []
+			"deps": [],
+			"brief": "Codex 进行中：首轮已补齐内部 Agent 看板 noindex，并排除 sitemap",
+			"artifacts": [
+				"src/pages/lab/agent-board.astro",
+				"src/pages/lab/agent-board/[agent].astro",
+				"astro.config.mjs"
+			]
 		}
 	]
 }

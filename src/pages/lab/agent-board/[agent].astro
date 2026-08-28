@@ -48,6 +48,7 @@ const claimLabel = (s: string): string =>
 ---
 
 <Layout {title} {description}>
+	<meta slot="head" name="robots" content="noindex, nofollow, noarchive" />
 	<HeaderTopRow stickyNavbar={true} navbarWidthFull={navbarWidthFull} />
 	<main class="mx-auto w-full max-w-5xl px-4 pt-24 pb-16 min-h-screen">
 		<a href="/lab/agent-board/" data-no-swup class="inline-flex items-center gap-1 text-xs text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors mb-6">

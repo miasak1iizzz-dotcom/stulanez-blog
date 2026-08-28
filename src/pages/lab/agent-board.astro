@@ -95,6 +95,7 @@ const claimLabel = (s: string): string =>
 ---
 
 <Layout {title} {description}>
+	<meta slot="head" name="robots" content="noindex, nofollow, noarchive" />
 	<HeaderTopRow stickyNavbar={true} navbarWidthFull={navbarWidthFull} />
 	<main class="mx-auto w-full max-w-7xl px-4 pt-24 pb-16 min-h-screen">
 		<header class="mb-6">
