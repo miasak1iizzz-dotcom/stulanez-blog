@@ -1,0 +1,494 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
+import { siteConfig } from "@/config";
+import agents from "@/data/agent-board/agents.json";
+import tasksData from "@/data/agent-board/tasks.json";
+import decisionsData from "@/data/agent-board/decisions.json";
+import mailData from "@/data/agent-board/mail.json";
+import experienceData from "@/data/agent-board/experience.json";
+import fs from "node:fs";
+
+interface Agent {
+	id: string;
+	name: string;
+	vendor: string;
+	model: string;
+	port: number | null;
+	color: string;
+	role: string;
+	status: string;
+	currentTask: string | null;
+	summary: string | null;
+}
+interface Task {
+	id: string;
+	title: string;
+	owner: string;
+	state: string;
+	priority: string;
+	deps: string[];
+	brief: string;
+	artifacts: string[];
+}
+interface Decision {
+	id: string;
+	question: string;
+	options: string[];
+	recommendation: string;
+	status: string;
+	askedBy: string;
+}
+interface Msg {
+	id: string;
+	from: string;
+	to: string;
+	type: string;
+	task: string;
+	body: string;
+	reply: string | null;
+	time: string;
+	status: string;
+}
+interface Exp {
+	id: string;
+	domain: string;
+	title: string;
+	scenario: string;
+	method: string;
+	pitfall?: string;
+	date: string;
+}
+
+const title = "Agent 作战室";
+const description = "永恒欲望多代理协作看板：任务状态机、决策队列、信箱与经验库。";
+const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
+
+const currentState = fs.readFileSync(
+	new URL("../../data/agent-board/CURRENT-STATE.md", import.meta.url),
+	"utf-8",
+);
+
+const agentList = agents as Agent[];
+const tasks = (tasksData as { updated: string; tasks: Task[] }).tasks;
+const byState = (s: string): Task[] => tasks.filter((t) => t.state === s);
+const columns = [
+	{ key: "backlog", label: "Backlog", items: byState("backlog") },
+	{ key: "doing", label: "Doing", items: byState("doing") },
+	{ key: "blocked", label: "Blocked", items: byState("blocked") },
+	{ key: "review", label: "Review", items: byState("review") },
+	{ key: "done", label: "Done", items: byState("done") },
+];
+const agentById = new Map<string, Agent>(agentList.map((a) => [a.id, a]));
+const ownerName = (owner: string): string =>
+	owner
+		.split(/[^a-z0-9-]+/i)
+		.filter(Boolean)
+		.map((id) => agentById.get(id)?.name ?? id)
+		.join("+");
+const stats = {
+	doing: byState("doing").length,
+	blocked: byState("blocked").length,
+	decisions: (decisionsData as { items: Decision[] }).items.filter(
+		(d: Decision) => d.status === "pending",
+	).length,
+	done: byState("done").length,
+};
+const decisions = (decisionsData as { items: Decision[] }).items;
+const domains: string[] = [
+	...new Set((experienceData as { entries: Exp[] }).entries.map((e: Exp) => e.domain)),
+];
+const mailByTo: Record<string, Msg[]> = {};
+for (const m of [...(mailData as { messages: Msg[] }).messages].reverse()) {
+	const box = mailByTo[m.to] ?? (mailByTo[m.to] = []);
+	box.push(m);
+}
+---
+
+<Layout {title} {description}>
+	<HeaderTopRow stickyNavbar={true} {navbarWidthFull} />
+	<main class="board-main">
+		<div class="board-wrap">
+			<header class="board-head">
+				<div>
+					<h1>永恒欲望 · Agent 作战室</h1>
+					<p class="sub">多代理协作看板 · 数据由代理按协议更新 · 最后同步 {tasksData.updated}</p>
+				</div>
+				<div class="stats">
+					<div class="stat"><b>{stats.doing}</b><span>进行中</span></div>
+					<div class="stat warn"><b>{stats.blocked}</b><span>阻塞</span></div>
+					<div class="stat decision"><b>{stats.decisions}</b><span>待决策</span></div>
+					<div class="stat ok"><b>{stats.done}</b><span>已完成</span></div>
+				</div>
+			</header>
+
+			<section class="agents">
+				{agents.map((a) => (
+					<div class="agent-card" style={`--ac:${a.color}`}>
+						<div class="agent-top">
+							<span class="dot" />
+							<b>{a.name}</b>
+							<span class="vendor">{a.vendor} · {a.model}</span>
+						</div>
+						<p class="role">{a.role}</p>
+						<p class="port">{a.port ? `端口 ${a.port}` : "—"}{a.currentTask ? ` · ${a.currentTask}` : " · 空闲"}</p>
+						{a.summary && <a class="summary" href={`https://stulanez.com/docs/${a.summary}`} target="_blank" rel="noreferrer">接手板 →</a>}
+					</div>
+				))}
+			</section>
+
+			<section class="kanban">
+				{columns.map((col) => (
+					<div class={`kcol ${col.key}`}>
+						<h3>{col.label} <span class="cnt">{col.items.length}</span></h3>
+						<div class="cards">
+							{col.items.map((t) => (
+								<article
+									class:list={["tcard", { "priority-p0": t.priority === "P0", "priority-p1": t.priority === "P1" }]}
+								>
+									<div class="ttop">
+										<span class="tid">{t.id}</span>
+										<span class="tprio">{t.priority}</span>
+									</div>
+									<h4>{t.title}</h4>
+									<p class="brief">{t.brief}</p>
+									{t.state === "blocked" && t.deps?.length === 0 && <p class="blocked-on">⛔ 等待用户</p>}
+									<footer>
+										<span class="owner">{ownerName(t.owner)}</span>
+										{t.artifacts?.length > 0 && <span class="art">📦 {t.artifacts.length}</span>}
+									</footer>
+								</article>
+							))}
+							{col.items.length === 0 && <p class="empty">—</p>}
+						</div>
+					</div>
+				))}
+			</section>
+
+			<section class="duo">
+				<div class="panel">
+					<h2>决策队列 <span class="hint">需要 Saki 拍板的事项 · 批量处理</span></h2>
+					{decisionsData.items.map((d) => (
+						<div class:list={["decision", { resolved: d.status !== "pending" }]}>
+							<p class="dq">{d.question}</p>
+							<ul class="opts">
+								{d.options.map((o, i) => (
+									<li class={i === 0 ? "rec" : ""}>{o}{i === 0 && " ⭐ 推荐"}</li>
+								))}
+							</ul>
+							<p class="dstatus">{d.status === "pending" ? "⏳ 待拍板" : "✅ 已决策"}</p>
+						</div>
+					))}
+				</div>
+				<div class="panel">
+					<h2>信箱动态</h2>
+					{Object.entries(mailByTo).map(([to, msgs]) => (
+						<div class="mailbox">
+							<h3>📥 {agentById.get(to)?.name ?? to}</h3>
+							{msgs.map((m) => (
+								<div class:list={["msg", { done: m.status === "done" }]}>
+									<span class="mfrom">{agentById.get(m.from)?.name ?? m.from} → {agentById.get(m.to)?.name ?? m.to}</span>
+									<p>{m.body}</p>
+									{m.reply && <p class="reply">↳ {m.reply}</p>}
+									<span class="mtime">{m.time} · {m.status}</span>
+								</div>
+							))}
+						</div>
+					))}
+				</div>
+			</section>
+
+			<section class="state">
+				<h2>全局现状 <span class="hint">新对话必读 · 读完此文件即可接手</span></h2>
+				<pre>{currentState}</pre>
+			</section>
+
+			<section class="exp">
+				<h2>经验库 <span class="hint">{experienceData.entries.length} 条 · 开工前必查 · 收工后写回</span></h2>
+				{domains.map((domain) => (
+					<div class="domain">
+						<h3>{domain}</h3>
+						<div class="ecards">
+							{experienceData.entries.filter((e) => e.domain === domain).map((e) => (
+								<article class="ecard">
+									<h4>{e.title}</h4>
+									<p class="escenario">{e.scenario}</p>
+									<p class="emethod">{e.method}</p>
+									{e.pitfall && <p class="epitfall">⚠ {e.pitfall}</p>}
+									<span class="edate">{e.date}</span>
+								</article>
+							))}
+						</div>
+					</div>
+				))}
+			</section>
+
+			<footer class="board-foot">
+				<p>永恒欲望 多代理协作中心 · 数据文件 <code>src/data/agent-board/</code> · 协议 <code>docs/AI-COLLABORATION.md</code></p>
+			</footer>
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.board-main {
+		min-height: 100vh;
+		padding: 5.5rem 1rem 3rem;
+		background:
+			radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 30rem),
+			var(--page-bg);
+		color: var(--text-75, #cdd6e4);
+		font-family: inherit;
+	}
+	.board-wrap {
+		width: min(1400px, 100%);
+		margin: 0 auto;
+		display: grid;
+		gap: 1.4rem;
+	}
+	.board-head {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+	.board-head h1 {
+		margin: 0;
+		font-size: 1.9rem;
+		letter-spacing: 0.02em;
+	}
+	.sub {
+		margin: 0.3rem 0 0;
+		font-size: 0.8rem;
+		opacity: 0.55;
+	}
+	.stats {
+		display: flex;
+		gap: 0.6rem;
+		flex-wrap: wrap;
+	}
+	.stat {
+		display: grid;
+		justify-items: center;
+		padding: 0.5rem 1.1rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--primary) 6%, transparent);
+	}
+	.stat b { font-size: 1.35rem; line-height: 1.1; }
+	.stat span { font-size: 0.68rem; opacity: 0.6; }
+	.stat.warn b { color: #f59e0b; }
+	.stat.decision b { color: #f87171; }
+	.stat.ok b { color: #34d399; }
+
+	.agents {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.7rem;
+	}
+	.agent-card {
+		position: relative;
+		flex: 1 1 180px;
+		min-width: 170px;
+		padding: 0.8rem 0.9rem;
+		border: 1px solid color-mix(in srgb, var(--ac) 30%, transparent);
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--ac) 5%, transparent);
+	}
+	.agent-top {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+	.dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--ac);
+		box-shadow: 0 0 8px color-mix(in srgb, var(--ac) 60%, transparent);
+	}
+	.agent-top b { font-size: 0.88rem; }
+	.vendor { font-size: 0.62rem; opacity: 0.45; margin-left: auto; }
+	.role { margin: 0.35rem 0 0; font-size: 0.68rem; opacity: 0.55; line-height: 1.4; }
+	.port { margin: 0.25rem 0 0; font-size: 0.62rem; opacity: 0.4; }
+	.summary {
+		display: inline-block;
+		margin-top: 0.3rem;
+		font-size: 0.62rem;
+		color: var(--ac);
+		opacity: 0.7;
+		text-decoration: none;
+	}
+
+	.kanban {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 0.8rem;
+	}
+	.kcol {
+		border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--primary) 4%, transparent);
+		padding: 0.7rem;
+		min-height: 200px;
+	}
+	.kcol h3 {
+		margin: 0 0 0.6rem;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		opacity: 0.5;
+	}
+	.cnt {
+		float: right;
+		padding: 0.05rem 0.45rem;
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--primary) 15%, transparent);
+		font-size: 0.65rem;
+	}
+	.cards { display: grid; gap: 0.5rem; }
+	.tcard {
+		padding: 0.55rem 0.65rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+		border-left: 3px solid var(--primary);
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--primary) 6%, transparent);
+	}
+	.tcard.priority-p0 { border-left-color: #f87171; }
+	.tcard.priority-p1 { border-left-color: #f59e0b; }
+	.ttop {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.58rem;
+		opacity: 0.4;
+	}
+	.tcard h4 { margin: 0.25rem 0; font-size: 0.78rem; line-height: 1.35; }
+	.brief { margin: 0.2rem 0 0; font-size: 0.62rem; opacity: 0.5; line-height: 1.4; }
+	.blocked-on { margin: 0.3rem 0 0; font-size: 0.62rem; color: #f87171; }
+	.tcard footer {
+		display: flex;
+		justify-content: space-between;
+		margin-top: 0.4rem;
+		font-size: 0.58rem;
+		opacity: 0.45;
+	}
+	.empty { text-align: center; opacity: 0.25; font-size: 0.7rem; }
+
+	.duo {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.4rem;
+	}
+	.panel {
+		border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--primary) 4%, transparent);
+		padding: 1rem 1.1rem;
+	}
+	.panel h2 { margin: 0 0 0.8rem; font-size: 1rem; }
+	.hint { font-size: 0.65rem; opacity: 0.45; font-weight: 400; margin-left: 0.5rem; }
+	.decision {
+		padding: 0.7rem 0.8rem;
+		border: 1px solid rgba(248, 113, 113, 0.25);
+		border-left: 3px solid #f87171;
+		border-radius: 8px;
+		background: rgba(248, 113, 113, 0.05);
+		margin-bottom: 0.6rem;
+	}
+	.decision.resolved { opacity: 0.45; border-color: #34d39940; border-left-color: #34d399; }
+	.dq { margin: 0 0 0.4rem; font-size: 0.82rem; font-weight: 600; }
+	.opts { margin: 0; padding: 0; list-style: none; }
+	.opts li {
+		font-size: 0.7rem;
+		padding: 0.2rem 0.5rem;
+		margin: 0.15rem 0;
+		border-radius: 5px;
+		background: color-mix(in srgb, var(--primary) 8%, transparent);
+	}
+	.opts li.rec { border: 1px solid #34d39960; color: #6ee7b7; }
+	.dstatus { margin: 0.35rem 0 0; font-size: 0.62rem; opacity: 0.5; }
+	.mailbox { margin-bottom: 1rem; }
+	.mailbox h3 { margin: 0 0 0.4rem; font-size: 0.78rem; opacity: 0.7; }
+	.msg {
+		padding: 0.5rem 0.7rem;
+		border-left: 2px solid var(--ac, #3b82f6);
+		margin: 0 0 0.4rem;
+		background: color-mix(in srgb, var(--primary) 5%, transparent);
+		border-radius: 0 6px 6px 0;
+	}
+	.msg.done { opacity: 0.5; }
+	.mfrom { font-size: 0.6rem; opacity: 0.5; }
+	.msg p { margin: 0.2rem 0; font-size: 0.72rem; line-height: 1.5; }
+	.reply { color: #6ee7b7; }
+	.mtime { font-size: 0.58rem; opacity: 0.35; }
+
+	.state {
+		border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--primary) 4%, transparent);
+		padding: 1rem 1.1rem;
+	}
+	.state h2 { margin: 0 0 0.6rem; font-size: 1rem; }
+	.state pre {
+		margin: 0;
+		padding: 1rem;
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--primary) 6%, transparent);
+		font-size: 0.75rem;
+		line-height: 1.7;
+		white-space: pre-wrap;
+		overflow-x: auto;
+	}
+
+	.exp h2 { margin: 0 0 1rem; font-size: 1rem; }
+	.domain { margin-bottom: 1.4rem; }
+	.domain h3 {
+		margin: 0 0 0.6rem;
+		padding-left: 0.6rem;
+		border-left: 3px solid var(--primary);
+		font-size: 0.85rem;
+	}
+	.ecards {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 0.7rem;
+	}
+	.ecard {
+		padding: 0.7rem 0.85rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--primary) 5%, transparent);
+	}
+	.ecard h4 { margin: 0 0 0.3rem; font-size: 0.82rem; }
+	.escenario { margin: 0; font-size: 0.65rem; opacity: 0.5; }
+	.emethod { margin: 0.35rem 0 0; font-size: 0.7rem; line-height: 1.55; }
+	.epitfall {
+		margin: 0.35rem 0 0;
+		font-size: 0.65rem;
+		color: #fbbf24;
+		line-height: 1.4;
+	}
+	.edate { font-size: 0.58rem; opacity: 0.35; }
+
+	.board-foot {
+		text-align: center;
+		font-size: 0.65rem;
+		opacity: 0.35;
+	}
+	.board-foot code {
+		padding: 0.1rem 0.4rem;
+		border-radius: 4px;
+		background: color-mix(in srgb, var(--primary) 10%, transparent);
+	}
+
+	@media (max-width: 1100px) {
+		.kanban { grid-template-columns: repeat(2, 1fr); }
+		.duo { grid-template-columns: 1fr; }
+	}
+	@media (max-width: 640px) {
+		.board-main { padding: 4.5rem 0.6rem 2rem; }
+		.kanban { grid-template-columns: 1fr; }
+		.stats { width: 100%; justify-content: center; }
+	}
+</style>

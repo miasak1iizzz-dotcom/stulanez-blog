@@ -1,0 +1,165 @@
+{
+	"updated": "2026-08-28",
+	"tasks": [
+		{
+			"id": "T-001",
+			"title": "TFT 规划器：纹章/奥恩神器拆分独立页签",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P2",
+			"deps": [],
+			"brief": "其它 tab 拆为两个独立页签，四页签结构",
+			"artifacts": ["1b112f1"]
+		},
+		{
+			"id": "T-002",
+			"title": "二次元内容+画风双维度分类（1,327 张）",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "联络表目检管线：内容 6 类 + 画风 11 类双标签，manifest 落盘",
+			"artifacts": ["二次元/{画风}/", "二次元/manifest.json"]
+		},
+		{
+			"id": "T-003",
+			"title": "kpop IG 全量采集（167 号 × 600 上限）",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "gallery-dl + cookie 官方线，全队列 167 号完成",
+			"artifacts": ["kpop/{团}/{成员_账号}/"]
+		},
+		{
+			"id": "T-004",
+			"title": "LOL 全皮肤原画 1,700 张",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "ddragon 直链 + CDragon 元数据，全英雄 base + 皮肤",
+			"artifacts": ["LOL/原画/", "LOL/manifest.json"]
+		},
+		{
+			"id": "T-005",
+			"title": "Danbooru 27 团二创 1,092 张",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P2",
+			"deps": [],
+			"brief": "gallery-dl + 代理，SFW/Sensitive，按团归档",
+			"artifacts": ["二创/kpop-danbooru/"]
+		},
+		{
+			"id": "T-006",
+			"title": "B站 kpop+二次元 双线管线",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P2",
+			"deps": [],
+			"brief": "搜索 API + 专栏正文 + hdslb 直链，412 退避通过",
+			"artifacts": ["kpop/B站美图/", "二次元/B站美图/"]
+		},
+		{
+			"id": "T-007",
+			"title": "kpopping 饭拍 821 张",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P2",
+			"deps": [],
+			"brief": "成员页封面流解码 cdn 原图，代理出口解 CF 封锁",
+			"artifacts": ["kpop/{团}/饭拍-kpopping/"]
+		},
+		{
+			"id": "T-008",
+			"title": "10G 二次元/AI 冲刺",
+			"owner": "deepseek-1",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "Pixiv/Wallhaven/Civitai 三路并行，pixiv_* 主题夹重建",
+			"artifacts": ["二次元/pixiv_*/", "AI画作/"]
+		},
+		{
+			"id": "T-009",
+			"title": "Serpent 卡死修复 + 重置",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "225MB WAL 病根定位，备份式重置（_serpent-backup-20260828）",
+			"artifacts": []
+		},
+		{
+			"id": "T-010",
+			"title": "二次元两池合并去重",
+			"owner": "bigmodel",
+			"state": "backlog",
+			"priority": "P1",
+			"deps": ["deepseek-1 收工确认"],
+			"brief": "画风夹 vs pixiv_* 主题夹 内容 hash 级合并，同名遗留 141 清理",
+			"artifacts": []
+		},
+		{
+			"id": "T-011",
+			"title": "kpop 低质量图筛选",
+			"owner": "user",
+			"state": "blocked",
+			"priority": "P1",
+			"deps": [],
+			"brief": "等用户删修样本，产出黑名单特征后自动化过滤",
+			"artifacts": []
+		},
+		{
+			"id": "T-012",
+			"title": "二创返工（成员名标签+目检筛）",
+			"owner": "bigmodel",
+			"state": "blocked",
+			"priority": "P2",
+			"deps": ["T-011"],
+			"brief": "弃大标签改成员名标签，入库前逐张目检",
+			"artifacts": []
+		},
+		{
+			"id": "T-013",
+			"title": "IG 深挖 1500/号",
+			"owner": "bigmodel",
+			"state": "backlog",
+			"priority": "P3",
+			"deps": [],
+			"brief": "防重档案增量，只补老图",
+			"artifacts": []
+		},
+		{
+			"id": "T-014",
+			"title": "微博/小红书/抖音 cookie 线",
+			"owner": "bigmodel",
+			"state": "blocked",
+			"priority": "P3",
+			"deps": [],
+			"brief": "三平台均登录墙；cookie 到位后复制 IG 管线模式（1 小时内通）",
+			"artifacts": []
+		},
+		{
+			"id": "T-015",
+			"title": "Serpent 链接资源库 + 全量重扫",
+			"owner": "user",
+			"state": "doing",
+			"priority": "P1",
+			"deps": [],
+			"brief": "添加链接文件夹指向 资源库，首次扫描 8.2 万文件",
+			"artifacts": []
+		},
+		{
+			"id": "T-016",
+			"title": "网站建设回归",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P0",
+			"deps": ["T-011"],
+			"brief": "资产线降级为维护，主力回站点内容/页面/功能",
+			"artifacts": []
+		}
+	]
+}

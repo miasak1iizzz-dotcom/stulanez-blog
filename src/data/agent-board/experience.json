@@ -1,0 +1,132 @@
+{
+	"updated": "2026-08-28",
+	"entries": [
+		{
+			"id": "E-001",
+			"domain": "抓取",
+			"title": "B站 412 软风控正确姿势",
+			"scenario": "搜索/正文接口批量拉取",
+			"method": "间隔≥2.5s + 412退避6/12/18s+随机抖动 + 失败关键词30min后补跑 + 绝不并行双管线",
+			"pitfall": "连发必412；412后立即下一个请求=进惩罚窗口越撞越死",
+			"evidence": "kpop 592 + 二次元 227 双线实证",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-002",
+			"domain": "抓取",
+			"title": "kpopping 软限流是 404/500 不是 429",
+			"scenario": "团页/成员页批量抓取",
+			"method": "404/500退避即可；硬CF挑战(chlray)换出口IP——用户代理7897实测满血复活",
+			"pitfall": "把软限流404当成没数据就全漏了",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-003",
+			"domain": "通用",
+			"title": "去重三层",
+			"scenario": "任何批量下载",
+			"method": "媒体ID archive（gallery-dl --download-archive）> 内容sha256 > URL辅助",
+			"pitfall": "只用URL层=同图不同URL去不掉；双实例并行期虚增6,836张的根因",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-004",
+			"domain": "抓取",
+			"title": "bing 图片抓取是降级假结果",
+			"scenario": "无JS抓bing图搜",
+			"method": "弃用。换真源/API",
+			"pitfall": "返回风控假页：kpop关键词返回三菱汽车图——抓取渠道必须抽样目检",
+			"date": "2026-08-27"
+		},
+		{
+			"id": "E-005",
+			"domain": "抓取",
+			"title": "IG 镜像站全灭",
+			"scenario": "imginn/imgsed/pixwox/picuki",
+			"method": "弃。官方cookie线或fastdl浏览器管线",
+			"pitfall": "CF盾+picuki已转型TikTok站；镜像站时效性月抛",
+			"date": "2026-08-27"
+		},
+		{
+			"id": "E-006",
+			"domain": "抓取",
+			"title": "B站专栏双坑",
+			"scenario": "专栏正文抓取",
+			"method": "封面图在搜索结果 image_urls 永远可用，拿它兜底；正文仅旧式专栏有",
+			"pitfall": "新版opus专栏 article/view 返回空 content",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-007",
+			"domain": "TFT",
+			"title": "production hydration 变量未定义即白屏",
+			"scenario": "Svelte 组件事件处理器",
+			"method": "所有模板引用的函数必须定义（如 moveTooltip）",
+			"pitfall": "本地 dev 不报错，生产 hydration ReferenceError→页面空白",
+			"date": "2026-08-27"
+		},
+		{
+			"id": "E-008",
+			"domain": "构建",
+			"title": "图标名不存在→整站构建失败",
+			"scenario": "astro icon 使用",
+			"method": "pnpm build 必跑（如 material-symbols:signpost-rounded 才有效）",
+			"pitfall": "check 不报错但 build 挂",
+			"date": "2026-08-27"
+		},
+		{
+			"id": "E-009",
+			"domain": "环境",
+			"title": "node-undici TLS 指纹被 Pixiv WAF 403",
+			"scenario": "pixiv ajax 接口",
+			"method": "curl/PowerShell 稳；node 必须带 cookie 兜底",
+			"pitfall": "误判为需要登录；交叉验证（curl/PS/node 三通道对照）定位真因",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-010",
+			"domain": "协作",
+			"title": "后台长跑三件套",
+			"scenario": "批量下载队列",
+			"method": "断点标记(_done) + 全局防重档案 + 看护进程(日志心跳+自动重启)",
+			"pitfall": "缺一就事故：无声暴毙/重复虚增/与Serpent导入冲突",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-011",
+			"domain": "协作",
+			"title": "杀后台脚本按 PID 确认死亡",
+			"scenario": "TaskStop 后的孤儿进程",
+			"method": "taskkill 后复查进程表；看护复活会拉起深挖队列与 Serpent 导入正面冲突",
+			"pitfall": "TaskStop 显示 killed 但 bash 孤儿存活",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-012",
+			"domain": "抓取",
+			"title": " cookies.txt 第5列是 UNIX 时间戳",
+			"scenario": "gallery-dl --cookies",
+			"method": ".domain\tTRUE\t/\tTRUE\t1900000000\tname\tvalue",
+			"pitfall": "写成1→sessionid expired at 1970 静默失效",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-013",
+			"domain": "通用",
+			"title": "大整理前退出 Serpent",
+			"scenario": "库目录大规模文件操作",
+			"method": "先退出 Serpent → 操作 → 重开重扫",
+			"pitfall": "几万次文件搬移期间实时索引→WAL膨胀225MB→worker假死→卡爆",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-014",
+			"domain": "通用",
+			"title": "kpopping slug 反斜杠",
+			"scenario": "从 /groups 页正则提取 slug",
+			"method": "捕获组用 [^\"\\\\\\\\]+ 且 decodeURIComponent 后 strip 尾部反斜杠",
+			"pitfall": "JSON 转义 \\ 混进捕获组→URL 带 %5C 全 404",
+			"date": "2026-08-28"
+		}
+	]
+}
