@@ -95,11 +95,11 @@
 			"id": "T-010",
 			"title": "二次元两池合并去重",
 			"owner": "bigmodel",
-			"state": "backlog",
+			"state": "done",
 			"priority": "P1",
-			"deps": ["deepseek 收工确认"],
-			"brief": "画风夹 vs pixiv_* 主题夹 内容 hash 级合并，同名遗留 141 清理",
-			"artifacts": []
+			"deps": [],
+			"brief": "全池 hash 实测 4,221 张零重复（前轮全库去重已覆盖）；待人工 141 清零：97 张滞留正身归位画风夹 + 44 张非插画素材隔离；根 manifest 重建（双维度标签 1,281 + 来源元数据 2,938）",
+			"artifacts": ["二次元/manifest.json", "_隔离待删-0828/待人工-非插画素材/"]
 		},
 		{
 			"id": "T-011",
