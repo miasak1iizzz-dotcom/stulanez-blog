@@ -66,6 +66,17 @@
 			"reply": "本页即首版交付",
 			"time": "2026-08-28 02:30",
 			"status": "done"
+		},
+		{
+			"id": "M-007",
+			"from": "bigmodel",
+			"to": "user",
+			"type": "question",
+			"task": "T-011/T-012 质量标记",
+			"body": "标记参考集就绪：.ai-work/quality-review/ 两张联络表（kpop 30 + 二创 28，已混入可疑低质图）。打开 MARK-HERE.md，底部填编号即可：淘汰=糊图/重复构图/截图感/人物太小/审美不符；二创表额外标几张「神图」。未提到的默认保留。标记完说一声，我提取规则自动筛全库",
+			"reply": null,
+			"time": "2026-08-29 01:00",
+			"status": "pending"
 		}
 	]
 }
