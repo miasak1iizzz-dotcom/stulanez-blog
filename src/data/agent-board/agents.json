@@ -1,62 +1,71 @@
 [
-	{
-		"id": "bigmodel",
-		"name": "GLM",
-		"vendor": "zhipu",
-		"model": "GLM-5.3",
-		"port": 4325,
-		"color": "#a78bfa",
-		"role": "全栈 · 资产管线 · 分类整理",
-		"status": "idle",
-		"currentTask": null,
-		"summaries": ["docs/glm-work-retrospective.md"]
-	},
-	{
-		"id": "deepseek",
-		"name": "DeepSeek",
-		"vendor": "deepseek",
-		"model": "DeepSeek（一/二号实例）",
-		"port": 4323,
-		"color": "#3b82f6",
-		"role": "二次元/AI 生图 · Serpent 资产线 · K-pop 播放器 · TFT 对齐",
-		"status": "working",
-		"currentTask": "10G 素材冲刺",
-		"summaries": ["docs/AGENT-1-SUMMARY.md", "docs/AGENT-2-SUMMARY.md"]
-	},
-	{
-		"id": "codex",
-		"name": "Codex",
-		"vendor": "openai",
-		"model": "Codex",
-		"port": 4322,
-		"color": "#10b981",
-		"role": "协作协议 · TFT 初版",
-		"status": "idle",
-		"currentTask": null,
-		"summaries": ["docs/CODEX-SUMMARY.md"]
-	},
-	{
-		"id": "cursor",
-		"name": "Cursor",
-		"vendor": "grok",
-		"model": "Grok 4.6",
-		"port": 4321,
-		"color": "#f59e0b",
-		"role": "外观 UX · 显示设置",
-		"status": "idle",
-		"currentTask": null,
-		"summaries": ["docs/CURSOR-CODEX-BRIEFING.md"]
-	},
-	{
-		"id": "user",
-		"name": "Saki",
-		"vendor": "human",
-		"model": "人类指挥官",
-		"port": null,
-		"color": "#fbbf24",
-		"role": "方向决策 · 验收 · 资源",
-		"status": "idle",
-		"currentTask": null,
-		"summaries": []
-	}
+  {
+    "id": "bigmodel",
+    "name": "GLM",
+    "vendor": "zhipu",
+    "model": "GLM-5.3",
+    "port": 4325,
+    "color": "#a78bfa",
+    "role": "全栈 · 资产管线 · 分类整理",
+    "status": "idle",
+    "currentTask": null,
+    "summaries": [
+      "docs/GLM-SUMMARY.md"
+    ]
+  },
+  {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "vendor": "deepseek",
+    "model": "DeepSeek（一/二号实例）",
+    "port": 4323,
+    "color": "#3b82f6",
+    "role": "二次元/AI 生图 · Serpent 资产线 · K-pop 播放器 · TFT 对齐",
+    "status": "working",
+    "currentTask": "10G 素材冲刺",
+    "summaries": [
+      "docs/AGENT-1-SUMMARY.md",
+      "docs/AGENT-2-SUMMARY.md"
+    ]
+  },
+  {
+    "id": "codex",
+    "name": "Codex",
+    "vendor": "openai",
+    "model": "Codex",
+    "port": 4322,
+    "color": "#10b981",
+    "role": "协作协议 · TFT 初版",
+    "status": "idle",
+    "currentTask": null,
+    "summaries": [
+      "docs/CODEX-SUMMARY.md"
+    ]
+  },
+  {
+    "id": "cursor",
+    "name": "Cursor",
+    "vendor": "grok",
+    "model": "Grok 4.6",
+    "port": 4321,
+    "color": "#f59e0b",
+    "role": "外观 UX · 显示设置",
+    "status": "idle",
+    "currentTask": null,
+    "summaries": [
+      "docs/CURSOR-SUMMARY.md"
+    ]
+  },
+  {
+    "id": "user",
+    "name": "Saki",
+    "vendor": "human",
+    "model": "人类指挥官",
+    "port": null,
+    "color": "#fbbf24",
+    "role": "方向决策 · 验收 · 资源",
+    "status": "idle",
+    "currentTask": null,
+    "summaries": []
+  }
 ]
