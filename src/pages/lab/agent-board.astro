@@ -9,7 +9,11 @@ import mailData from "@/data/agent-board/mail.json";
 import experienceData from "@/data/agent-board/experience.json";
 import currentStateMd from "@/data/agent-board/CURRENT-STATE.md?raw";
 import {
+	getBoardWriteLock,
+	getClaimConflicts,
 	getClaims,
+	getSharedBoardClaimViolations,
+	isClaimActive,
 	ownerToAgentId,
 	type AgentInfo,
 	type ClaimCard,
@@ -29,6 +33,10 @@ const decisions = (decisionsData as { items: Decision[] }).items;
 const messages = (mailData as { messages: Msg[] }).messages;
 const exps = (experienceData as { entries: Exp[] }).entries;
 const claims = getClaims();
+const claimConflicts = getClaimConflicts(claims);
+const sharedBoardClaimViolations = getSharedBoardClaimViolations(claims);
+const boardWriteLock = getBoardWriteLock();
+const coordinationIssueCount = claimConflicts.length + sharedBoardClaimViolations.length;
 
 const byState = (s: string): Task[] => tasks.filter((t) => t.state === s);
 const stateLabel: Record<string, string> = {
@@ -49,7 +57,7 @@ for (const c of claims) {
 	const box = claimsByAgent.get(id) ?? (claimsByAgent.set(id, []), claimsByAgent.get(id)!);
 	box.push(c);
 }
-const activeClaims = claims.filter((c) => c.status.startsWith("active"));
+const activeClaims = claims.filter((c) => isClaimActive(c.status));
 
 const agentCards = agents
 	.filter((a) => a.id !== "user")
@@ -74,6 +82,7 @@ const stats: Array<{ n: number; label: string; color: string }> = [
 	{ n: decisions.filter((d) => d.status === "pending").length, label: "待拍板", color: "text-rose-500" },
 	{ n: byState("done").length, label: "已完成", color: "text-emerald-500" },
 	{ n: activeClaims.length, label: "活跃认领", color: "text-amber-500" },
+	{ n: coordinationIssueCount, label: "协调冲突", color: coordinationIssueCount > 0 ? "text-red-500" : "text-emerald-500" },
 ];
 const navTabs = [
 	{ key: "overview", label: "总览" },
@@ -102,7 +111,7 @@ const claimLabel = (s: string): string =>
 			<p class="text-[11px] tracking-[0.35em] text-zinc-400 dark:text-zinc-500 mb-2">ETERNAL DESIRE · AGENT CENTER</p>
 			<h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">多代理协作中心</h1>
 			<p class="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">最后同步 {tasksData.updated}</p>
-			<div class="mt-5 grid grid-cols-2 sm:grid-cols-5 gap-3">
+			<div class="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
 				{stats.map((s) => (
 					<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-3">
 						<p class={`text-2xl font-bold ${s.color}`}>{s.n}</p>
@@ -111,6 +120,38 @@ const claimLabel = (s: string): string =>
 				))}
 			</div>
 		</header>
+
+		{coordinationIssueCount > 0 && (
+			<section class="mb-6 rounded-xl border border-red-200 bg-red-50/80 p-4 dark:border-red-500/30 dark:bg-red-500/10" aria-label="认领冲突告警">
+				<div class="flex items-start gap-3">
+					<span class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-red-100 text-sm text-red-600 dark:bg-red-500/20 dark:text-red-300">!</span>
+					<div class="min-w-0 flex-1">
+						<h2 class="text-sm font-semibold text-red-700 dark:text-red-300">检测到 {coordinationIssueCount} 项协调冲突</h2>
+						<p class="mt-1 text-xs leading-relaxed text-red-600/80 dark:text-red-300/80">涉及路径必须停止写入并拆分认领；共享看板数据只能通过短锁更新，不能放进长期任务 claim。</p>
+						<div class="mt-3 space-y-2">
+							{claimConflicts.map((conflict) => (
+								<div class="rounded-lg border border-red-200/80 bg-white/70 px-3 py-2 text-[11px] text-red-700 dark:border-red-500/20 dark:bg-zinc-950/30 dark:text-red-200">
+									<p class="font-medium">{conflict.leftClaim} ↔ {conflict.rightClaim}</p>
+									<p class="mt-0.5 break-all opacity-75">{conflict.leftPath} ↔ {conflict.rightPath}</p>
+								</div>
+							))}
+							{sharedBoardClaimViolations.map((violation) => (
+								<div class="rounded-lg border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-[11px] text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
+									<p class="font-medium">共享数据长期认领：{violation.claim}</p>
+									<p class="mt-0.5 break-all opacity-75">{violation.path}</p>
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			</section>
+		)}
+
+		{boardWriteLock && (
+			<div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+				看板写入锁：<b>{boardWriteLock.owner}</b> · {boardWriteLock.task} · {boardWriteLock.acquiredAt}
+			</div>
+		)}
 
 		<nav class="flex items-center gap-1 border-b border-zinc-200 dark:border-zinc-800 mb-6" aria-label="看板视图">
 			{navTabs.map((t, i) => (

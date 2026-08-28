@@ -21,6 +21,7 @@
    - Codex：`.ai-work/claims/codex-<task>.md`
    - Cursor：`.ai-work/claims/cursor-<task>.md`
 5. 填写准确的文件清单、可能产生的生成文件和占用端口，然后才能修改。
+6. 执行 `pnpm exec tsx scripts/check-agent-claims.ts --claim <认领文件名去掉.md>`；只有退出码为 0 才能开始写入。
 
 认领文件只用于本机协调，已被 Git 忽略。任务名使用简短的小写英文和连字符，例如 `codex-home-hero.md`。同一代理的不同任务也必须使用不同文件。
 
@@ -30,6 +31,7 @@
 - 只有确实需要跨目录重构时才认领目录，如 `src/components/search/**`。
 - 目录认领覆盖其所有子文件；与现有文件认领有交集即视为冲突。
 - 下列共享文件必须单独、排他认领：`package.json`、`pnpm-lock.yaml`、`astro.config.mjs`、`src/config/**`、全局布局、全局样式、路由入口、生成脚本及其输出、协作协议文件。
+- `src/data/agent-board/` 下的六个共享状态文件是例外：不得放入长期任务认领，统一走“Agent 看板中心”章节的原子短锁。
 - 如果认领范围重叠，后到者不得编辑；应拆分任务到不重叠文件，或让用户决定优先级。
 
 ## 3. 工作期间的边界
@@ -89,4 +91,14 @@
 - `CURRENT-STATE.md` 全局现状（<200 行）：**任何代理开新对话必读；收工时更新**
 - `experience.json` 经验库：**开工前先查，收工后写回新经验**
 
-规则：写入前照常走认领卡与 git 纪律；`.ai-work/` 与 `_kp-meta/` 仍为临时区不提交。大规模文件操作前退出 Serpent。
+### 共享状态写入锁
+
+`agents.json`、`tasks.json`、`decisions.json`、`mail.json`、`experience.json`、`CURRENT-STATE.md` 是所有代理都会更新的共享状态，**禁止写进长期任务 claim**。写入时使用短临界区：
+
+1. `node scripts/agent-board-lock.mjs acquire <owner> "<task>"`，原子获取 `.ai-work/claims/.board-write.lock.json`。
+2. 只改本次对应记录；修改前重新读取目标文件，修改后校验 JSON/Markdown 与 `git diff`。
+3. `node scripts/agent-board-lock.mjs release <owner>` 立即释放。失败或暂停时也要释放；锁属于其他代理时不得删除，陈旧锁由原 owner 或用户裁决。
+
+看板总览会实时展示活跃认领的重叠路径、长期占用共享状态的违规 claim，以及当前短锁持有者。任何红色冲突出现时，涉及路径立即停止写入。`pnpm exec tsx scripts/check-agent-claims.ts` 可在终端执行同一套检查，并以非零退出码阻止开工。
+
+规则：普通源码写入照常走认领卡与 Git 纪律；共享看板状态改走短锁；`.ai-work/` 与 `_kp-meta/` 仍为临时区不提交。大规模文件操作前退出 Serpent。
