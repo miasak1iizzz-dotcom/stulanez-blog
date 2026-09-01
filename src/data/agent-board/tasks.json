@@ -1,5 +1,5 @@
 {
-		"updated": "2026-09-01",
+	"updated": "2026-09-01",
 	"tasks": [
 		{
 			"id": "T-001",
@@ -9,7 +9,9 @@
 			"priority": "P2",
 			"deps": [],
 			"brief": "其它 tab 拆为两个独立页签，四页签结构",
-			"artifacts": ["1b112f1"]
+			"artifacts": [
+				"1b112f1"
+			]
 		},
 		{
 			"id": "T-002",
@@ -19,7 +21,10 @@
 			"priority": "P1",
 			"deps": [],
 			"brief": "联络表目检管线：内容 6 类 + 画风 11 类双标签，manifest 落盘",
-			"artifacts": ["二次元/{画风}/", "二次元/manifest.json"]
+			"artifacts": [
+				"二次元/{画风}/",
+				"二次元/manifest.json"
+			]
 		},
 		{
 			"id": "T-003",
@@ -29,7 +34,9 @@
 			"priority": "P1",
 			"deps": [],
 			"brief": "gallery-dl + cookie 官方线，全队列 167 号完成",
-			"artifacts": ["kpop/{团}/{成员_账号}/"]
+			"artifacts": [
+				"kpop/{团}/{成员_账号}/"
+			]
 		},
 		{
 			"id": "T-004",
@@ -39,7 +46,10 @@
 			"priority": "P1",
 			"deps": [],
 			"brief": "ddragon 直链 + CDragon 元数据，全英雄 base + 皮肤",
-			"artifacts": ["LOL/原画/", "LOL/manifest.json"]
+			"artifacts": [
+				"LOL/原画/",
+				"LOL/manifest.json"
+			]
 		},
 		{
 			"id": "T-005",
@@ -49,7 +59,9 @@
 			"priority": "P2",
 			"deps": [],
 			"brief": "gallery-dl + 代理，SFW/Sensitive，按团归档",
-			"artifacts": ["二创/kpop-danbooru/"]
+			"artifacts": [
+				"二创/kpop-danbooru/"
+			]
 		},
 		{
 			"id": "T-006",
@@ -59,7 +71,10 @@
 			"priority": "P2",
 			"deps": [],
 			"brief": "搜索 API + 专栏正文 + hdslb 直链，412 退避通过",
-			"artifacts": ["kpop/B站美图/", "二次元/B站美图/"]
+			"artifacts": [
+				"kpop/B站美图/",
+				"二次元/B站美图/"
+			]
 		},
 		{
 			"id": "T-007",
@@ -69,7 +84,9 @@
 			"priority": "P2",
 			"deps": [],
 			"brief": "成员页封面流解码 cdn 原图，代理出口解 CF 封锁",
-			"artifacts": ["kpop/{团}/饭拍-kpopping/"]
+			"artifacts": [
+				"kpop/{团}/饭拍-kpopping/"
+			]
 		},
 		{
 			"id": "T-008",
@@ -79,7 +96,10 @@
 			"priority": "P1",
 			"deps": [],
 			"brief": "Pixiv/Wallhaven/Civitai 三路并行，pixiv_* 主题夹重建",
-			"artifacts": ["二次元/pixiv_*/", "AI画作/"]
+			"artifacts": [
+				"二次元/pixiv_*/",
+				"AI画作/"
+			]
 		},
 		{
 			"id": "T-009",
@@ -99,7 +119,10 @@
 			"priority": "P1",
 			"deps": [],
 			"brief": "全池 hash 实测 4,221 张零重复（前轮全库去重已覆盖）；待人工 141 清零：97 张滞留正身归位画风夹 + 44 张非插画素材隔离；根 manifest 重建（双维度标签 1,281 + 来源元数据 2,938）",
-			"artifacts": ["二次元/manifest.json", "_隔离待删-0828/待人工-非插画素材/"]
+			"artifacts": [
+				"二次元/manifest.json",
+				"_隔离待删-0828/待人工-非插画素材/"
+			]
 		},
 		{
 			"id": "T-011",
@@ -107,9 +130,14 @@
 			"owner": "bigmodel",
 			"state": "review",
 			"priority": "P1",
-			"deps": ["T-015 Serpent 扫描完成（筛选涉及移动/删除）"],
+			"deps": [
+				"T-015 Serpent 扫描完成（筛选涉及移动/删除）"
+			],
 			"brief": "保底清理已收官；视觉目检轮推进中：SEVENTEEN 两批 1,175 张已判（批1 575 判/196 淘汰 34%，批2 600 判/134 淘汰 22.3%），隔离区 330 张待用户抽查后清空；下一团 Kep1er（队列按图量降序）+ 二创 47 表一次过；方案见 .ai-work/quality-review/rules-v1.md",
-			"artifacts": [".ai-work/quality-review/rules-v1.md", ".ai-work/quality-review/eliminate-candidates.json"]
+			"artifacts": [
+				".ai-work/quality-review/rules-v1.md",
+				".ai-work/quality-review/eliminate-candidates.json"
+			]
 		},
 		{
 			"id": "T-012",
@@ -117,7 +145,9 @@
 			"owner": "bigmodel",
 			"state": "blocked",
 			"priority": "P2",
-			"deps": ["T-011"],
+			"deps": [
+				"T-011"
+			],
 			"brief": "弃大标签改成员名标签，入库前逐张目检",
 			"artifacts": []
 		},
@@ -173,7 +203,10 @@
 			"priority": "P0",
 			"deps": [],
 			"brief": "回归通过，无需源码修复：8 张卡片/问候胶囊在亮暗主题及 375/414/768 断点下可读、对齐且无横向溢出；8 个链接与 8 张背景图均为 200，控制台零报错",
-			"artifacts": ["src/components/misc/HomePortal.astro", "public/assets/images/portal/*.jpg"]
+			"artifacts": [
+				"src/components/misc/HomePortal.astro",
+				"public/assets/images/portal/*.jpg"
+			]
 		},
 		{
 			"id": "T-018",
@@ -264,6 +297,21 @@
 			"deps": [],
 			"brief": "作品页/关于/动态/相册等入口的新增项目与时效信息核对，保证导航「我的」分组不过期",
 			"artifacts": []
+		},
+		{
+			"id": "T-027",
+			"title": "看板深度改造：客户端级 UI + 新手可读化",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "用户指派（Codex 下线接手）：看板已重做为客户端级指挥中心——Seraphine 原画横幅、27 张任务大白话+封面图、五列看板+筛选+详情弹窗、决策拍板一键复制、新手指南页、代理空间同步改版；check/type-check/build 0 错误，浏览器全页签目检通过",
+			"artifacts": [
+				"src/pages/lab/agent-board.astro",
+				"src/pages/lab/agent-board/[agent].astro",
+				"src/data/agent-board/board-enrichments.json",
+				"public/assets/images/agent-board/"
+			]
 		}
 	]
 }
