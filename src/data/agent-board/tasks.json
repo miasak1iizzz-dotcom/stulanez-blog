@@ -1,5 +1,5 @@
 {
-	"updated": "2026-08-29",
+		"updated": "2026-09-01",
 	"tasks": [
 		{
 			"id": "T-001",
@@ -104,12 +104,12 @@
 		{
 			"id": "T-011",
 			"title": "kpop 低质量图筛选",
-			"owner": "user",
-			"state": "blocked",
+			"owner": "bigmodel",
+			"state": "review",
 			"priority": "P1",
-			"deps": [],
-			"brief": "等用户删修样本，产出黑名单特征后自动化过滤",
-			"artifacts": []
+			"deps": ["T-015 Serpent 扫描完成（筛选涉及移动/删除）"],
+			"brief": "保底清理已收官；视觉目检轮推进中：SEVENTEEN 两批 1,175 张已判（批1 575 判/196 淘汰 34%，批2 600 判/134 淘汰 22.3%），隔离区 330 张待用户抽查后清空；下一团 Kep1er（队列按图量降序）+ 二创 47 表一次过；方案见 .ai-work/quality-review/rules-v1.md",
+			"artifacts": [".ai-work/quality-review/rules-v1.md", ".ai-work/quality-review/eliminate-candidates.json"]
 		},
 		{
 			"id": "T-012",
@@ -164,6 +164,106 @@
 				"src/pages/lab/agent-board/[agent].astro",
 				"astro.config.mjs"
 			]
+		},
+		{
+			"id": "T-017",
+			"title": "首页门户(Bento)卡片回归",
+			"owner": "codex",
+			"state": "done",
+			"priority": "P0",
+			"deps": [],
+			"brief": "回归通过，无需源码修复：8 张卡片/问候胶囊在亮暗主题及 375/414/768 断点下可读、对齐且无横向溢出；8 个链接与 8 张背景图均为 200，控制台零报错",
+			"artifacts": ["src/components/misc/HomePortal.astro", "public/assets/images/portal/*.jpg"]
+		},
+		{
+			"id": "T-018",
+			"title": "首页文章卡与封面回归",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P0",
+			"deps": [],
+			"brief": "3 列网格 + 封面 + 卡片质感分层在新增文章下的表现，封面缺失/换行/高度塌陷排查",
+			"artifacts": []
+		},
+		{
+			"id": "T-019",
+			"title": "移动端断点与触控回归",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P1",
+			"deps": [],
+			"brief": "首页/内页/看板在 375/414/768 宽度下的布局、导航抽屉、侧栏折叠、横竖屏与触控目标尺寸",
+			"artifacts": []
+		},
+		{
+			"id": "T-020",
+			"title": "暗色/主题切换一致性回归",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P1",
+			"deps": [],
+			"brief": "全组件明暗图表、主题色联动(--primary/衍生色)、开屏与壁纸在两种主题下的对比度",
+			"artifacts": []
+		},
+		{
+			"id": "T-021",
+			"title": "SEO 与元信息回归",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P1",
+			"deps": [],
+			"brief": "OG/描述/robots/sitemap/规范 URL 复核；内部看板 noindex 后仍无泄漏；结构化数据完整",
+			"artifacts": []
+		},
+		{
+			"id": "T-022",
+			"title": "阅读体验与排版微调",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P2",
+			"deps": [],
+			"brief": "文章正文行高/字号/代码块/引用/图片宽度、TOC 锚点、阅读进度条在长文(小说/长文)下的表现",
+			"artifacts": []
+		},
+		{
+			"id": "T-023",
+			"title": "交互组件回归",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P1",
+			"deps": [],
+			"brief": "搜索、分页、归档/标签、日历年历/时间进度、音乐播放器、Bili 卡片等 Svelte 岛屿的 hydration 与交互",
+			"artifacts": []
+		},
+		{
+			"id": "T-024",
+			"title": "404/错误页与边界态打磨",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P2",
+			"deps": [],
+			"brief": "404 在移动端/暗色的观感、破图/断开链接兜底、空状态(如相册无内容、搜索无结果)文案与样式",
+			"artifacts": []
+		},
+		{
+			"id": "T-025",
+			"title": "性能与资产瘦身",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P2",
+			"deps": [],
+			"brief": "LQIP/图片懒加载/字体子集/脚本体积复核；Pagefind 索引与首页 FCP 无明显回退",
+			"artifacts": []
+		},
+		{
+			"id": "T-026",
+			"title": "内容/作品页扩展与更新",
+			"owner": "all",
+			"state": "backlog",
+			"priority": "P2",
+			"deps": [],
+			"brief": "作品页/关于/动态/相册等入口的新增项目与时效信息核对，保证导航「我的」分组不过期",
+			"artifacts": []
 		}
 	]
 }
