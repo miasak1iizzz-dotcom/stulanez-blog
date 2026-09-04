@@ -585,6 +585,22 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 	}
 </style>
 
+<style is:global>
+	/* 站点开启 CustomCursor 后全局隐藏系统指针，而弹窗顶层会盖住自定义光标的点/圈，
+	   指针在面板内完全不可见 —— 面板内强制换成醒目的金色箭头（黑描边，深浅底都清晰）。
+	   必须用 is:global：卷宗内容是 JS 动态生成的，带不上 Astro scoped 属性 */
+	dialog#reader,
+	dialog#reader * {
+		cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M5 2 L5 22 L10.5 16.8 L14 24.5 L17.5 23 L14 15.6 L21.5 15.4 Z' fill='%23f7e3ae' stroke='%231a1408' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E")
+				4 2,
+			auto !important;
+	}
+	dialog#reader textarea,
+	dialog#reader input {
+		cursor: text !important;
+	}
+</style>
+
 <script>
 	type ReaderPage = { h: string; p: string[] };
 	type ReaderEntry = {
