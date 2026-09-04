@@ -4,636 +4,797 @@ import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
 import { siteConfig } from "@/config";
 import agentsData from "@/data/agent-board/agents.json";
 import tasksData from "@/data/agent-board/tasks.json";
-import decisionsData from "@/data/agent-board/decisions.json";
-import mailData from "@/data/agent-board/mail.json";
-import experienceData from "@/data/agent-board/experience.json";
-import enrichments from "@/data/agent-board/board-enrichments.json";
-import currentStateMd from "@/data/agent-board/CURRENT-STATE.md?raw";
+import inboxData from "@/data/agent-board/inbox.json";
 import {
-	getBoardWriteLock,
-	getClaimConflicts,
+	deriveAgentStatus,
 	getClaims,
-	getSharedBoardClaimViolations,
-	isClaimActive,
 	ownerToAgentId,
+	TASK_CATEGORIES,
+	INBOX_KIND_META,
 	type AgentInfo,
-	type ClaimCard,
-	type Decision,
-	type Exp,
-	type Msg,
+	type InboxItem,
 	type Task,
 } from "@/utils/agent-board";
 
-const title = "AI 指挥中心";
-const description = "永恒欲望多代理协作看板：任务、决策、进度与团队。";
+const title = "指挥室 · AI 协作看板";
+const description = "永恒欲望多代理协作指挥室：谁在干什么、干到哪、需要你做什么。";
 const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 
 const agents = agentsData as AgentInfo[];
 const tasks = (tasksData as { updated: string; tasks: Task[] }).tasks;
-const decisions = (decisionsData as { items: Decision[] }).items;
-const messages = (mailData as { messages: Msg[] }).messages;
-const exps = (experienceData as { entries: Exp[] }).entries;
-const claims = getClaims();
-const claimConflicts = getClaimConflicts(claims);
-const sharedBoardClaimViolations = getSharedBoardClaimViolations(claims);
-const boardWriteLock = getBoardWriteLock();
-const coordinationIssueCount = claimConflicts.length + sharedBoardClaimViolations.length;
-
-type Enrichment = { plain: string; cover: string; cat: string };
-const taskEnrich = enrichments as {
-	categories: Record<string, { label: string; emoji: string }>;
-	tasks: Record<string, Enrichment>;
-	agents: Record<string, { plain: string }>;
-	decisions: Record<string, { plain: string; copy: string }>;
-	quarantineNote: string;
-};
-const catOf = (id: string): string => taskEnrich.tasks[id]?.cat ?? "ops";
-const plainOf = (id: string): string => taskEnrich.tasks[id]?.plain ?? "";
-const coverOf = (id: string): string => taskEnrich.tasks[id]?.cover ?? "/assets/images/agent-board/lol-zoe.jpg";
+const inboxOpen = ((inboxData as { items: InboxItem[] }).items ?? []).filter(
+	(i) => i.status === "open",
+);
+const updated = (inboxData as { updated?: string }).updated ?? tasksData.updated;
 
 const agentById = new Map<string, AgentInfo>(agents.map((a) => [a.id, a]));
 const nameOf = (id: string): string => agentById.get(id)?.name ?? id;
 const colorOf = (id: string): string => agentById.get(id)?.color ?? "#a1a1aa";
-const ownerAgentId = (owner: string): string => ownerToAgentId(owner);
-const plainAgent = (id: string): string => taskEnrich.agents[id]?.plain ?? "";
+const ownerName = (owner: string): string =>
+	owner === "all" ? "待分工" : nameOf(ownerToAgentId(owner));
+const ownerColor = (owner: string): string =>
+	owner === "all" ? "#71717a" : colorOf(ownerToAgentId(owner));
 
-const byState = (s: string): Task[] => tasks.filter((t) => t.state === s);
-const stateMeta: Record<string, { label: string; hint: string; chip: string; dot: string }> = {
-	doing: { label: "进行中", hint: "AI 正在干", chip: "bg-blue-500/10 text-blue-600 dark:text-blue-300 ring-blue-500/30", dot: "bg-blue-400" },
-	blocked: { label: "等你拍板", hint: "卡住，需要老板决定", chip: "bg-rose-500/10 text-rose-600 dark:text-rose-300 ring-rose-500/30", dot: "bg-rose-400" },
-	review: { label: "待验收", hint: "干完了，等老板过目", chip: "bg-amber-500/10 text-amber-600 dark:text-amber-300 ring-amber-500/30", dot: "bg-amber-400" },
-	backlog: { label: "排手中", hint: "排队等着做", chip: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-300 ring-zinc-500/30", dot: "bg-zinc-400" },
-	done: { label: "已完成", hint: "验收通过", chip: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 ring-emerald-500/30", dot: "bg-emerald-400" },
+const claims = getClaims();
+const doingTasks = tasks.filter((t) => t.state === "doing");
+const reviewTasks = tasks.filter((t) => t.state === "review");
+const queueTasks = tasks.filter(
+	(t) => t.state === "backlog" || t.state === "blocked",
+);
+const doneCount = tasks.filter((t) => t.state === "done").length;
+const idleAIs = agents.filter(
+	(a) =>
+		a.id !== "user" && deriveAgentStatus(a, claims, tasks).key === "idle",
+).length;
+const aiCount = agents.filter((a) => a.id !== "user").length;
+
+const stateChip: Record<string, { label: string; cls: string }> = {
+	doing: { label: "● 进行中", cls: "bg-sky-400/10 text-sky-300 ring-sky-400/30" },
+	review: { label: "◉ 等你验收", cls: "bg-[#e6c26e]/10 text-[#e6c26e] ring-[#e6c26e]/30" },
+	blocked: { label: "⛔ 卡住", cls: "bg-rose-400/10 text-rose-300 ring-rose-400/30" },
+	backlog: { label: "○ 排队中", cls: "bg-white/5 text-zinc-400 ring-white/10" },
 };
-const stateOrder = ["doing", "blocked", "review", "backlog", "done"];
 
-const pendingDecisions = decisions.filter((d) => d.status === "pending");
-const doingTasks = byState("doing");
-const activeClaims = claims.filter((c) => isClaimActive(c.status));
+// —— 交给前端的卷宗数据（任务/卷宗统一成翻页阅读器格式）——
+type ReaderPage = { h: string; p: string[] };
+type ReaderEntry = {
+	key: string;
+	source: "inbox" | "task";
+	kindLabel: string;
+	cover: string;
+	title: string;
+	ownerName: string;
+	ownerColor: string;
+	taskRef: string;
+	pages: ReaderPage[];
+	copyContext: string;
+};
 
-// 给 JS 的任务数据（弹窗详情用）
-const tasksForJs = tasks.map((t) => ({
-	id: t.id,
-	title: t.title,
-	owner: t.owner,
-	ownerName: nameOf(ownerAgentId(t.owner)),
-	ownerColor: colorOf(ownerAgentId(t.owner)),
-	state: t.state,
-	stateLabel: stateMeta[t.state]?.label ?? t.state,
-	priority: t.priority,
-	plain: plainOf(t.id),
-	brief: t.brief,
-	deps: t.deps,
-	artifacts: t.artifacts,
-	cover: coverOf(t.id),
-	cat: catOf(t.id),
-	catLabel: taskEnrich.categories[catOf(t.id)]?.label ?? "",
+const inboxEntries: ReaderEntry[] = inboxOpen.map((i) => ({
+	key: i.id,
+	source: "inbox",
+	kindLabel: INBOX_KIND_META[i.kind]?.label ?? "拍板",
+	cover: i.cover,
+	title: i.title,
+	ownerName: i.owner === "user" ? "你" : nameOf(ownerToAgentId(i.owner)),
+	ownerColor: colorOf(ownerToAgentId(i.owner)),
+	taskRef: i.taskRef,
+	pages: i.pages.map((pg) => ({ h: pg.h, p: pg.p })),
+	copyContext:
+		"完成后把 src/data/agent-board/inbox.json 里这一条标为 resolved，并同步 tasks.json 的状态。",
 }));
 
-// CURRENT-STATE.md 解析成分节
-function parseCurrentState(md: string): { title: string; lead?: string; items: string[] }[] {
-	const sections: { title: string; lead?: string; items: string[] }[] = [];
-	let cur: { title: string; lead?: string; items: string[] } | null = null;
-	for (const line of md.split(/\r?\n/)) {
-		const h = line.match(/^##\s+(.+?)\s*$/);
-		if (h) {
-			cur = { title: h[1], items: [] };
-			sections.push(cur);
-			continue;
-		}
-		if (!cur || /^#\s/.test(line)) continue;
-		if (/^-\s+/.test(line)) cur.items.push(line.replace(/^-\s+/, ""));
-		else if (line.trim()) cur.lead = cur.lead ? `${cur.lead} ${line.trim()}` : line.trim();
+function taskPages(t: Task): ReaderPage[] {
+	if (t.story && t.story.length > 0) {
+		const heads = ["来龙去脉", "做到哪了", "接下来"];
+		return t.story.map((seg, i) => ({
+			h: heads[Math.min(i, heads.length - 1)],
+			p: [seg],
+		}));
 	}
-	return sections;
-}
-const csSections = parseCurrentState(currentStateMd);
-const csUpdated = currentStateMd.match(/最后更新\s*([\d-]+)/)?.[1] ?? tasksData.updated;
-
-const claimsByAgent = new Map<string, ClaimCard[]>();
-for (const c of claims) {
-	const id = ownerToAgentId(c.owner);
-	const box = claimsByAgent.get(id) ?? (claimsByAgent.set(id, []), claimsByAgent.get(id)!);
-	box.push(c);
+	return [{ h: "这是件什么事", p: [t.plain] }];
 }
 
-const mailByPair: Record<string, Msg[]> = {};
-for (const m of [...messages].reverse()) {
-	const key = `${m.from}→${m.to}`;
-	(mailByPair[key] ??= []).push(m);
-}
+const taskEntries: ReaderEntry[] = [...doingTasks, ...reviewTasks, ...queueTasks].map(
+	(t) => ({
+		key: t.id,
+		source: "task",
+		kindLabel: "任务",
+		cover: t.cover,
+		title: t.title,
+		ownerName: ownerName(t.owner),
+		ownerColor: ownerColor(t.owner),
+		taskRef: t.id,
+		pages: [
+			...taskPages(t),
+			...(t.nextStep ? [{ h: "下一步", p: [t.nextStep] }] : []),
+		],
+		copyContext:
+			"请按上面的意见调整，完成后更新 src/data/agent-board/tasks.json 的进度与状态。",
+	}),
+);
 
-const domains: string[] = [...new Set(exps.map((e) => e.domain))];
-const navTabs = [
-	{ key: "overview", label: "总览", badge: doingTasks.length },
-	{ key: "kanban", label: "任务看板", badge: tasks.length },
-	{ key: "decisions", label: "等你拍板", badge: pendingDecisions.length },
-	{ key: "mail", label: "信箱", badge: messages.length },
-	{ key: "experience", label: "AI 笔记", badge: exps.length },
-	{ key: "guide", label: "新手指南", badge: 0 },
-];
+const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 ---
 
 <Layout {title} {description}>
 	<meta slot="head" name="robots" content="noindex, nofollow, noarchive" />
 	<HeaderTopRow stickyNavbar={true} navbarWidthFull={navbarWidthFull} />
-	<main class="mx-auto w-full max-w-7xl px-4 pt-20 pb-16 min-h-screen">
-		<!-- ===== Hero ===== -->
-		<header class="relative overflow-hidden rounded-3xl mb-6 ring-1 ring-zinc-900/10 dark:ring-white/10">
-			<img
-				src="/assets/images/agent-board/hero-seraphine.jpg"
-				alt=""
-				class="absolute inset-0 h-full w-full object-cover"
-				loading="eager"
-			/>
-			<div class="absolute inset-0 bg-gradient-to-r from-zinc-950/85 via-zinc-950/60 to-zinc-950/20"></div>
-			<div class="relative px-6 py-10 sm:px-10 sm:py-14">
-				<p class="text-[11px] tracking-[0.35em] text-white/60 mb-3">ETERNAL DESIRE · MISSION CONTROL</p>
-				<h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow">AI 指挥中心</h1>
-				<p class="mt-3 max-w-xl text-sm sm:text-[15px] leading-relaxed text-white/80">
-					5 位成员（4 位 AI + 你）在这里协作运营 stulanez.com：
-					建图库、做网站功能、互相检查。任务干到哪一步、需要你拍板什么，看这块板就够了。
-				</p>
-				<div class="mt-5 flex flex-wrap items-center gap-2 text-xs">
-					{stateOrder.map((s) => (
-						<span class:list={["inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-white/90 ring-1 ring-white/20 backdrop-blur-sm"]}>
-							<span class:list={["h-1.5 w-1.5 rounded-full", stateMeta[s].dot]} />
-							{stateMeta[s].label} <b class="font-bold">{byState(s).length}</b>
-						</span>
-					))}
-					<span class="ml-auto text-white/50">同步于 {csUpdated}</span>
-				</div>
-			</div>
-		</header>
-
-		<!-- ===== 需要你 ===== -->
-		<section id="first-visit" hidden class="mb-6 rounded-2xl border border-violet-300/60 bg-gradient-to-r from-violet-500/10 via-fuchsia-500/5 to-transparent p-5 dark:border-violet-500/30">
-			<div class="flex flex-wrap items-center gap-4">
-				<span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-500/15 text-xl">👋</span>
-				<div class="min-w-0 flex-1">
-					<p class="text-sm font-semibold text-zinc-900 dark:text-zinc-50">第一次来？两分钟看懂这块板</p>
-					<p class="mt-0.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-						点上面的「新手指南」看分工和玩法；<b class="text-rose-500">「等你拍板」</b>里有 {pendingDecisions.length} 个问题等你一句话决定（点一下复制，发给任何 AI 对话即可）。
+	<main class="mx-auto w-full max-w-7xl px-3 pt-20 pb-16 sm:px-5 min-h-screen">
+		<div class="ab-deck">
+			<!-- ===== HERO ===== -->
+			<header class="relative mb-6 overflow-hidden rounded-3xl ring-1 ring-white/10">
+				<img
+					src="/assets/images/agent-board/hero-command.jpg"
+					alt=""
+					class="absolute inset-0 h-full w-full object-cover"
+					loading="eager"
+				/>
+				<div class="absolute inset-0 ab-hero-shade"></div>
+				<div class="relative px-6 py-12 sm:px-12 sm:py-16">
+					<p class="mb-3 text-[11px] font-black tracking-[0.42em] text-[#e6c26e]">
+						STULANEZ · COMMAND DECK
 					</p>
+					<h1 class="text-4xl font-black tracking-tight text-white drop-shadow-lg sm:text-6xl">
+						指挥室
+					</h1>
+					<p class="mt-4 max-w-xl text-sm leading-7 text-zinc-300 sm:text-[15px]">
+						{aiCount} 位 AI 员工 + 你，在这里推进 stulanez.com 和 5 万张图的图库。
+						他们在干什么、干到哪一步、哪件事在等你——看这一屏就够了。
+					</p>
+					<div class="mt-7 flex flex-wrap items-center gap-2.5 text-xs font-bold">
+						{
+							inboxOpen.length > 0 && (
+								<span class="ab-stat ab-stat-hot">
+									⚡ 等你过目 <b>{inboxOpen.length}</b>
+								</span>
+							)
+						}
+						<span class="ab-stat">▶ 进行中 <b>{doingTasks.length + reviewTasks.length}</b></span>
+						<span class="ab-stat">👥 空闲 <b>{idleAIs}/{aiCount}</b></span>
+						<span class="ab-stat">✔ 累计完成 <b>{doneCount}</b></span>
+						<span class="ml-auto text-[11px] font-medium text-zinc-500">同步于 {updated}</span>
+					</div>
 				</div>
-				<button type="button" id="guide-go" class="rounded-full bg-violet-500 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-violet-400 transition-colors">看指南</button>
-				<button type="button" id="guide-dismiss" class="rounded-full border border-zinc-300 px-4 py-2 text-xs text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800 transition-colors">知道了</button>
-			</div>
-		</section>
+				<div class="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#e6c26e]/60 to-transparent"></div>
+			</header>
 
-		<!-- ===== 导航 ===== -->
-		<nav class="sticky top-[64px] z-30 -mx-4 mb-6 bg-zinc-50/85 px-4 py-2 backdrop-blur-md dark:bg-zinc-950/80" aria-label="看板视图">
-			<div class="flex flex-wrap items-center gap-1.5">
-				{navTabs.map((t, i) => (
-					<button
-						type="button"
-						id={`tabbtn-${t.key}`}
-						data-tab={t.key}
-						class:list={[
-							"inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all",
-							i === 0
-								? "bg-zinc-900 text-white shadow dark:bg-zinc-100 dark:text-zinc-900"
-								: "text-zinc-500 hover:bg-zinc-200/70 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
-						]}
-					>
-						{t.label}
-						{t.badge > 0 && (
-							<span class:list={["rounded-full px-1.5 py-0.5 text-[10px] font-bold",
-								i === 0 ? "bg-white/20 dark:bg-zinc-900/15" : t.key === "decisions" ? "bg-rose-500 text-white" : "bg-zinc-300/80 dark:bg-zinc-700"]}>{t.badge}</span>
-						)}
-					</button>
-				))}
-			</div>
-		</nav>
+			<!-- ===== 分区导航 ===== -->
+			<nav
+				aria-label="看板分区"
+				class="sticky top-[64px] z-30 mb-8 flex flex-wrap items-center gap-1.5 rounded-2xl border border-white/10 bg-[#0c0c10]/85 px-3 py-2.5 backdrop-blur-xl"
+			>
+				<a href="#s-inbox" class="ab-navlink">⚡ 等你过目 <b>{inboxOpen.length}</b></a>
+				<a href="#s-doing" class="ab-navlink">▶ 正在进行 <b>{doingTasks.length + reviewTasks.length}</b></a>
+				<a href="#s-crew" class="ab-navlink">👥 AI 团队</a>
+				<a href="#s-queue" class="ab-navlink">☰ 排队中 <b>{queueTasks.length}</b></a>
+			</nav>
 
-		<!-- ===== 总览 ===== -->
-		<div id="tab-overview">
-			<!-- 正在进行 -->
-			<section class="mb-8">
-				<h2 class="mb-3 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-50">
-					<span class="relative flex h-2.5 w-2.5">
-						<span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60"></span>
-						<span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500"></span>
+			<!-- ===== 01 等你过目 ===== -->
+			<section id="s-inbox" class="mb-12 scroll-mt-32">
+				<div class="mb-5 flex items-center gap-3">
+					<span class="text-[11px] font-black tracking-[0.3em] text-[#e6c26e]">01 · INBOX</span>
+					<h2 class="text-2xl font-black text-white">等你过目</h2>
+					<span class="rounded-full bg-[#e6c26e]/10 px-2.5 py-1 text-[11px] font-bold text-[#e6c26e] ring-1 ring-[#e6c26e]/30">
+						{inboxOpen.length} 件事
 					</span>
-					现在正在进行
-				</h2>
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					{doingTasks.map((t) => (
-						<article class="group flex overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-200 transition-shadow hover:shadow-lg dark:bg-zinc-900 dark:ring-zinc-800">
-							<div class="relative w-28 shrink-0 sm:w-36">
-								<img src={coverOf(t.id)} alt="" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-							</div>
-							<div class="min-w-0 flex-1 p-4">
-								<div class="flex items-center gap-2">
-									<span class="rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-blue-500/30 dark:text-blue-300">进行中</span>
-									<span class="rounded-full bg-zinc-500/10 px-2 py-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">{taskEnrich.categories[catOf(t.id)]?.emoji} {taskEnrich.categories[catOf(t.id)]?.label}</span>
-									<button type="button" class="ml-auto text-[11px] text-violet-500 hover:underline" data-task-id={t.id}>详情 →</button>
-								</div>
-								<h3 class="mt-1.5 text-sm font-bold text-zinc-900 dark:text-zinc-50">{t.title}</h3>
-								<p class="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{plainOf(t.id)}</p>
-								<p class="mt-2 text-[11px] text-zinc-400 dark:text-zinc-500">{nameOf(ownerAgentId(t.owner))} 负责 · {t.priority}</p>
-							</div>
-						</article>
-					))}
-					{doingTasks.length === 0 && (
-						<p class="rounded-2xl bg-white p-6 text-sm text-zinc-400 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">暂无进行中任务</p>
-					)}
+					<div class="h-px flex-1 bg-gradient-to-r from-[#e6c26e]/40 to-transparent"></div>
 				</div>
-			</section>
-
-			<!-- 团队 -->
-			<section class="mb-8">
-				<h2 class="mb-3 text-lg font-bold text-zinc-900 dark:text-zinc-50">团队分工</h2>
-				<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-					{agents.map((a) => (
-						a.id === "user" ? (
-							<div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400/15 to-orange-500/10 p-[1px] ring-1 ring-amber-400/40">
-								<div class="h-full rounded-2xl bg-white/60 p-4 backdrop-blur dark:bg-zinc-900/80">
-									<div class="flex items-center gap-3">
-										<span class="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-lg shadow">👑</span>
-										<div class="min-w-0">
-											<p class="text-sm font-bold text-zinc-900 dark:text-zinc-50">{a.name} <span class="ml-1 text-[10px] font-medium rounded-full bg-amber-400/20 px-2 py-0.5 text-amber-600 dark:text-amber-300">这就是你</span></p>
-											<p class="text-[11px] text-zinc-400">{a.role}</p>
-										</div>
-									</div>
-									<p class="mt-2.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{plainAgent(a.id)}</p>
-								</div>
-							</div>
-						) : (
-							<a
-								href={`/lab/agent-board/${a.id}/`}
-								data-no-swup
-								class="group block rounded-2xl bg-white p-4 ring-1 ring-zinc-200 transition-all hover:shadow-lg hover:ring-zinc-300 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:ring-zinc-700"
+				<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+					{
+						inboxOpen.map((i, idx) => (
+							<article
+								class:list={["ab-card group cursor-pointer p-6", idx === 0 && "lg:col-span-2"]}
+								data-reader={i.id}
 							>
-								<div class="flex items-center gap-3">
-									<span class="relative">
-										<span class="grid h-11 w-11 place-items-center rounded-xl text-base font-bold text-white shadow" style={`background:linear-gradient(135deg,${a.color},color-mix(in srgb,${a.color} 50%,#312e81))`}>{a.name.charAt(0)}</span>
-										<span class:list={["absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-zinc-900", a.status === "working" ? "bg-emerald-400" : "bg-zinc-300 dark:bg-zinc-600"]} />
-									</span>
-									<div class="min-w-0">
-										<p class="text-sm font-bold text-zinc-900 dark:text-zinc-50">{a.name}</p>
-										<p class="truncate text-[11px] text-zinc-400">{a.model}</p>
-									</div>
-									<span class:list={["ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold", a.status === "working" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300" : "bg-zinc-500/10 text-zinc-400"]}>{a.status === "working" ? "● 工作中" : "空闲"}</span>
-								</div>
-								<p class="mt-2.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{plainAgent(a.id)}</p>
-								<div class="mt-3 flex items-center gap-3 border-t border-zinc-100 pt-2.5 text-[11px] text-zinc-400 dark:border-zinc-800">
-									{a.currentTask && <span class="truncate">📌 {a.currentTask}</span>}
-									<span class="ml-auto shrink-0 text-violet-500 opacity-0 transition-opacity group-hover:opacity-100">进入空间 →</span>
-								</div>
-							</a>
-						)
-					))}
-				</div>
-			</section>
-
-			<!-- 全局现状（解析后渲染） -->
-			<section class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
-				{csSections.map((sec) => (
-					sec.items.length > 0 || sec.lead ? (
-						<div class="rounded-2xl bg-white p-5 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-							<h3 class="mb-3 flex items-center gap-2 text-sm font-bold text-zinc-900 dark:text-zinc-50">
-								<span class="h-4 w-1 rounded-full bg-gradient-to-b from-violet-400 to-fuchsia-400"></span>
-								{sec.title}
-							</h3>
-							{sec.lead && <p class="mb-2 text-xs text-zinc-400 dark:text-zinc-500">{sec.lead}</p>}
-							<ul class="space-y-2">
-								{sec.items.map((item) => (
-									<li class="flex gap-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
-										<span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600"></span>
-										<span set:html={item.replace(/\*\*(.+?)\*\*/g, "<b class='text-zinc-900 dark:text-zinc-100'>$1</b>")} />
-									</li>
-								))}
-							</ul>
-						</div>
-					) : null
-				))}
-			</section>
-
-			<!-- 工程细节 -->
-			<details class="group rounded-2xl bg-white ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-				<summary class="cursor-pointer select-none px-5 py-3.5 text-xs font-medium text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300">
-					⚙️ 工程协作状态（认领卡 / 短锁 / 冲突检查 — AI 用的，老板可以不看）
-				</summary>
-				<div class="border-t border-zinc-100 px-5 py-4 text-xs dark:border-zinc-800">
-					<p class="mb-2 text-zinc-500 dark:text-zinc-400">
-						活跃认领 <b class="text-zinc-800 dark:text-zinc-200">{activeClaims.length}</b> ·
-						协调冲突 <b class:list={[coordinationIssueCount > 0 ? "text-rose-500" : "text-emerald-500"]}>{coordinationIssueCount}</b> ·
-						写入锁 {boardWriteLock ? <b class="text-amber-500">{boardWriteLock.owner}（{boardWriteLock.task}）</b> : <b class="text-emerald-500">空闲</b>}
-					</p>
-					<ul class="space-y-1 font-mono text-[11px] text-zinc-400">
-						{activeClaims.map((c) => <li>🔒 {c.file} — {c.owner} · {c.task}</li>)}
-					</ul>
-				</div>
-			</details>
-		</div>
-
-		<!-- ===== 任务看板 ===== -->
-		<div id="tab-kanban" hidden>
-			<div class="mb-4 flex flex-wrap items-center gap-1.5" id="kanban-filters">
-				<button type="button" data-kanban-filter="all" class="rounded-full bg-zinc-900 px-3.5 py-1.5 text-xs font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">全部 {tasks.length}</button>
-				{Object.entries(taskEnrich.categories).map(([key, c]) => (
-					<button type="button" data-kanban-filter={key} class="rounded-full bg-zinc-500/10 px-3.5 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-500/20 dark:text-zinc-300">{c.emoji} {c.label}</button>
-				))}
-				{agents.filter((a) => a.id !== "user").map((a) => (
-					<button type="button" data-kanban-filter={a.id} class="rounded-full px-3.5 py-1.5 text-xs font-medium ring-1 transition-colors" style={`color:${a.color};--tw-ring-color:${a.color}55`} data-filter-hover>{a.name}</button>
-				))}
-			</div>
-			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 items-start">
-				{stateOrder.map((s) => {
-					const meta = stateMeta[s];
-					const colTasks = byState(s);
-					return (
-						<div class="rounded-2xl bg-zinc-100/60 p-2.5 dark:bg-zinc-900/60">
-							<div class="mb-2.5 flex items-center gap-2 px-1.5 pt-1">
-								<span class:list={["h-2 w-2 rounded-full", meta.dot]} />
-								<h3 class="text-xs font-bold text-zinc-700 dark:text-zinc-200">{meta.label}</h3>
-								<span class="rounded-full bg-white px-1.5 text-[10px] font-bold text-zinc-400 dark:bg-zinc-800">{colTasks.length}</span>
-								<span class="ml-auto text-[10px] text-zinc-400 dark:text-zinc-500">{meta.hint}</span>
-							</div>
-							<div class="max-h-[62vh] space-y-2.5 overflow-y-auto pr-0.5 ab-scroll" data-col-body>
-								{colTasks.map((t) => (
-									<article
-										class="group cursor-pointer overflow-hidden rounded-xl bg-white ring-1 ring-zinc-200 transition-all hover:shadow-md hover:ring-violet-300 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:ring-violet-500/50"
-										data-task-id={t.id}
-										data-tags={`${catOf(t.id)} ${ownerAgentId(t.owner)}`}
-									>
-										<div class="relative h-20 overflow-hidden">
-											<img src={coverOf(t.id)} alt="" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-											<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-											<span class="absolute left-2 top-2 rounded-md bg-black/45 px-1.5 py-0.5 font-mono text-[9px] text-white/90 backdrop-blur-sm">{t.id}</span>
-											<span class="absolute right-2 top-2 rounded-md bg-black/45 px-1.5 py-0.5 text-[9px] text-white/90 backdrop-blur-sm">{taskEnrich.categories[catOf(t.id)]?.emoji}</span>
-										</div>
-										<div class="p-2.5">
-											<h4 class="line-clamp-2 text-xs font-bold leading-snug text-zinc-900 dark:text-zinc-50">{t.title}</h4>
-											<p class="mt-1 line-clamp-2 text-[10.5px] leading-relaxed text-zinc-400 dark:text-zinc-500">{plainOf(t.id)}</p>
-											<div class="mt-2 flex items-center gap-1.5">
-												<span class="h-4 w-4 shrink-0 rounded-full text-[8px] font-bold leading-4 text-center text-white" style={`background:${colorOf(ownerAgentId(t.owner))}`}>{nameOf(ownerAgentId(t.owner)).charAt(0)}</span>
-												<span class="truncate text-[10px] text-zinc-400">{nameOf(ownerAgentId(t.owner))}</span>
-												<span class:list={["ml-auto shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold ring-1", meta.chip]}>{meta.label}</span>
-											</div>
-										</div>
-									</article>
-								))}
-								{colTasks.length > 0 && <p data-col-empty hidden class="py-6 text-center text-[11px] text-zinc-400 dark:text-zinc-600">这列被筛空了</p>}
-								{colTasks.length === 0 && <p class="py-6 text-center text-[11px] text-zinc-400 dark:text-zinc-600">暂无任务</p>}
-							</div>
-						</div>
-					);
-				})}
-			</div>
-			<p class="mt-4 text-center text-[11px] text-zinc-400 dark:text-zinc-500">💡 点任意任务卡查看完整档案；筛选条可按分类或负责人过滤</p>
-		</div>
-
-		<!-- ===== 等你拍板 ===== -->
-		<div id="tab-decisions" hidden>
-			<div class="mx-auto max-w-3xl">
-				<div class="mb-5 rounded-2xl border border-rose-200 bg-rose-50/70 p-4 dark:border-rose-500/30 dark:bg-rose-500/10">
-					<p class="text-sm font-semibold text-rose-600 dark:text-rose-300">🎯 这里的问题只有你能回答</p>
-					<p class="mt-1 text-xs leading-relaxed text-rose-500/80 dark:text-rose-300/70">
-						点「采纳推荐」会把答案复制到剪贴板，然后把它粘贴发给任何一位 AI 的对话框，就算完成拍板。也可以点选项自己组织答案。
-					</p>
-				</div>
-				<div class="space-y-4">
-					{decisions.map((d) => {
-						const en = taskEnrich.decisions[d.id];
-						return (
-							<article class="rounded-2xl bg-white p-5 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-								<div class="flex items-start gap-3">
-									<span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-rose-400 to-orange-400 text-sm font-bold text-white">?</span>
+								<div class="flex items-start gap-4">
+									<span class="ab-num">{String(idx + 1).padStart(2, "0")}</span>
 									<div class="min-w-0 flex-1">
 										<div class="flex flex-wrap items-center gap-2">
-											<h3 class="text-sm font-bold text-zinc-900 dark:text-zinc-50">{d.question}</h3>
-											<span class:list={["rounded-full px-2 py-0.5 text-[10px] font-bold", d.status === "pending" ? "bg-rose-500/10 text-rose-500 ring-1 ring-rose-500/30" : "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/30"]}>{d.status === "pending" ? "待你拍板" : "已定"}</span>
-											<span class="text-[10px] text-zinc-400">{nameOf(ownerToAgentId(d.askedBy))} 提出</span>
+											<span class="rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-bold text-zinc-300 ring-1 ring-white/10">
+												{INBOX_KIND_META[i.kind]?.emoji} {INBOX_KIND_META[i.kind]?.label ?? "拍板"}
+											</span>
+											<span class="text-[11px] text-zinc-500">
+												关联 {i.taskRef} · {i.owner === "user" ? "你的活" : `${nameOf(ownerToAgentId(i.owner))} 提出`}
+											</span>
 										</div>
-										{en?.plain && <p class="mt-2 rounded-xl bg-zinc-50 px-3 py-2.5 text-xs leading-relaxed text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-300">{en.plain}</p>}
-										<div class="mt-3 flex flex-wrap items-center gap-2">
-											{d.options.map((o, i) => (
-												<span class:list={["rounded-full px-3 py-1.5 text-xs", i === 0 ? "bg-emerald-500/10 font-bold text-emerald-600 ring-1 ring-emerald-500/40 dark:text-emerald-300" : "bg-zinc-500/5 text-zinc-500 ring-1 ring-zinc-200 dark:ring-zinc-700"]}>{i === 0 && "★ "}{o}</span>
-											))}
-											{d.status === "pending" && en?.copy && (
-												<button type="button" data-copy={en.copy} class="ml-auto rounded-full bg-zinc-900 px-4 py-1.5 text-xs font-bold text-white transition-transform hover:scale-105 dark:bg-zinc-100 dark:text-zinc-900">✓ 采纳推荐（复制答复）</button>
-											)}
+										<h3 class="mt-2.5 text-lg font-black leading-snug text-white sm:text-xl">{i.title}</h3>
+										<p class="mt-2 text-sm leading-6 text-zinc-400">{i.hook}</p>
+									</div>
+								</div>
+								<div class="mt-5 flex items-center justify-between">
+									<span class="flex items-center gap-2 text-[11px] text-zinc-500">
+										<span
+											class="grid h-5 w-5 place-items-center rounded-full text-[9px] font-bold text-white"
+											style={`background:${colorOf(ownerToAgentId(i.owner))}`}
+										>
+											{(i.owner === "user" ? "你" : nameOf(ownerToAgentId(i.owner))).charAt(0)}
+										</span>
+										{i.pages.length} 页汇报 · 已替你先验过一遍
+									</span>
+									<span class="ab-cta">翻阅卷宗 →</span>
+								</div>
+							</article>
+						))
+					}
+					{
+						inboxOpen.length === 0 && (
+							<p class="ab-card p-8 text-center text-sm text-zinc-500">
+								现在没有等你拍板的事。AI 们各干各的，有新汇报会出现在这里。
+							</p>
+						)
+					}
+				</div>
+			</section>
+
+			<!-- ===== 02 正在进行 ===== -->
+			<section id="s-doing" class="mb-12 scroll-mt-32">
+				<div class="mb-5 flex items-center gap-3">
+					<span class="text-[11px] font-black tracking-[0.3em] text-[#e6c26e]">02 · ACTIVE</span>
+					<h2 class="text-2xl font-black text-white">正在进行</h2>
+					<div class="h-px flex-1 bg-gradient-to-r from-[#e6c26e]/40 to-transparent"></div>
+				</div>
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+					{
+						[...doingTasks, ...reviewTasks].map((t) => (
+							<article class="ab-card group cursor-pointer overflow-hidden !p-0" data-reader={t.id}>
+								<div class="relative h-36 overflow-hidden">
+									<img src={t.cover} alt="" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+									<div class="absolute inset-0 bg-gradient-to-t from-[#0b0b0f] via-[#0b0b0f]/30 to-transparent" />
+									<span class:list={["absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold ring-1 backdrop-blur", stateChip[t.state]?.cls]}>
+										{stateChip[t.state]?.label ?? t.state}
+									</span>
+									<div class="absolute bottom-3 left-4 right-4 flex items-center gap-2">
+										<span class="rounded bg-black/50 px-1.5 py-0.5 font-mono text-[9px] text-white/80 backdrop-blur">{t.id}</span>
+										<span class="text-[10px] text-zinc-300">{TASK_CATEGORIES[t.cat]?.emoji} {TASK_CATEGORIES[t.cat]?.label}</span>
+									</div>
+								</div>
+								<div class="p-5">
+									<h3 class="text-base font-black leading-snug text-white">{t.title}</h3>
+									<p class="mt-2 line-clamp-2 text-[13px] leading-6 text-zinc-400">{t.plain}</p>
+									{t.statusLine && (
+										<p class="mt-3 rounded-xl bg-[#e6c26e]/[0.07] px-3 py-2 text-[11px] font-bold leading-5 text-[#e6c26e] ring-1 ring-[#e6c26e]/15">
+											{t.statusLine}
+										</p>
+									)}
+									{typeof t.progress === "number" && (
+										<div class="mt-3">
+											<div class="mb-1 flex justify-between text-[10px] font-bold text-zinc-500">
+												<span>进度</span>
+												<span class="text-[#e6c26e]">{t.progress}%</span>
+											</div>
+											<div class="h-1.5 overflow-hidden rounded-full bg-white/8">
+												<div class="ab-bar h-full rounded-full" style={`width:${t.progress}%`} />
+											</div>
 										</div>
+									)}
+									<div class="mt-4 flex items-center justify-between border-t border-white/8 pt-3">
+										<span class="flex items-center gap-1.5 text-[11px] text-zinc-500">
+											<span class="h-4 w-4 rounded-full text-center text-[8px] font-bold leading-4 text-white" style={`background:${ownerColor(t.owner)}`}>
+												{ownerName(t.owner).charAt(0)}
+											</span>
+											{ownerName(t.owner)} 负责
+										</span>
+										<span class="text-[11px] font-bold text-[#e6c26e] opacity-0 transition-opacity group-hover:opacity-100">详情 →</span>
 									</div>
 								</div>
 							</article>
-						);
-					})}
+						))
+					}
 				</div>
-			</div>
-		</div>
+			</section>
 
-		<!-- ===== 信箱 ===== -->
-		<div id="tab-mail" hidden>
-			<div class="mx-auto max-w-3xl space-y-5">
-				<p class="text-xs text-zinc-400 dark:text-zinc-500">AI 之间的交接与提问都走这里，全程留痕。</p>
-				{Object.entries(mailByPair).map(([pair, msgs]) => (
-					<div class="rounded-2xl bg-white p-5 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-						<h3 class="mb-3 flex items-center gap-2 text-xs font-bold text-zinc-500 dark:text-zinc-300">
-							<span class="h-3.5 w-3.5 rounded-full text-[8px] font-bold leading-[14px] text-center text-white" style={`background:${colorOf(ownerToAgentId(msgs[0].from))}`}>{nameOf(ownerToAgentId(msgs[0].from)).charAt(0)}</span>
-							{nameOf(ownerToAgentId(msgs[0].from))} → {nameOf(ownerToAgentId(msgs[0].to))}
-						</h3>
-						<div class="space-y-3">
-							{msgs.map((m) => (
-								<div>
-									<div class="rounded-2xl rounded-tl-md bg-zinc-100 px-3.5 py-2.5 text-xs leading-relaxed text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">{m.body}</div>
-									{m.reply && (
-										<div class="ml-6 mt-1.5 rounded-2xl rounded-tr-md bg-violet-500/10 px-3.5 py-2.5 text-xs leading-relaxed text-violet-700 ring-1 ring-violet-500/20 dark:text-violet-300">
-											↩ {m.reply}
+			<!-- ===== 03 AI 团队 ===== -->
+			<section id="s-crew" class="mb-12 scroll-mt-32">
+				<div class="mb-5 flex items-center gap-3">
+					<span class="text-[11px] font-black tracking-[0.3em] text-[#e6c26e]">03 · CREW</span>
+					<h2 class="text-2xl font-black text-white">AI 团队</h2>
+					<div class="h-px flex-1 bg-gradient-to-r from-[#e6c26e]/40 to-transparent"></div>
+				</div>
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+					{
+						agents.map((a) => {
+							const st = deriveAgentStatus(a, claims, tasks);
+							const busy = st.key !== "idle";
+							return a.id === "user" ? (
+								<div class="ab-card relative overflow-hidden !p-0">
+									<div class="h-1 w-full bg-gradient-to-r from-[#f7e3ae] via-[#e6c26e] to-[#b98a35]" />
+									<div class="p-5">
+										<div class="flex items-center gap-3">
+											<span class="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-[#f7e3ae] to-[#b98a35] text-xl shadow-lg shadow-[#e6c26e]/20">👑</span>
+											<div class="min-w-0">
+												<p class="text-sm font-black text-white">{a.name}</p>
+												<p class="text-[11px] text-zinc-500">老板 · 终极拍板人</p>
+											</div>
 										</div>
-									)}
-									<p class="mt-1 pl-1 text-[10px] text-zinc-400">{m.task} · {m.time}</p>
+										<p class="mt-3 text-xs leading-6 text-zinc-400">{a.plain}</p>
+									</div>
 								</div>
-							))}
-						</div>
-					</div>
-				))}
-			</div>
-		</div>
-
-		<!-- ===== AI 笔记 ===== -->
-		<div id="tab-experience" hidden>
-			<div class="mb-4 rounded-2xl bg-white p-4 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-				<p class="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-					📖 这是 AI 们的工作笔记本：每次踩坑、每次找到的窍门都会记下来给以后的活儿用。记录比较技术向，看不懂直接跳过就好。
-				</p>
-				<div class="mt-3 flex flex-wrap gap-1.5" id="exp-filters">
-					<button type="button" data-exp-filter="all" class="rounded-full bg-zinc-900 px-3 py-1 text-[11px] font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">全部 {exps.length}</button>
-					{domains.map((d) => (
-						<button type="button" data-exp-filter={d} class="rounded-full bg-zinc-500/10 px-3 py-1 text-[11px] text-zinc-600 hover:bg-zinc-500/20 dark:text-zinc-300">{d}</button>
-					))}
+							) : (
+								<a href={`/lab/agent-board/${a.id}/`} data-no-swup class="ab-card group block">
+									<div class="flex items-center gap-3">
+										<span class="relative">
+											<span
+												class="grid h-12 w-12 place-items-center rounded-2xl text-base font-black text-white shadow-lg"
+												style={`background:linear-gradient(135deg,${a.color},color-mix(in srgb,${a.color} 45%,#18181b));box-shadow:0 8px 24px -8px ${a.color}66`}
+											>
+												{a.name.charAt(0)}
+											</span>
+											<span class:list={["absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-[#0c0c10]", busy ? "bg-emerald-400" : "bg-zinc-600"]} />
+										</span>
+										<div class="min-w-0 flex-1">
+											<p class="truncate text-sm font-black text-white">{a.name}</p>
+											<p class="truncate text-[11px] text-zinc-500">{a.model}</p>
+										</div>
+										<span class:list={["shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold", busy ? "bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/30" : "bg-white/5 text-zinc-500 ring-1 ring-white/10"]}>
+											{st.key === "coding" ? "🔧 执行中（占着文件）" : st.key === "working" ? `● ${st.label}` : "○ 空闲"}
+										</span>
+									</div>
+									<p class="mt-3 line-clamp-2 text-xs leading-6 text-zinc-400">{a.plain}</p>
+									<div class="mt-3 flex items-center justify-between border-t border-white/8 pt-3 text-[11px] text-zinc-500">
+										<span class="truncate">{a.currentTask ? `📌 ${a.currentTask}` : "手上没活"}</span>
+										<span class="shrink-0 font-bold text-[#e6c26e] opacity-0 transition-opacity group-hover:opacity-100">空间 →</span>
+									</div>
+								</a>
+							);
+						})
+					}
 				</div>
-			</div>
-			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-				{exps.map((e) => (
-					<article data-exp-domain={e.domain} class="rounded-2xl bg-white p-4 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-						<div class="flex items-start justify-between gap-2">
-							<h4 class="text-[13px] font-bold text-zinc-900 dark:text-zinc-50">{e.title}</h4>
-							<span class="shrink-0 rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] text-violet-500">{e.domain}</span>
-						</div>
-						<p class="mt-1 text-[10px] text-zinc-400">场景：{e.scenario}</p>
-						<p class="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">{e.method}</p>
-						{e.pitfall && <p class="mt-2 rounded-lg bg-amber-500/5 px-2.5 py-1.5 text-[11px] leading-relaxed text-amber-600 dark:text-amber-400/90">⚠ 踩坑：{e.pitfall}</p>}
-						<p class="mt-2 text-[10px] text-zinc-300 dark:text-zinc-600">{e.id} · {e.date}</p>
-					</article>
-				))}
-			</div>
+			</section>
+
+			<!-- ===== 04 排队中 ===== -->
+			<section id="s-queue" class="mb-10 scroll-mt-32">
+				<div class="mb-5 flex items-center gap-3">
+					<span class="text-[11px] font-black tracking-[0.3em] text-[#e6c26e]">04 · QUEUE</span>
+					<h2 class="text-2xl font-black text-white">排队中</h2>
+					<div class="h-px flex-1 bg-gradient-to-r from-[#e6c26e]/40 to-transparent"></div>
+				</div>
+				<div class="ab-card grid grid-cols-1 gap-1 overflow-hidden !p-2 md:grid-cols-2 md:gap-x-6">
+					{
+						queueTasks.map((t) => (
+							<button type="button" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-white/5" data-reader={t.id}>
+								<span class="font-mono text-[10px] text-zinc-600">{t.id}</span>
+								<span class="min-w-0 flex-1 truncate text-[13px] font-medium text-zinc-300 group-hover:text-white">{t.plain || t.title}</span>
+								<span class:list={["shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ring-1", stateChip[t.state]?.cls]}>
+									{t.state === "blocked" ? "⛔ 卡住" : "排队"}
+								</span>
+								<span class="h-4 w-4 shrink-0 rounded-full text-center text-[8px] font-bold leading-4 text-white" style={`background:${ownerColor(t.owner)}`}>
+									{ownerName(t.owner).charAt(0)}
+								</span>
+							</button>
+						))
+					}
+				</div>
+				<p class="mt-3 text-[11px] text-zinc-600">
+					点击任意一行可看详情并直接给它写指令。已完成 {doneCount} 项收进 git 历史，不再占这里的位置。
+				</p>
+			</section>
+
+			<footer class="border-t border-white/8 pt-5 text-center text-[11px] leading-5 text-zinc-600">
+				内部面板 · 已禁止搜索引擎收录 · 数据在 <code class="text-zinc-500">src/data/agent-board/</code>（tasks / inbox / agents）·
+				信箱、AI 笔记、全局现状仍在仓库里供 AI 使用，不再上墙 · 本地 dev 实时刷新
+			</footer>
 		</div>
-
-		<!-- ===== 新手指南 ===== -->
-		<div id="tab-guide" hidden>
-			<div class="mx-auto max-w-3xl space-y-4">
-				<section class="rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/5 p-6 ring-1 ring-violet-500/20">
-					<h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-50">这个网站是什么？</h2>
-					<p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
-						<b>永恒欲望（stulanez.com）</b>是一个个人网站：有博客文章、游戏攻略工具（英雄联盟 TFT 阵容规划器）、音乐播放器、相册等。
-						同时老板有一个 <b>4.8 万张的私人图片库</b>（Kpop 明星照片、动漫美图、游戏原画、AI 画作）。
-					</p>
-					<p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
-						老板雇了 <b>4 位 AI 员工</b>同时干活：有人下载整理图片，有人开发网站功能，有人做质量检查。
-						这块看板就是大家的<b>共享作战室</b>——谁在干什么、干完了什么、需要老板决定什么，全部公开在这里。
-					</p>
-				</section>
-
-				<section class="rounded-2xl bg-white p-6 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-					<h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-50">任务状态怎么看？</h2>
-					<div class="mt-3 space-y-2.5">
-						{["doing", "review", "blocked", "backlog", "done"].map((s) => (
-							<div class="flex items-center gap-3">
-								<span class:list={["w-20 shrink-0 rounded-full px-2 py-1 text-center text-[11px] font-bold ring-1", stateMeta[s].chip]}>{stateMeta[s].label}</span>
-								<span class="text-xs text-zinc-500 dark:text-zinc-400">{stateMeta[s].hint}</span>
-							</div>
-						))}
-					</div>
-				</section>
-
-				<section class="rounded-2xl bg-white p-6 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-					<h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-50">你（老板）能做的四件事</h2>
-					<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-						<div class="rounded-xl bg-rose-500/5 p-4 ring-1 ring-rose-500/20">
-							<p class="text-sm font-bold text-rose-600 dark:text-rose-300">① 拍板决策</p>
-							<p class="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">「等你拍板」页里的问题，点采纳推荐复制答案，发给任何 AI 对话框即可。</p>
-						</div>
-						<div class="rounded-xl bg-amber-500/5 p-4 ring-1 ring-amber-500/20">
-							<p class="text-sm font-bold text-amber-600 dark:text-amber-300">② 验收成果</p>
-							<p class="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">「待验收」状态的任务由你过目；比如图片隔离区抽查后说"可以删"。</p>
-						</div>
-						<div class="rounded-xl bg-blue-500/5 p-4 ring-1 ring-blue-500/20">
-							<p class="text-sm font-bold text-blue-600 dark:text-blue-300">③ 下达指令</p>
-							<p class="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">直接对某位 AI 说"继续 T-011"或提新需求，AI 会自己更新这块板。</p>
-						</div>
-						<div class="rounded-xl bg-emerald-500/5 p-4 ring-1 ring-emerald-500/20">
-							<p class="text-sm font-bold text-emerald-600 dark:text-emerald-300">④ 提供资源</p>
-							<p class="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">比如网站登录凭证（cookie）、磁盘空间配额、删除确认。</p>
-						</div>
-					</div>
-				</section>
-
-				<section class="rounded-2xl bg-white p-6 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-					<h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-50">名词小词典</h2>
-					<dl class="mt-3 space-y-2.5 text-xs leading-relaxed">
-						<div class="flex gap-3"><dt class="w-24 shrink-0 font-bold text-zinc-700 dark:text-zinc-200">T-xxx</dt><dd class="text-zinc-500 dark:text-zinc-400">任务编号，像工单号一样，对话里报编号就能对上。</dd></div>
-						<div class="flex gap-3"><dt class="w-24 shrink-0 font-bold text-zinc-700 dark:text-zinc-200">隔离区</dt><dd class="text-zinc-500 dark:text-zinc-400">待删除图片的暂存区（{taskEnrich.quarantineNote.split("= ")[1]}）。删除前都会先隔离，等你抽查。</dd></div>
-						<div class="flex gap-3"><dt class="w-24 shrink-0 font-bold text-zinc-700 dark:text-zinc-200">认领卡</dt><dd class="text-zinc-500 dark:text-zinc-400">AI 动代码前先"占座"登记要改哪些文件，防止两个 AI 改同一个文件打架。</dd></div>
-						<div class="flex gap-3"><dt class="w-24 shrink-0 font-bold text-zinc-700 dark:text-zinc-200">短锁</dt><dd class="text-zinc-500 dark:text-zinc-400">AI 更新这块看板数据时的临时锁，几秒内拿→改→放，保证不打架。</dd></div>
-						<div class="flex gap-3"><dt class="w-24 shrink-0 font-bold text-zinc-700 dark:text-zinc-200">联络表</dt><dd class="text-zinc-500 dark:text-zinc-400">把几百张图拼成一张大图供 AI 逐格看图打分，是图片质检的工具。</dd></div>
-						<div class="flex gap-3"><dt class="w-24 shrink-0 font-bold text-zinc-700 dark:text-zinc-200">LQIP</dt><dd class="text-zinc-500 dark:text-zinc-400">图片加载前的模糊小占位图，让网页感觉加载更快。</dd></div>
-					</dl>
-				</section>
-
-				<section class="rounded-2xl bg-white p-6 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-					<h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-50">现在库里有家底？</h2>
-					<div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-						<div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/60"><p class="text-2xl font-extrabold text-violet-500">48,168</p><p class="mt-1 text-[11px] text-zinc-400">Kpop 图片</p></div>
-						<div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/60"><p class="text-2xl font-extrabold text-fuchsia-500">4,221</p><p class="mt-1 text-[11px] text-zinc-400">动漫美图</p></div>
-						<div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/60"><p class="text-2xl font-extrabold text-sky-500">1,700</p><p class="mt-1 text-[11px] text-zinc-400">LOL 原画</p></div>
-						<div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/60"><p class="text-2xl font-extrabold text-amber-500">1,092</p><p class="mt-1 text-[11px] text-zinc-400">同人画作</p></div>
-					</div>
-					<p class="mt-3 text-[11px] text-zinc-400">外加 AI 画作若干（10G 冲刺入库中）。全部图片在本地资源库，由 Serpent 软件建立索引（T-015 进行中）。</p>
-				</section>
-			</div>
-		</div>
-
-		<footer class="mt-12 text-center">
-			<p class="text-[11px] text-zinc-400 dark:text-zinc-600">
-				内部面板 · 已禁止搜索引擎收录 · 数据源 <code>src/data/agent-board/</code> · 协作协议 <code>docs/AI-COLLABORATION.md</code> · 本地 dev 实时刷新
-			</p>
-		</footer>
 	</main>
 
-	<!-- 任务详情弹窗 -->
-	<dialog id="task-dialog" class="backdrop:bg-black/60 backdrop:backdrop-blur-sm m-auto w-[min(560px,92vw)] rounded-3xl bg-white p-0 shadow-2xl dark:bg-zinc-900"></dialog>
+	<!-- 卷宗阅读器 -->
+	<dialog id="reader" class="ab-reader backdrop:bg-black/70 backdrop:backdrop-blur-sm">
+		<div class="flex h-full flex-col">
+			<div id="reader-head" class="relative h-40 shrink-0 overflow-hidden sm:h-44"></div>
+			<div class="flex min-h-0 flex-1 flex-col">
+				<div id="reader-body" class="ab-scroll min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-9"></div>
+				<div id="reader-foot" class="shrink-0 border-t border-white/10 px-6 py-4 sm:px-9"></div>
+			</div>
+		</div>
+	</dialog>
 
-	<div id="toast" hidden class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-zinc-900 px-5 py-2.5 text-xs font-bold text-white shadow-xl dark:bg-zinc-100 dark:text-zinc-900"></div>
+	<div
+		id="toast"
+		hidden
+		class="fixed bottom-8 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-gradient-to-r from-[#f7e3ae] to-[#d9a441] px-6 py-3 text-xs font-black text-[#1a1408] shadow-2xl shadow-[#e6c26e]/30"
+	>
+	</div>
 
-	<script is:inline type="application/json" id="task-data" set:html={JSON.stringify(tasksForJs)}></script>
+	<script is:inline type="application/json" id="reader-data" set:html={JSON.stringify(readerData).replace(/</g, "\\u003c")}></script>
 </Layout>
 
 <style>
+	.ab-deck {
+		color-scheme: dark;
+		border-radius: 2.5rem;
+		border: 1px solid rgb(255 255 255 / 0.08);
+		background:
+			radial-gradient(1100px 480px at 18% -8%, rgb(230 194 110 / 0.09), transparent),
+			radial-gradient(900px 500px at 108% 12%, rgb(167 139 250 / 0.06), transparent),
+			#0a0a0d;
+		padding: 1.25rem;
+		box-shadow:
+			0 40px 120px -40px rgb(0 0 0 / 0.8),
+			inset 0 1px 0 rgb(255 255 255 / 0.05);
+	}
+	@media (min-width: 640px) {
+		.ab-deck {
+			padding: 2rem;
+		}
+	}
+	.ab-hero-shade {
+		background: linear-gradient(
+			100deg,
+			rgb(8 8 11 / 0.96) 0%,
+			rgb(8 8 11 / 0.82) 38%,
+			rgb(8 8 11 / 0.36) 72%,
+			rgb(8 8 11 / 0.15) 100%
+		);
+	}
+	.ab-stat {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		border-radius: 9999px;
+		border: 1px solid rgb(255 255 255 / 0.14);
+		background: rgb(255 255 255 / 0.06);
+		padding: 0.5rem 1rem;
+		color: rgb(212 212 216);
+		backdrop-filter: blur(8px);
+	}
+	.ab-stat b {
+		color: #fff;
+	}
+	.ab-stat-hot {
+		border-color: rgb(230 194 110 / 0.45);
+		background: rgb(230 194 110 / 0.1);
+		color: #e6c26e;
+		animation: ab-glow 2.2s ease-in-out infinite;
+	}
+	.ab-stat-hot b {
+		color: #f7e3ae;
+	}
+	@keyframes ab-glow {
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 rgb(230 194 110 / 0.35);
+		}
+		50% {
+			box-shadow: 0 0 0 7px rgb(230 194 110 / 0);
+		}
+	}
+	.ab-card {
+		border-radius: 1.5rem;
+		border: 1px solid rgb(255 255 255 / 0.09);
+		background: linear-gradient(180deg, rgb(255 255 255 / 0.055), rgb(255 255 255 / 0.025));
+		transition:
+			transform 0.25s ease,
+			border-color 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+	.ab-card:hover {
+		border-color: rgb(230 194 110 / 0.35);
+		box-shadow: 0 18px 50px -18px rgb(230 194 110 / 0.25);
+	}
+	article.ab-card:hover {
+		transform: translateY(-3px);
+	}
+	.ab-num {
+		font-family: ui-serif, "Georgia", serif;
+		background: linear-gradient(160deg, #f7e3ae, #b98a35);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		font-size: 2.6rem;
+		font-weight: 900;
+		line-height: 1;
+		letter-spacing: -0.04em;
+	}
+	.ab-cta {
+		border-radius: 9999px;
+		background: linear-gradient(120deg, #f7e3ae, #d9a441);
+		padding: 0.5rem 1.15rem;
+		color: #1a1408;
+		font-size: 0.75rem;
+		font-weight: 900;
+		box-shadow: 0 10px 26px -10px rgb(230 194 110 / 0.55);
+		transition: transform 0.2s ease;
+	}
+	.ab-card:hover .ab-cta {
+		transform: translateX(2px);
+	}
+	.ab-navlink {
+		border-radius: 9999px;
+		padding: 0.4rem 0.9rem;
+		color: rgb(161 161 170);
+		font-size: 0.75rem;
+		font-weight: 700;
+		transition: all 0.2s ease;
+	}
+	.ab-navlink b {
+		color: #e6c26e;
+	}
+	.ab-navlink:hover {
+		background: rgb(255 255 255 / 0.07);
+		color: #fff;
+	}
+	.ab-bar {
+		background: linear-gradient(90deg, #b98a35, #e6c26e, #f7e3ae, #e6c26e);
+		background-size: 200% 100%;
+		animation: ab-shimmer 2.6s linear infinite;
+	}
+	@keyframes ab-shimmer {
+		from {
+			background-position: 200% 0;
+		}
+		to {
+			background-position: -200% 0;
+		}
+	}
 	.ab-scroll::-webkit-scrollbar {
 		width: 5px;
 	}
 	.ab-scroll::-webkit-scrollbar-thumb {
 		border-radius: 9999px;
-		background: rgb(161 161 170 / 0.4);
+		background: rgb(230 194 110 / 0.35);
 	}
-	dialog#task-dialog::backdrop {
-		background: rgb(0 0 0 / 0.55);
-		backdrop-filter: blur(4px);
+	dialog#reader {
+		margin: auto;
+		width: min(680px, 94vw);
+		height: min(88vh, 780px);
+		border-radius: 1.75rem;
+		border: 1px solid rgb(255 255 255 / 0.12);
+		background: #0d0d12;
+		color: #fff;
+		padding: 0;
+		overflow: hidden;
+		box-shadow: 0 60px 160px -40px rgb(0 0 0 / 0.9);
+	}
+	dialog#reader::backdrop {
+		background: rgb(0 0 0 / 0.72);
+		backdrop-filter: blur(6px);
+	}
+	@media (max-width: 640px) {
+		dialog#reader {
+			width: 100vw;
+			height: 100dvh;
+			max-height: none;
+			border-radius: 0;
+		}
+	}
+	.ab-page {
+		animation: ab-page-in 0.4s ease both;
+	}
+	@keyframes ab-page-in {
+		from {
+			opacity: 0;
+			transform: translateX(26px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+	.ab-para {
+		animation: ab-fade-up 0.5s ease both;
+	}
+	@keyframes ab-fade-up {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
 	}
 </style>
 
 <script>
-	const TAB_KEYS = ["overview", "kanban", "decisions", "mail", "experience", "guide"];
+	type ReaderPage = { h: string; p: string[] };
+	type ReaderEntry = {
+		key: string;
+		source: "inbox" | "task";
+		kindLabel: string;
+		cover: string;
+		title: string;
+		ownerName: string;
+		ownerColor: string;
+		taskRef: string;
+		pages: ReaderPage[];
+		copyContext: string;
+	};
 
-	// —— 标签页 ——
-	function showTab(key: string) {
-		for (const k of TAB_KEYS) {
-			document.getElementById(`tab-${k}`)?.toggleAttribute("hidden", k !== key);
-			const btn = document.getElementById(`tabbtn-${k}`);
-			if (btn) {
-				const on = k === key;
-				btn.classList.toggle("bg-zinc-900", on);
-				btn.classList.toggle("dark:bg-zinc-100", on);
-				btn.classList.toggle("text-white", on);
-				btn.classList.toggle("dark:text-zinc-900", on);
-				btn.classList.toggle("shadow", on);
-				btn.classList.toggle("text-zinc-500", !on);
-				btn.classList.toggle("dark:text-zinc-400", !on);
-				btn.classList.toggle("hover:bg-zinc-200/70", !on);
-				btn.classList.toggle("dark:hover:bg-zinc-800", !on);
-			}
-		}
-		history.replaceState(null, "", `#${key}`);
+	const ENTRIES: ReaderEntry[] = JSON.parse(
+		document.getElementById("reader-data")!.textContent!,
+	);
+	const byKey = new Map(ENTRIES.map((e) => [e.key, e]));
+
+	const dialog = document.getElementById("reader") as HTMLDialogElement;
+	const headEl = document.getElementById("reader-head")!;
+	const bodyEl = document.getElementById("reader-body")!;
+	const footEl = document.getElementById("reader-foot")!;
+
+	const esc = (s: string) =>
+		s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+	let current: ReaderEntry | null = null;
+	let page = 0;
+	/** 总页数 = 汇报页数 + 1 页「你来定」（反馈输入） */
+	const total = (e: ReaderEntry) => e.pages.length + 1;
+
+	function renderHead(e: ReaderEntry) {
+		headEl.innerHTML = `
+			<img src="${e.cover}" alt="" class="absolute inset-0 h-full w-full object-cover" />
+			<div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(8,8,11,.25) 0%,rgba(13,13,18,.55) 55%,#0d0d12 100%)"></div>
+			<button type="button" id="reader-close" aria-label="关闭" class="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-black/50 text-lg text-white/80 backdrop-blur transition-colors hover:bg-black/70 hover:text-white">×</button>
+			<div class="absolute bottom-4 left-6 right-6 sm:left-9">
+				<div class="flex flex-wrap items-center gap-2">
+					<span class="rounded-full bg-[#e6c26e]/15 px-2.5 py-1 text-[10px] font-black text-[#e6c26e] ring-1 ring-[#e6c26e]/40 backdrop-blur">${e.source === "inbox" ? "卷宗 · " + e.kindLabel : e.kindLabel + "详情"}</span>
+					<span class="rounded-full bg-black/45 px-2.5 py-1 font-mono text-[10px] text-white/75 backdrop-blur">${esc(e.key)}${e.taskRef && e.taskRef !== e.key ? " · 关联 " + esc(e.taskRef) : ""}</span>
+				</div>
+				<h2 class="mt-2 pr-10 text-xl font-black leading-snug text-white drop-shadow sm:text-2xl">${esc(e.title)}</h2>
+			</div>`;
+		document.getElementById("reader-close")?.addEventListener("click", () => dialog.close());
 	}
-	document.querySelectorAll<HTMLElement>("[data-tab]").forEach((btn) => {
-		btn.addEventListener("click", () => {
-			showTab(btn.dataset.tab!);
-			window.scrollTo({ top: 0, behavior: "smooth" });
-		});
-	});
-	const initial = location.hash.slice(1);
-	showTab(TAB_KEYS.includes(initial) ? initial : "overview");
 
-	// —— 首次到访提示 ——
-	const fv = document.getElementById("first-visit");
-	try {
-		if (fv && !localStorage.getItem("ab-guide-seen")) fv.hidden = false;
-	} catch {}
-	document.getElementById("guide-dismiss")?.addEventListener("click", () => {
-		fv!.hidden = true;
-		try {
-			localStorage.setItem("ab-guide-seen", "1");
-		} catch {}
+	function renderFeedback(e: ReaderEntry) {
+		bodyEl.innerHTML = `
+			<div class="ab-page">
+				<p class="text-[11px] font-black tracking-[0.3em] text-[#e6c26e]">YOUR CALL</p>
+				<h3 class="mt-2 text-2xl font-black text-white">轮到你了</h3>
+				<p class="mt-2 text-[13px] leading-6 text-zinc-400">
+					用大白话写下你的意见——想怎么改、哪里不满意、补充什么条件都行。
+					写完点「复制指令」，粘贴到任何一位 AI 的对话框就是一条完整指令。
+				</p>
+				<div class="mt-4 flex flex-wrap gap-2">
+					<button type="button" class="ab-quickchip" data-fill="同意你的建议，按推荐方向执行。另外补充一点：">✓ 按建议办</button>
+					<button type="button" class="ab-quickchip" data-fill="我的意见：">✎ 我来细说</button>
+				</div>
+				<textarea
+					id="reader-input"
+					rows="5"
+					placeholder="比如：可以删，但是 XXX 那几张给我留着；或者：先别动，等我周末看完再说……"
+					class="mt-4 w-full resize-y rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5 text-[15px] leading-7 text-white placeholder:text-zinc-600 focus:border-[#e6c26e]/60 focus:outline-none focus:ring-2 focus:ring-[#e6c26e]/20"
+				></textarea>
+				<p class="mt-2 text-[11px] text-zinc-600">不写也行——直接去 AI 对话框里说一样算数，这页只是帮你把话说全。</p>
+			</div>
+			<style>
+				.ab-quickchip {
+					border-radius: 9999px;
+					border: 1px solid rgb(255 255 255 / 0.15);
+					background: rgb(255 255 255 / 0.05);
+					padding: 0.4rem 0.9rem;
+					color: rgb(212 212 216);
+					font-size: 0.7rem;
+					font-weight: 700;
+					transition: all 0.2s ease;
+				}
+				.ab-quickchip:hover {
+					border-color: rgb(230 194 110 / 0.5);
+					color: #e6c26e;
+				}
+			</style>`;
+		const input = document.getElementById("reader-input") as HTMLTextAreaElement;
+		bodyEl.querySelectorAll<HTMLElement>(".ab-quickchip").forEach((chip) => {
+			chip.addEventListener("click", () => {
+				input.value = chip.dataset.fill ?? "";
+				input.focus();
+			});
+		});
+	}
+
+	function renderPage(e: ReaderEntry, idx: number) {
+		if (idx >= e.pages.length) {
+			renderFeedback(e);
+		} else {
+			const pg = e.pages[idx];
+			bodyEl.innerHTML = `
+				<div class="ab-page">
+					<p class="text-[11px] font-black tracking-[0.3em] text-[#e6c26e]">第 ${idx + 1} / ${e.pages.length} 页 · 汇报</p>
+					<h3 class="mt-2 text-2xl font-black text-white">${esc(pg.h)}</h3>
+					<div class="mt-5 space-y-4">
+						${pg.p.map(
+							(t, i) =>
+								`<p class="ab-para text-[15px] leading-8 text-zinc-200" style="animation-delay:${i * 90}ms">${esc(t)}</p>`,
+						).join("")}
+					</div>
+				</div>`;
+		}
+		bodyEl.scrollTop = 0;
+
+		const n = total(e);
+		const isFeedback = idx === n - 1;
+		footEl.innerHTML = `
+			<div class="flex items-center gap-1.5">
+				${Array.from({ length: n }, (_, i) => `<button type="button" class="ab-dot${i === idx ? " on" : i < idx ? " seen" : ""}" data-goto="${i}" aria-label="第 ${i + 1} 页"></button>`).join("")}
+				<span class="ml-2 text-[11px] font-bold text-zinc-500">${idx + 1} / ${n}</span>
+				<div class="ml-auto flex items-center gap-2">
+					${idx > 0 ? `<button type="button" id="pg-prev" class="ab-pgbtn">← 上一页</button>` : ""}
+					${
+						isFeedback
+							? `<button type="button" id="pg-copy" class="ab-pgbtn ab-pgbtn-gold">📋 复制指令</button>`
+							: `<button type="button" id="pg-next" class="ab-pgbtn ab-pgbtn-gold">${idx === n - 2 ? "轮到你拍板 →" : "下一页 →"}</button>`
+					}
+				</div>
+			</div>
+			<style>
+				.ab-dot {
+					height: 8px;
+					width: 8px;
+					border-radius: 9999px;
+					background: rgb(255 255 255 / 0.15);
+					transition: all 0.25s ease;
+				}
+				.ab-dot.seen { background: rgb(230 194 110 / 0.35); }
+				.ab-dot.on { background: #e6c26e; box-shadow: 0 0 10px rgb(230 194 110 / 0.6); }
+				.ab-pgbtn {
+					border-radius: 9999px;
+					border: 1px solid rgb(255 255 255 / 0.15);
+					padding: 0.5rem 1.1rem;
+					color: rgb(212 212 216);
+					font-size: 0.75rem;
+					font-weight: 800;
+					transition: all 0.2s ease;
+				}
+				.ab-pgbtn:hover { border-color: rgb(255 255 255 / 0.4); color: #fff; }
+				.ab-pgbtn-gold {
+					border: none;
+					background: linear-gradient(120deg, #f7e3ae, #d9a441);
+					color: #1a1408;
+					box-shadow: 0 10px 26px -10px rgb(230 194 110 / 0.55);
+				}
+				.ab-pgbtn-gold:hover { color: #1a1408; transform: translateY(-1px); }
+			</style>`;
+
+		footEl.querySelectorAll<HTMLElement>(".ab-dot").forEach((dot) => {
+			dot.addEventListener("click", () => {
+				page = Number(dot.dataset.goto);
+				renderPage(e, page);
+			});
+		});
+		document.getElementById("pg-prev")?.addEventListener("click", () => {
+			if (page > 0) {
+				page -= 1;
+				renderPage(e, page);
+			}
+		});
+		document.getElementById("pg-next")?.addEventListener("click", () => {
+			if (page < n - 1) {
+				page += 1;
+				renderPage(e, page);
+			}
+		});
+		document.getElementById("pg-copy")?.addEventListener("click", () => {
+			const input = document.getElementById("reader-input") as HTMLTextAreaElement | null;
+			const text = input?.value.trim() ?? "";
+			if (!text) {
+				showToast("先写点什么，或者直接去对话框里说～");
+				input?.focus();
+				return;
+			}
+			const label = e.source === "inbox" ? "老板回复" : "老板指令";
+			const msg =
+				`【指挥室 · ${e.key} ${e.title}】\n${label}：${text}\n\n` +
+				`——来自 Agent 看板（/lab/agent-board/）的${label}，请 ${e.ownerName} 处理` +
+				`${e.taskRef && e.taskRef !== e.key ? `（关联任务 ${e.taskRef}）` : ""}：${e.copyContext}`;
+			copyText(msg)
+				.then(() => showToast("✓ 指令已复制，粘贴给任何 AI 即可"))
+				.catch(() => showToast("复制失败，请手动复制输入框内容"));
+		});
+	}
+
+	function openReader(key: string) {
+		const e = byKey.get(key);
+		if (!e) return;
+		current = e;
+		page = 0;
+		renderHead(e);
+		renderPage(e, 0);
+		dialog.showModal();
+	}
+
+	document.querySelectorAll<HTMLElement>("[data-reader]").forEach((el) => {
+		el.addEventListener("click", () => openReader(el.dataset.reader!));
 	});
-	document.getElementById("guide-go")?.addEventListener("click", () => {
-		document.getElementById("tabbtn-guide")?.click();
-		fv!.hidden = true;
-		try {
-			localStorage.setItem("ab-guide-seen", "1");
-		} catch {}
+
+	dialog.addEventListener("click", (ev) => {
+		if (ev.target === dialog) dialog.close();
 	});
 
 	// —— Toast ——
@@ -646,98 +807,7 @@ const navTabs = [
 		toastTimer = setTimeout(() => (toast.hidden = true), 2400);
 	}
 
-	// —— 任务详情弹窗 ——
-	type JsTask = {
-		id: string; title: string; owner: string; ownerName: string; ownerColor: string;
-		state: string; stateLabel: string; priority: string; plain: string; brief: string;
-		deps: string[]; artifacts: string[]; cover: string; cat: string; catLabel: string;
-	};
-	const TASKS: Record<string, JsTask> = Object.fromEntries(
-		(JSON.parse(document.getElementById("task-data")!.textContent!) as JsTask[]).map((t) => [t.id, t]),
-	);
-	const dialog = document.getElementById("task-dialog") as HTMLDialogElement;
-	const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-	function openTask(id: string) {
-		const t = TASKS[id];
-		if (!t) return;
-		dialog.innerHTML = `
-			<div class="relative h-40 w-full overflow-hidden rounded-t-3xl">
-				<img src="${t.cover}" alt="" class="h-full w-full object-cover" />
-				<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-				<div class="absolute bottom-3 left-4 right-4 flex items-center gap-2">
-					<span class="rounded-md bg-black/50 px-2 py-0.5 font-mono text-[10px] text-white/90">${t.id}</span>
-					<span class="rounded-md bg-black/50 px-2 py-0.5 text-[10px] text-white/90">${t.catLabel}</span>
-					<span class="rounded-md bg-black/50 px-2 py-0.5 text-[10px] font-bold text-white/90">${t.stateLabel} · ${t.priority}</span>
-				</div>
-			</div>
-			<div class="p-6">
-				<h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-50">${esc(t.title)}</h2>
-				<div class="mt-1.5 flex items-center gap-2 text-xs text-zinc-400">
-					<span class="h-5 w-5 rounded-full text-[9px] font-bold leading-5 text-center text-white" style="background:${t.ownerColor}">${t.ownerName.charAt(0)}</span>
-					${t.ownerName} 负责
-				</div>
-				<p class="mt-4 rounded-xl bg-violet-500/5 px-4 py-3 text-sm leading-relaxed text-zinc-700 ring-1 ring-violet-500/15 dark:text-zinc-200">${esc(t.plain)}</p>
-				<details class="mt-3">
-					<summary class="cursor-pointer text-[11px] text-zinc-400 hover:text-zinc-600">原始简报（AI 工作用）</summary>
-					<p class="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">${esc(t.brief)}</p>
-				</details>
-				${t.deps.length > 0 ? `<p class="mt-3 text-xs text-amber-600 dark:text-amber-400">⏳ 前置条件：${esc(t.deps.join("；"))}</p>` : ""}
-				${t.artifacts.length > 0 ? `<p class="mt-2 break-all text-xs text-zinc-400">📦 产出物：${esc(t.artifacts.join("、"))}</p>` : ""}
-				<button type="button" id="dialog-close" class="mt-5 w-full rounded-full bg-zinc-900 py-2.5 text-sm font-bold text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900">关闭</button>
-			</div>`;
-		dialog.showModal();
-		document.getElementById("dialog-close")?.addEventListener("click", () => dialog.close());
-	}
-	document.querySelectorAll<HTMLElement>("[data-task-id]").forEach((el) => {
-		el.addEventListener("click", () => openTask(el.dataset.taskId!));
-	});
-	dialog.addEventListener("click", (e) => {
-		if (e.target === dialog) dialog.close();
-	});
-
-	// —— 看板筛选 ——
-	const filterBtns = document.querySelectorAll<HTMLElement>("[data-kanban-filter]");
-	filterBtns.forEach((btn) => {
-		btn.addEventListener("click", () => {
-			const f = btn.dataset.kanbanFilter!;
-			filterBtns.forEach((b) => {
-				const on = b === btn;
-				b.classList.toggle("bg-zinc-900", on);
-				b.classList.toggle("text-white", on);
-				b.classList.toggle("dark:bg-zinc-100", on);
-				b.classList.toggle("dark:text-zinc-900", on);
-				b.classList.toggle("font-bold", on);
-			});
-			document.querySelectorAll<HTMLElement>("[data-tags]").forEach((card) => {
-				const hit = f === "all" || (card.dataset.tags ?? "").split(" ").includes(f);
-				card.toggleAttribute("hidden", !hit);
-			});
-			document.querySelectorAll<HTMLElement>("[data-col-body]").forEach((col) => {
-				const anyVisible = col.querySelector("[data-tags]:not([hidden])");
-				col.parentElement?.querySelector("[data-col-empty]")?.toggleAttribute("hidden", !!anyVisible);
-			});
-		});
-	});
-
-	// —— 经验库筛选 ——
-	document.querySelectorAll<HTMLElement>("[data-exp-filter]").forEach((btn) => {
-		btn.addEventListener("click", () => {
-			const f = btn.dataset.expFilter!;
-			document.querySelectorAll<HTMLElement>("[data-exp-filter]").forEach((b) => {
-				const on = b === btn;
-				b.classList.toggle("bg-zinc-900", on);
-				b.classList.toggle("text-white", on);
-				b.classList.toggle("dark:bg-zinc-100", on);
-				b.classList.toggle("dark:text-zinc-900", on);
-				b.classList.toggle("font-bold", on);
-			});
-			document.querySelectorAll<HTMLElement>("[data-exp-domain]").forEach((card) => {
-				card.toggleAttribute("hidden", !(f === "all" || card.dataset.expDomain === f));
-			});
-		});
-	});
-
-	// —— 复制拍板（clipboard API 失败时走 execCommand 兜底） ——
+	// —— 复制（clipboard API 失败时走 execCommand 兜底）——
 	function legacyCopy(text: string): void {
 		const ta = document.createElement("textarea");
 		ta.value = text;
@@ -762,11 +832,4 @@ const navTabs = [
 			}
 		});
 	}
-	document.querySelectorAll<HTMLElement>("[data-copy]").forEach((btn) => {
-		btn.addEventListener("click", () => {
-			copyText(btn.dataset.copy!)
-				.then(() => showToast("✓ 已复制，粘贴发给任何 AI 即完成拍板"))
-				.catch(() => showToast("复制失败，请手动选择文字复制"));
-		});
-	});
 </script>
