@@ -1,5 +1,7 @@
-// Agent 看板数据加载工具 — 认领卡解析 / 工作总结文档读取
+// Agent 看板数据加载工具 — 认领卡解析 / 新数据模型（tasks + inbox + agents）
 // 构建时（Vercel）.ai-work 不存在 → 认领返回空数组；本地 dev 实时读取
+// 面向用户的三个数据文件：agents.json / tasks.json / inbox.json（规范见 docs/AI-COLLABORATION.md）
+// mail.json / experience.json / CURRENT-STATE.md 仍是 AI 内部文件，但不再上看板渲染
 import fs from "node:fs";
 import path from "node:path";
 
@@ -38,11 +40,20 @@ export interface BoardWriteLock {
 export const SHARED_BOARD_PATHS = [
 	"src/data/agent-board/agents.json",
 	"src/data/agent-board/tasks.json",
-	"src/data/agent-board/decisions.json",
+	"src/data/agent-board/inbox.json",
 	"src/data/agent-board/mail.json",
 	"src/data/agent-board/experience.json",
 	"src/data/agent-board/CURRENT-STATE.md",
 ] as const;
+
+/** 任务分类（看板展示用，代码内维护，不再单独放数据文件） */
+export const TASK_CATEGORIES: Record<string, { label: string; emoji: string }> = {
+	assets: { label: "图库资产", emoji: "🖼️" },
+	site: { label: "网站功能", emoji: "🛠️" },
+	ops: { label: "工具基建", emoji: "🧰" },
+};
+
+export const DEFAULT_COVER = "/assets/images/agent-board/lol-zoe.jpg";
 
 export interface AgentInfo {
 	id: string;
@@ -52,6 +63,7 @@ export interface AgentInfo {
 	port: number | null;
 	color: string;
 	role: string;
+	plain: string;
 	status: string;
 	currentTask: string | null;
 	summaries: string[];
@@ -64,40 +76,48 @@ export interface Task {
 	state: string;
 	priority: string;
 	deps: string[];
+	/** AI 内部简报（术语可保留，仅折叠展示） */
 	brief: string;
+	/** 一句话大白话（卡片上用，必须写给不懂技术的老板） */
+	plain: string;
+	/** 大白话分段叙事（进行中/待验收任务必填，翻页卷宗用） */
+	story?: string[];
+	/** 一行状态（做到哪了） */
+	statusLine?: string;
+	/** 进度百分比 0-100，估不准就 null 不要编 */
+	progress?: number | null;
+	/** 大白话下一步 */
+	nextStep?: string;
+	cover: string;
+	cat: string;
 	artifacts: string[];
 }
 
-export interface Decision {
-	id: string;
-	question: string;
-	options: string[];
-	recommendation: string;
-	status: string;
-	askedBy: string;
+export type InboxKind = "review" | "decide" | "resource" | "follow";
+
+export interface InboxPage {
+	h: string;
+	p: string[];
 }
 
-export interface Msg {
+export interface InboxItem {
 	id: string;
-	from: string;
-	to: string;
-	type: string;
-	task: string;
-	body: string;
-	reply: string | null;
-	time: string;
-	status: string;
-}
-
-export interface Exp {
-	id: string;
-	domain: string;
+	kind: InboxKind;
 	title: string;
-	scenario: string;
-	method: string;
-	pitfall?: string;
-	date: string;
+	hook: string;
+	taskRef: string;
+	owner: string;
+	cover: string;
+	pages: InboxPage[];
+	status: string;
 }
+
+export const INBOX_KIND_META: Record<InboxKind, { label: string; emoji: string }> = {
+	review: { label: "验收", emoji: "🔍" },
+	decide: { label: "拍板", emoji: "⚖️" },
+	resource: { label: "要资源", emoji: "🔑" },
+	follow: { label: "跟进", emoji: "📌" },
+};
 
 export function ownerToAgentId(owner: string): string {
 	const o = owner.toLowerCase();
@@ -110,6 +130,33 @@ export function ownerToAgentId(owner: string): string {
 
 export function isClaimActive(status: string): boolean {
 	return /^(active|running|doing|in[- ]?progress|进行中)/i.test(status.trim());
+}
+
+/**
+ * 代理实时状态：以认领卡和任务数据为准推导，agents.json 的 status 仅作兜底。
+ * 有活跃认领 = 正在改代码；否则有 doing/review 任务 = 干活中；否则空闲。
+ */
+export function deriveAgentStatus(
+	agent: AgentInfo,
+	claims: ClaimCard[],
+	tasks: Task[],
+): { key: "coding" | "working" | "idle"; label: string } {
+	if (agent.id === "user") {
+		return tasks.some((t) => t.owner === "user" && t.state === "doing")
+			? { key: "working", label: "亲自干活中" }
+			: { key: "idle", label: "待命" };
+	}
+	const hasClaim = claims.some(
+		(c) => ownerToAgentId(c.owner) === agent.id && isClaimActive(c.status),
+	);
+	if (hasClaim) return { key: "coding", label: "任务执行中" };
+	const hasTask = tasks.some(
+		(t) =>
+			ownerToAgentId(t.owner) === agent.id &&
+			(t.state === "doing" || t.state === "review"),
+	);
+	if (hasTask) return { key: "working", label: "干活中" };
+	return { key: "idle", label: "空闲" };
 }
 
 function parseSectionPaths(raw: string, heading: string): string[] {

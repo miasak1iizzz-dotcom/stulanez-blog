@@ -80,25 +80,51 @@
 并行工作尽量按低耦合边界拆分，例如：内容与文案、单个页面组件、独立样式模块、图片资源处理、配置或构建流程。涉及 `package.json`、锁文件、全局布局、全局样式和站点配置的任务尽量串行；若改动规模较大，优先为代理建立独立 Git worktree，而不是共享同一工作树。
 
 
-## Agent 看板中心（2026-08-28 起）
+## Agent 看板中心（2026-09-04 v2 全面重做）
 
-多代理协作状态统一沉淀在 `src/data/agent-board/`（随仓库提交），站点渲染于 `/lab/agent-board/`（noindex 内部面板）。
+看板服务于**老板本人**（非开发者，用大白话交流），渲染于 `/lab/agent-board/`（noindex 内部面板）。设计定论（用户拍板，勿回退）：砍掉信箱/AI笔记/新手指南/已完成墙的渲染；所有汇报大白话分段；AI 提交前必须代入老板视角自查；给方向性建议、不搞二选一；老板的反馈在板内写好一键复制。
 
-- `agents.json` 代理注册表：新代理入册 = 加一条（id/vendor/model/port/color/inbox/summary），看板自动渲染
-- `tasks.json` 任务状态机：backlog → doing → blocked/review → done；**领任务/完成/阻塞必须即时更新此文件**
-- `decisions.json` 决策队列：需要用户拍板的事项写这里（问题+选项+推荐），批量等待回答；**琐碎选择自行决策，不进队列**
+### 文件分工
+
+面向用户（看板渲染，必须维护）：
+
+- `tasks.json` 任务状态机：backlog → doing → blocked/review → done；**领任务/完成/阻塞必须即时更新**
+- `inbox.json` 「等你过目」卷宗：只有老板能推进的事（验收/拍板/要资源/跟进）写这里。每条含 `pages` 翻页汇报，**必含一页「我替你先验了一遍」（自查）和一页「我的建议」（方向性，非选项）**；老板处理完置 `resolved`。琐碎选择自行决策，不进队列
+- `agents.json` 代理注册表：新代理入册 = 加一条（id/name/vendor/model/port/color/role/plain/status/currentTask/summaries）
+
+AI 内部（**不再上墙渲染，仍要维护**）：
+
 - `mail.json` 点对点信箱：交接/提问/通报写这里，处理完标 done
 - `CURRENT-STATE.md` 全局现状（<200 行）：**任何代理开新对话必读；收工时更新**
 - `experience.json` 经验库：**开工前先查，收工后写回新经验**
 
+已删除（勿再写入）：`decisions.json`（并入 `inbox.json`）、`board-enrichments.json`（大白话与封面已内联进 `tasks.json`）。
+
+### 大白话写作规范（plain / statusLine / nextStep / story / inbox pages 通用）
+
+写给完全不懂技术的老板，不是写给另一个 AI：
+
+1. 禁术语：不写 manifest、hash、WAL、regression、noindex 这类词；必须提概念时用生活类比（「指纹查重」而不是「全池 hash」）。
+2. 分段短句：`story` 每段 ≤ 3 行，一段一个意思；`inbox` 每页 ≤ 3 段。
+3. 数字具体：「判了 1,175 张、330 张进隔离区」而不是「推进了一大批」。
+4. 进度诚实：`progress` 估不准就填 `null`，不要编百分比。
+5. 代入自查：凡是请老板过目的产出，先自己用老板的视角验收一遍（假如这是我的私藏/我的网站，我满意吗），把结论写进汇报；拿不准的点明说，不要藏着。
+6. 建议给方向：写「我倾向 X，因为…；你也可以 Y」，不搞「选项 A / 选项 B 二选一」。
+
+### 收工三步（每段工作结束必做）
+
+1. 更新 `tasks.json`：状态、`statusLine`（做到哪了）、`nextStep`（大白话下一步）。
+2. 需要老板处理的事写进/清掉 `inbox.json`。
+3. 更新 `CURRENT-STATE.md`；有新经验写 `experience.json`。
+
 ### 共享状态写入锁
 
-`agents.json`、`tasks.json`、`decisions.json`、`mail.json`、`experience.json`、`CURRENT-STATE.md` 是所有代理都会更新的共享状态，**禁止写进长期任务 claim**。写入时使用短临界区：
+`agents.json`、`tasks.json`、`inbox.json`、`mail.json`、`experience.json`、`CURRENT-STATE.md` 是所有代理都会更新的共享状态，**禁止写进长期任务 claim**。写入时使用短临界区：
 
 1. `node scripts/agent-board-lock.mjs acquire <owner> "<task>"`，原子获取 `.ai-work/claims/.board-write.lock.json`。
 2. 只改本次对应记录；修改前重新读取目标文件，修改后校验 JSON/Markdown 与 `git diff`。
 3. `node scripts/agent-board-lock.mjs release <owner>` 立即释放。失败或暂停时也要释放；锁属于其他代理时不得删除，陈旧锁由原 owner 或用户裁决。
 
-看板总览会实时展示活跃认领的重叠路径、长期占用共享状态的违规 claim，以及当前短锁持有者。任何红色冲突出现时，涉及路径立即停止写入。`pnpm exec tsx scripts/check-agent-claims.ts` 可在终端执行同一套检查，并以非零退出码阻止开工。
+代理空间页（`/lab/agent-board/<agent>/`）展示各代理的活跃认领，供老板查看「谁在改哪些文件」。`pnpm exec tsx scripts/check-agent-claims.ts` 在终端执行同一套检查，并以非零退出码阻止开工。
 
 规则：普通源码写入照常走认领卡与 Git 纪律；共享看板状态改走短锁；`.ai-work/` 与 `_kp-meta/` 仍为临时区不提交。大规模文件操作前退出 Serpent。

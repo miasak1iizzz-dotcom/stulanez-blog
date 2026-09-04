@@ -1,127 +1,29 @@
 {
-	"updated": "2026-09-01",
+	"updated": "2026-09-04",
+	"note": "字段说明见 docs/AI-COLLABORATION.md「Agent 看板中心」。plain/statusLine/nextStep/story 一律写给完全不懂技术的老板看：大白话、分段、少术语、数字具体。state: backlog → doing → blocked/review → done。",
 	"tasks": [
 		{
-			"id": "T-001",
-			"title": "TFT 规划器：纹章/奥恩神器拆分独立页签",
+			"id": "T-028",
+			"title": "看板重做 v2：大白话卷宗 + 指挥室",
 			"owner": "bigmodel",
-			"state": "done",
-			"priority": "P2",
-			"deps": [],
-			"brief": "其它 tab 拆为两个独立页签，四页签结构",
-			"artifacts": [
-				"1b112f1"
-			]
-		},
-		{
-			"id": "T-002",
-			"title": "二次元内容+画风双维度分类（1,327 张）",
-			"owner": "bigmodel",
-			"state": "done",
+			"state": "review",
 			"priority": "P1",
 			"deps": [],
-			"brief": "联络表目检管线：内容 6 类 + 画风 11 类双标签，manifest 落盘",
+			"brief": "用户拍板全面重做：砍掉信箱/AI笔记/新手指南/已完成墙；汇报全部大白话分段；inbox.json 卷宗制（代入老板自查 + 方向性建议，不搞二选一）；黑金游戏风指挥屏；反馈在板内写好一键复制",
+			"plain": "你眼前这块指挥室本身：大白话汇报、翻页卷宗、反馈一键复制，全部按你的要求重做。",
+			"story": [
+				"为什么要做：老板反馈旧看板全是术语和碎信息，看不懂、插不上手，反而拖慢了所有工作。",
+				"怎么改的：砍掉四个旧栏目，只留「等你过目 / 正在进行 / 团队 / 排队」；每件事做成翻页卷宗，AI 汇报前先代入老板视角自查；反馈在板内写好、一键复制成完整指令。"
+			],
+			"statusLine": "全部完成，等你过目",
+			"progress": 100,
+			"nextStep": "你验收（见「等你过目」里的验收卷宗），不顺手的直接写反馈",
+			"cover": "/assets/images/agent-board/lol-seraphine.jpg",
+			"cat": "ops",
 			"artifacts": [
-				"二次元/{画风}/",
-				"二次元/manifest.json"
-			]
-		},
-		{
-			"id": "T-003",
-			"title": "kpop IG 全量采集（167 号 × 600 上限）",
-			"owner": "bigmodel",
-			"state": "done",
-			"priority": "P1",
-			"deps": [],
-			"brief": "gallery-dl + cookie 官方线，全队列 167 号完成",
-			"artifacts": [
-				"kpop/{团}/{成员_账号}/"
-			]
-		},
-		{
-			"id": "T-004",
-			"title": "LOL 全皮肤原画 1,700 张",
-			"owner": "bigmodel",
-			"state": "done",
-			"priority": "P1",
-			"deps": [],
-			"brief": "ddragon 直链 + CDragon 元数据，全英雄 base + 皮肤",
-			"artifacts": [
-				"LOL/原画/",
-				"LOL/manifest.json"
-			]
-		},
-		{
-			"id": "T-005",
-			"title": "Danbooru 27 团二创 1,092 张",
-			"owner": "bigmodel",
-			"state": "done",
-			"priority": "P2",
-			"deps": [],
-			"brief": "gallery-dl + 代理，SFW/Sensitive，按团归档",
-			"artifacts": [
-				"二创/kpop-danbooru/"
-			]
-		},
-		{
-			"id": "T-006",
-			"title": "B站 kpop+二次元 双线管线",
-			"owner": "bigmodel",
-			"state": "done",
-			"priority": "P2",
-			"deps": [],
-			"brief": "搜索 API + 专栏正文 + hdslb 直链，412 退避通过",
-			"artifacts": [
-				"kpop/B站美图/",
-				"二次元/B站美图/"
-			]
-		},
-		{
-			"id": "T-007",
-			"title": "kpopping 饭拍 821 张",
-			"owner": "bigmodel",
-			"state": "done",
-			"priority": "P2",
-			"deps": [],
-			"brief": "成员页封面流解码 cdn 原图，代理出口解 CF 封锁",
-			"artifacts": [
-				"kpop/{团}/饭拍-kpopping/"
-			]
-		},
-		{
-			"id": "T-008",
-			"title": "10G 二次元/AI 冲刺",
-			"owner": "deepseek",
-			"state": "done",
-			"priority": "P1",
-			"deps": [],
-			"brief": "Pixiv/Wallhaven/Civitai 三路并行，pixiv_* 主题夹重建",
-			"artifacts": [
-				"二次元/pixiv_*/",
-				"AI画作/"
-			]
-		},
-		{
-			"id": "T-009",
-			"title": "Serpent 卡死修复 + 重置",
-			"owner": "bigmodel",
-			"state": "done",
-			"priority": "P1",
-			"deps": [],
-			"brief": "225MB WAL 病根定位，备份式重置（_serpent-backup-20260828）",
-			"artifacts": []
-		},
-		{
-			"id": "T-010",
-			"title": "二次元两池合并去重",
-			"owner": "bigmodel",
-			"state": "done",
-			"priority": "P1",
-			"deps": [],
-			"brief": "全池 hash 实测 4,221 张零重复（前轮全库去重已覆盖）；待人工 141 清零：97 张滞留正身归位画风夹 + 44 张非插画素材隔离；根 manifest 重建（双维度标签 1,281 + 来源元数据 2,938）",
-			"artifacts": [
-				"二次元/manifest.json",
-				"_隔离待删-0828/待人工-非插画素材/"
+				"src/pages/lab/agent-board.astro",
+				"src/pages/lab/agent-board/[agent].astro",
+				"src/data/agent-board/inbox.json"
 			]
 		},
 		{
@@ -130,13 +32,68 @@
 			"owner": "bigmodel",
 			"state": "review",
 			"priority": "P1",
-			"deps": [
-				"T-015 Serpent 扫描完成（筛选涉及移动/删除）"
-			],
+			"deps": ["T-015 Serpent 扫描完成（筛选涉及移动/删除）"],
 			"brief": "保底清理已收官；视觉目检轮推进中：SEVENTEEN 两批 1,175 张已判（批1 575 判/196 淘汰 34%，批2 600 判/134 淘汰 22.3%），隔离区 330 张待用户抽查后清空；下一团 Kep1er（队列按图量降序）+ 二创 47 表一次过；方案见 .ai-work/quality-review/rules-v1.md",
+			"plain": "给 4.8 万张 Kpop 图挨个做质检：好图留下，糊图废片挪进『隔离区』等你点头再删。SEVENTEEN 已判完，330 张废片正等你抽查。",
+			"story": [
+				"为什么要做：图库从十几个渠道搬回来，混了不少糊图、背影、纯食物风景照，好图被拖累。",
+				"做到哪了：SEVENTEEN 两轮判完，1,175 张里挑出 330 张进隔离区。第一轮淘汰 34%、第二轮收着点淘汰 22%，尺度已经稳了。",
+				"接下来：你抽查隔离区，点头就清空；然后按同样的标准继续下一团（Kep1er → OH MY GIRL → fromis_9……）。"
+			],
+			"statusLine": "SEVENTEEN 判完 · 330 张等你抽查 · 下一团 Kep1er",
+			"progress": null,
+			"nextStep": "你抽查隔离区 330 张 → 回复后我清空并开判 Kep1er",
+			"cover": "/assets/images/agent-board/kpop-boutique.jpg",
+			"cat": "assets",
 			"artifacts": [
 				".ai-work/quality-review/rules-v1.md",
 				".ai-work/quality-review/eliminate-candidates.json"
+			]
+		},
+		{
+			"id": "T-015",
+			"title": "Serpent 链接资源库 + 全量重扫",
+			"owner": "user",
+			"state": "doing",
+			"priority": "P1",
+			"deps": [],
+			"brief": "添加链接文件夹指向 资源库，首次扫描 8.2 万文件",
+			"plain": "把整个图片库接入 Serpent 建索引，以后搜图秒出。这单是老板亲自操作，AI 打辅助。",
+			"story": [
+				"为什么要做：图库 5 万多张散在文件夹里，找图全靠记忆。Serpent 建好索引后，按团、按成员、按画风都能秒搜。",
+				"做到哪了：上次它频繁卡死是数据库胀到 225MB，已经备份重置干净，现在是全新空库。",
+				"接下来：老板在 Serpent 里把『资源库』文件夹挂成链接库，点开始扫描。首次约 8.2 万文件，挂机等它跑完。"
+			],
+			"statusLine": "库已重置干净 · 等挂链接、点首扫",
+			"progress": null,
+			"nextStep": "老板在 Serpent 里添加链接库并开始首扫（扫描期间 AI 暂停批量挪文件）",
+			"cover": "/assets/images/agent-board/kpop-arch.jpg",
+			"cat": "ops",
+			"artifacts": []
+		},
+		{
+			"id": "T-016",
+			"title": "网站建设回归",
+			"owner": "codex",
+			"state": "doing",
+			"priority": "P0",
+			"deps": [],
+			"brief": "Codex 进行中：首轮已补齐内部 Agent 看板 noindex 并排除 sitemap；下一项 T-018；Codex 额度恢复后继续",
+			"plain": "网站全面体检：从首页到内页逐项检查功能与显示，Codex 主刀。清单共 10 项。",
+			"story": [
+				"为什么要做：这两周网站加了不少新东西（门户卡片、新文章、看板），得从头验一遍，别让访客看到坏页面。",
+				"做到哪了：第 1 项『首页门户卡片』已通过，顺手把内部看板设成了搜索引擎不可见。Codex 的额度暂时用完，恢复后接着查。",
+				"接下来：还有 9 项——文章卡、手机端、夜间模式、搜索功能等，全过一遍才算交付。"
+			],
+			"statusLine": "1/10 项通过 · 等 Codex 额度恢复",
+			"progress": 10,
+			"nextStep": "Codex 额度恢复后继续第 2 项（首页文章卡与封面）",
+			"cover": "/assets/images/agent-board/lol-zoe.jpg",
+			"cat": "site",
+			"artifacts": [
+				"src/pages/lab/agent-board.astro",
+				"src/pages/lab/agent-board/[agent].astro",
+				"astro.config.mjs"
 			]
 		},
 		{
@@ -145,10 +102,14 @@
 			"owner": "bigmodel",
 			"state": "blocked",
 			"priority": "P2",
-			"deps": [
-				"T-011"
-			],
+			"deps": ["T-011"],
 			"brief": "弃大标签改成员名标签，入库前逐张目检",
+			"plain": "1,092 张 Kpop 同人画重新打标签（标清楚是哪位成员）+ 逐张筛质量。现在卡着：等图库质检收尾，『神图』标准也等你定。",
+			"statusLine": "排队中 · 前面还有 T-011",
+			"progress": null,
+			"nextStep": "T-011 收尾 + 你定下『神图』标准后开工",
+			"cover": "/assets/images/agent-board/anime-wed.jpg",
+			"cat": "assets",
 			"artifacts": []
 		},
 		{
@@ -159,6 +120,12 @@
 			"priority": "P3",
 			"deps": [],
 			"brief": "防重档案增量，只补老图",
+			"plain": "可选加餐：把每位艺人的 Instagram 存量从 600 张加深到最多 1500 张，只补没存过的老图。等你决定做不做。",
+			"statusLine": "等你决定",
+			"progress": null,
+			"nextStep": "见「等你过目」里的 IG 深挖卷宗",
+			"cover": "/assets/images/agent-board/kpop-totoro.jpg",
+			"cat": "assets",
 			"artifacts": []
 		},
 		{
@@ -169,44 +136,13 @@
 			"priority": "P3",
 			"deps": [],
 			"brief": "三平台均登录墙；cookie 到位后复制 IG 管线模式（1 小时内通）",
+			"plain": "微博 / 小红书 / 抖音都要登录才能抓图。等你从浏览器导出登录凭证，1 小时内能通三条新图源。",
+			"statusLine": "等你的登录凭证",
+			"progress": null,
+			"nextStep": "见「等你过目」里的国内图源卷宗",
+			"cover": "/assets/images/agent-board/kpop-bridge.jpg",
+			"cat": "assets",
 			"artifacts": []
-		},
-		{
-			"id": "T-015",
-			"title": "Serpent 链接资源库 + 全量重扫",
-			"owner": "user",
-			"state": "doing",
-			"priority": "P1",
-			"deps": [],
-			"brief": "添加链接文件夹指向 资源库，首次扫描 8.2 万文件",
-			"artifacts": []
-		},
-		{
-			"id": "T-016",
-			"title": "网站建设回归",
-			"owner": "codex",
-			"state": "doing",
-			"priority": "P0",
-			"deps": [],
-			"brief": "Codex 进行中：首轮已补齐内部 Agent 看板 noindex，并排除 sitemap",
-			"artifacts": [
-				"src/pages/lab/agent-board.astro",
-				"src/pages/lab/agent-board/[agent].astro",
-				"astro.config.mjs"
-			]
-		},
-		{
-			"id": "T-017",
-			"title": "首页门户(Bento)卡片回归",
-			"owner": "codex",
-			"state": "done",
-			"priority": "P0",
-			"deps": [],
-			"brief": "回归通过，无需源码修复：8 张卡片/问候胶囊在亮暗主题及 375/414/768 断点下可读、对齐且无横向溢出；8 个链接与 8 张背景图均为 200，控制台零报错",
-			"artifacts": [
-				"src/components/misc/HomePortal.astro",
-				"public/assets/images/portal/*.jpg"
-			]
 		},
 		{
 			"id": "T-018",
@@ -216,6 +152,12 @@
 			"priority": "P0",
 			"deps": [],
 			"brief": "3 列网格 + 封面 + 卡片质感分层在新增文章下的表现，封面缺失/换行/高度塌陷排查",
+			"plain": "检查首页文章卡片的封面与排版：新增文章后是否依然整齐、不塌陷、不破图。",
+			"statusLine": "网站体检第 2 项 · 排队中",
+			"progress": null,
+			"nextStep": "Codex 额度恢复后第一个查它",
+			"cover": "/assets/images/agent-board/kpop-flowers.jpg",
+			"cat": "site",
 			"artifacts": []
 		},
 		{
@@ -226,6 +168,12 @@
 			"priority": "P1",
 			"deps": [],
 			"brief": "首页/内页/看板在 375/414/768 宽度下的布局、导航抽屉、侧栏折叠、横竖屏与触控目标尺寸",
+			"plain": "用手机尺寸把每个页面过一遍：布局、抽屉菜单、按钮好不好点。",
+			"statusLine": "网站体检第 3 项 · 排队中",
+			"progress": null,
+			"nextStep": "排在 T-018 后面依次过",
+			"cover": "/assets/images/agent-board/kpop-selfie.jpg",
+			"cat": "site",
 			"artifacts": []
 		},
 		{
@@ -236,6 +184,12 @@
 			"priority": "P1",
 			"deps": [],
 			"brief": "全组件明暗图表、主题色联动(--primary/衍生色)、开屏与壁纸在两种主题下的对比度",
+			"plain": "检查夜间模式切换后，全站颜色是否协调、文字是否看得清。",
+			"statusLine": "网站体检第 4 项 · 排队中",
+			"progress": null,
+			"nextStep": "排在 T-019 后面依次过",
+			"cover": "/assets/images/agent-board/kpop-ferris.jpg",
+			"cat": "site",
 			"artifacts": []
 		},
 		{
@@ -246,6 +200,12 @@
 			"priority": "P1",
 			"deps": [],
 			"brief": "OG/描述/robots/sitemap/规范 URL 复核；内部看板 noindex 后仍无泄漏；结构化数据完整",
+			"plain": "搜索引擎体检：公开页面的标题摘要完整，内部看板不被谷歌收录。",
+			"statusLine": "网站体检第 5 项 · 排队中",
+			"progress": null,
+			"nextStep": "排在 T-020 后面依次过",
+			"cover": "/assets/images/agent-board/lol-nami.jpg",
+			"cat": "site",
 			"artifacts": []
 		},
 		{
@@ -256,6 +216,12 @@
 			"priority": "P2",
 			"deps": [],
 			"brief": "文章正文行高/字号/代码块/引用/图片宽度、TOC 锚点、阅读进度条在长文(小说/长文)下的表现",
+			"plain": "打磨长文章的阅读舒适度：行高、字号、代码块、目录锚点、进度条。",
+			"statusLine": "网站体检第 6 项 · 排队中",
+			"progress": null,
+			"nextStep": "排在 T-021 后面依次过",
+			"cover": "/assets/images/agent-board/kpop-arch.jpg",
+			"cat": "site",
 			"artifacts": []
 		},
 		{
@@ -266,6 +232,12 @@
 			"priority": "P1",
 			"deps": [],
 			"brief": "搜索、分页、归档/标签、日历年历/时间进度、音乐播放器、Bili 卡片等 Svelte 岛屿的 hydration 与交互",
+			"plain": "检查搜索框、分页、音乐播放器、B站卡片这些互动功能是否灵光。",
+			"statusLine": "网站体检第 7 项 · 排队中",
+			"progress": null,
+			"nextStep": "排在 T-022 后面依次过",
+			"cover": "/assets/images/agent-board/kpop-sakura.jpg",
+			"cat": "site",
 			"artifacts": []
 		},
 		{
@@ -276,6 +248,12 @@
 			"priority": "P2",
 			"deps": [],
 			"brief": "404 在移动端/暗色的观感、破图/断开链接兜底、空状态(如相册无内容、搜索无结果)文案与样式",
+			"plain": "美化『页面不存在』的 404 报错页，以及搜索无结果、相册为空这类冷清场面。",
+			"statusLine": "网站体检第 8 项 · 排队中",
+			"progress": null,
+			"nextStep": "排在 T-023 后面依次过",
+			"cover": "/assets/images/agent-board/lol-yuumi.jpg",
+			"cat": "site",
 			"artifacts": []
 		},
 		{
@@ -286,6 +264,12 @@
 			"priority": "P2",
 			"deps": [],
 			"brief": "LQIP/图片懒加载/字体子集/脚本体积复核；Pagefind 索引与首页 FCP 无明显回退",
+			"plain": "网页打开速度体检：图片懒加载、字体瘦身、脚本体积，保证首屏不变慢。",
+			"statusLine": "网站体检第 9 项 · 排队中",
+			"progress": null,
+			"nextStep": "排在 T-024 后面依次过",
+			"cover": "/assets/images/agent-board/lol-seraphine.jpg",
+			"cat": "site",
 			"artifacts": []
 		},
 		{
@@ -296,16 +280,168 @@
 			"priority": "P2",
 			"deps": [],
 			"brief": "作品页/关于/动态/相册等入口的新增项目与时效信息核对，保证导航「我的」分组不过期",
+			"plain": "核对『作品 / 关于 / 动态 / 相册』页面的内容是否过时，该更新的更新。",
+			"statusLine": "网站体检第 10 项 · 排队中",
+			"progress": null,
+			"nextStep": "排在 T-025 后面依次过",
+			"cover": "/assets/images/agent-board/kpop-boutique.jpg",
+			"cat": "site",
 			"artifacts": []
 		},
 		{
-			"id": "T-027",
-			"title": "看板深度改造：客户端级 UI + 新手可读化",
+			"id": "T-001",
+			"title": "TFT 规划器：纹章/奥恩神器拆分独立页签",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P2",
+			"deps": [],
+			"brief": "其它 tab 拆为两个独立页签，四页签结构",
+			"plain": "给游戏攻略工具「TFT 阵容规划器」改版：把『纹章』和『奥恩神器』拆成独立页签，四页签更好找。",
+			"cover": "/assets/images/agent-board/lol-yuumi.jpg",
+			"cat": "site",
+			"artifacts": ["1b112f1"]
+		},
+		{
+			"id": "T-002",
+			"title": "二次元内容+画风双维度分类（1,327 张）",
 			"owner": "bigmodel",
 			"state": "done",
 			"priority": "P1",
 			"deps": [],
-			"brief": "用户指派（Codex 下线接手）：看板已重做为客户端级指挥中心——Seraphine 原画横幅、27 张任务大白话+封面图、五列看板+筛选+详情弹窗、决策拍板一键复制、新手指南页、代理空间同步改版；check/type-check/build 0 错误，浏览器全页签目检通过",
+			"brief": "联络表目检管线：内容 6 类 + 画风 11 类双标签，manifest 落盘",
+			"plain": "把 1,327 张动漫美图按『画的是什么内容』和『属于什么画风』两个维度分类归档，随时可检索。",
+			"cover": "/assets/images/agent-board/anime-cn.jpg",
+			"cat": "assets",
+			"artifacts": ["二次元/{画风}/", "二次元/manifest.json"]
+		},
+		{
+			"id": "T-003",
+			"title": "kpop IG 全量采集（167 号 × 600 上限）",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "gallery-dl + cookie 官方线，全队列 167 号完成",
+			"plain": "从 Instagram 为 167 位 Kpop 艺人各抓取最多 600 张照片，打好了 Kpop 图库的基本盘。",
+			"cover": "/assets/images/agent-board/kpop-balloons.jpg",
+			"cat": "assets",
+			"artifacts": ["kpop/{团}/{成员_账号}/"]
+		},
+		{
+			"id": "T-004",
+			"title": "LOL 全皮肤原画 1,700 张",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "ddragon 直链 + CDragon 元数据，全英雄 base + 皮肤",
+			"plain": "英雄联盟全部英雄与皮肤的官方高清原画 1,700 张，从官方源直连下载。",
+			"cover": "/assets/images/agent-board/lol-nami.jpg",
+			"cat": "assets",
+			"artifacts": ["LOL/原画/", "LOL/manifest.json"]
+		},
+		{
+			"id": "T-005",
+			"title": "Danbooru 27 团二创 1,092 张",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P2",
+			"deps": [],
+			"brief": "gallery-dl + 代理，SFW/Sensitive，按团归档",
+			"plain": "从画师社区 Danbooru 收集 1,092 张 Kpop 主题同人画作，按团归档入库。",
+			"cover": "/assets/images/agent-board/anime-fairy.jpg",
+			"cat": "assets",
+			"artifacts": ["二创/kpop-danbooru/"]
+		},
+		{
+			"id": "T-006",
+			"title": "B站 kpop+二次元 双线管线",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P2",
+			"deps": [],
+			"brief": "搜索 API + 专栏正文 + hdslb 直链，412 退避通过",
+			"plain": "打通 B 站图片抓取管线：Kpop 与二次元两条线共 800+ 张入库，还治好了接口风控。",
+			"cover": "/assets/images/agent-board/kpop-sakura.jpg",
+			"cat": "assets",
+			"artifacts": ["kpop/B站美图/", "二次元/B站美图/"]
+		},
+		{
+			"id": "T-007",
+			"title": "kpopping 饭拍 821 张",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P2",
+			"deps": [],
+			"brief": "成员页封面流解码 cdn 原图，代理出口解 CF 封锁",
+			"plain": "从 kpopping 网站收集 821 张打歌舞台与饭拍图，顺带破解了它的防爬封锁。",
+			"cover": "/assets/images/agent-board/kpop-flowers.jpg",
+			"cat": "assets",
+			"artifacts": ["kpop/{团}/饭拍-kpopping/"]
+		},
+		{
+			"id": "T-008",
+			"title": "10G 二次元/AI 冲刺",
+			"owner": "deepseek",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "Pixiv/Wallhaven/Civitai 三路并行，pixiv_* 主题夹重建",
+			"plain": "DeepSeek 主刀的补库冲刺：从 Pixiv / Wallhaven / Civitai 三个站补了约 10G 动漫与 AI 精美图。",
+			"cover": "/assets/images/agent-board/anime-wed.jpg",
+			"cat": "assets",
+			"artifacts": ["二次元/pixiv_*/", "AI画作/"]
+		},
+		{
+			"id": "T-009",
+			"title": "Serpent 卡死修复 + 重置",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "225MB WAL 病根定位，备份式重置（_serpent-backup-20260828）",
+			"plain": "图片管理软件 Serpent 频繁卡死，查明是数据库文件臃肿到 225MB，已做安全备份重置。",
+			"cover": "/assets/images/agent-board/kpop-ferris.jpg",
+			"cat": "ops",
+			"artifacts": []
+		},
+		{
+			"id": "T-010",
+			"title": "二次元两池合并去重",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "全池 hash 实测 4,221 张零重复（前轮全库去重已覆盖）；待人工 141 清零：97 张滞留正身归位画风夹 + 44 张非插画素材隔离；根 manifest 重建（双维度标签 1,281 + 来源元数据 2,938）",
+			"plain": "两个动漫图库合并成一个大库，逐张指纹查重：4,221 张全部独一无二，零重复。",
+			"cover": "/assets/images/agent-board/lol-lillia.jpg",
+			"cat": "assets",
+			"artifacts": ["二次元/manifest.json", "_隔离待删-0828/待人工-非插画素材/"]
+		},
+		{
+			"id": "T-017",
+			"title": "首页门户(Bento)卡片回归",
+			"owner": "codex",
+			"state": "done",
+			"priority": "P0",
+			"deps": [],
+			"brief": "回归通过，无需源码修复：8 张卡片/问候胶囊在亮暗主题及 375/414/768 断点下可读、对齐且无横向溢出；8 个链接与 8 张背景图均为 200，控制台零报错",
+			"plain": "检查首页 8 张快捷入口卡片：手机窄屏、夜间模式、链接、背景图全部过关，不用改代码。",
+			"cover": "/assets/images/agent-board/kpop-balloons.jpg",
+			"cat": "site",
+			"artifacts": ["src/components/misc/HomePortal.astro", "public/assets/images/portal/*.jpg"]
+		},
+		{
+			"id": "T-027",
+			"title": "看板深度改造：客户端级 UI + 新手可读化（已被 T-028 取代）",
+			"owner": "bigmodel",
+			"state": "done",
+			"priority": "P1",
+			"deps": [],
+			"brief": "用户指派（Codex 下线接手）：看板已重做为客户端级指挥中心——Seraphine 原画横幅、27 张任务大白话+封面图、五列看板+筛选+详情弹窗、决策拍板一键复制、新手指南页、代理空间同步改版；该版用户判定不够好，由 T-028 全面重做取代",
+			"plain": "上一版看板改造（五列看板+页签）。老板用下来觉得还是复杂，这块板本身已被 T-028 全面重做取代。",
+			"cover": "/assets/images/agent-board/anime-fairy.jpg",
+			"cat": "ops",
 			"artifacts": [
 				"src/pages/lab/agent-board.astro",
 				"src/pages/lab/agent-board/[agent].astro",

@@ -7,8 +7,9 @@
     "port": 4325,
     "color": "#a78bfa",
     "role": "全栈 · 资产管线 · 分类整理",
-    "status": "idle",
-    "currentTask": null,
+    "plain": "就是我（GLM）。网站功能开发 + 图片库大管家：下载、分类、筛废片、修管线。你眼前这块新指挥室也是我重做的。",
+    "status": "working",
+    "currentTask": "T-028 看板重做",
     "summaries": [
       "docs/GLM-SUMMARY.md"
     ]
@@ -21,8 +22,9 @@
     "port": 4323,
     "color": "#3b82f6",
     "role": "二次元/AI 生图 · Serpent 资产线 · K-pop 播放器 · TFT 对齐",
+    "plain": "二次元与 AI 图源专家。擅长从 Pixiv、Wallhaven 这类网站批量抓图，10G 补库冲刺就是他干的。",
     "status": "working",
-    "currentTask": "10G 素材冲刺",
+    "currentTask": "10G 补库冲刺入库",
     "summaries": [
       "docs/AGENT-1-SUMMARY.md",
       "docs/AGENT-2-SUMMARY.md"
@@ -36,8 +38,9 @@
     "port": 4322,
     "color": "#10b981",
     "role": "站点回归 · 协作协议 · TFT",
+    "plain": "网站质检员 + 前端工程师。负责全站回归检查，还搭了这套『认领锁』防打架系统。",
     "status": "working",
-    "currentTask": "T-016 网站建设回归",
+    "currentTask": "T-016 网站体检（额度恢复后继续）",
     "summaries": [
       "docs/CODEX-SUMMARY.md"
     ]
@@ -50,6 +53,7 @@
     "port": 4321,
     "color": "#f59e0b",
     "role": "外观 UX · 显示设置",
+    "plain": "界面美化师。负责站点外观、显示设置和交互体验的打磨。",
     "status": "idle",
     "currentTask": null,
     "summaries": [
@@ -64,8 +68,9 @@
     "port": null,
     "color": "#fbbf24",
     "role": "方向决策 · 验收 · 资源",
-    "status": "idle",
-    "currentTask": null,
+    "plain": "老板（也就是你）：拍板决策、验收成果、提供资源，是所有 AI 的共同指挥官。",
+    "status": "working",
+    "currentTask": "T-015 Serpent 首扫",
     "summaries": []
   }
 ]
