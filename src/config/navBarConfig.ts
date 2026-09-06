@@ -58,10 +58,11 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		],
 	});
 
-	// 指挥室（AI 协作看板，主站一键进入）
+	// 指挥室（AI 协作看板，本地一键拉起：stulanez-deck:// 协议 → 本机脚本启动看板）
 	links.push({
 		name: "指挥室",
-		url: "/lab/agent-board/",
+		url: "stulanez-deck://open",
+		external: true,
 		icon: "material-symbols:space-dashboard-rounded",
 	});
 
