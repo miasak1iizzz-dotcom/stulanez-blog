@@ -1,6 +1,7 @@
 {
 	"updated": "2026-09-07",
 	"reports": [
+		{ "taskRef": "看板·下线", "at": "2026-09-07", "text": "按老板要求先把 AI 协作看板从公网下线：vercel.json 让 /lab/* 返回 404（不动 Cursor 认领的 agent-board.astro/agent-board.ts；本地 dev 与「指挥室」启动器不受影响，重启后仍可拉起本地看板）。看板数据据此改为本地优先，未到「上线展示」不主动推线上；后期重新上线只需移除这条 404 规则。边界已写进 AI-COLLABORATION.md。" },
 		{ "taskRef": "看板·草稿保护", "at": "2026-09-07", "text": "修反馈页自动刷新丢字：根因是本地 dev 在 Cursor 改看板文件时整页刷新。未碰 Cursor 认领的 agent-board.astro/agent-board.ts，改为在未认领的 Layout.astro 加 sessionStorage 草稿保护（输入实时存、刷新后自动回填）。" },
 		{ "taskRef": "看板·本地启动器", "at": "2026-09-07", "text": "做本地启动器：导航「指挥室」由 /lab/agent-board/ 改为 stulanez-deck:// 协议，一点在本机跑脚本拉起 4321 dev 服务并打开看板；含 launch-command-deck.ps1 + register-command-deck-protocol.ps1（协议已注册到 HKCU）。" },
 		{ "taskRef": "看板·报告系统", "at": "2026-09-07", "text": "建每 AI 任务报告/总结系统：reports/<ai>.json + 空间页「任务档案」展示 + 内部协议定「每任务必须写报告、新对话只读一屏」；并按真实历史播种四 AI 报告。" },

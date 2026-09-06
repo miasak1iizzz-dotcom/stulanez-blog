@@ -3,6 +3,13 @@
   "outputDirectory": "dist",
   "installCommand": "pnpm install",
   "framework": "astro",
+  "redirects": [
+    {
+      "source": "/lab/:path*",
+      "destination": "/404",
+      "statusCode": 404
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
