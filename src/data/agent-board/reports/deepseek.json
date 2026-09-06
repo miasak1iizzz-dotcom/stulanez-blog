@@ -1,6 +1,10 @@
 {
 	"updated": "2026-09-07",
 	"reports": [
+		{ "taskRef": "看板·草稿保护", "at": "2026-09-07", "text": "修反馈页自动刷新丢字：根因是本地 dev 在 Cursor 改看板文件时整页刷新。未碰 Cursor 认领的 agent-board.astro/agent-board.ts，改为在未认领的 Layout.astro 加 sessionStorage 草稿保护（输入实时存、刷新后自动回填）。" },
+		{ "taskRef": "看板·本地启动器", "at": "2026-09-07", "text": "做本地启动器：导航「指挥室」由 /lab/agent-board/ 改为 stulanez-deck:// 协议，一点在本机跑脚本拉起 4321 dev 服务并打开看板；含 launch-command-deck.ps1 + register-command-deck-protocol.ps1（协议已注册到 HKCU）。" },
+		{ "taskRef": "看板·报告系统", "at": "2026-09-07", "text": "建每 AI 任务报告/总结系统：reports/<ai>.json + 空间页「任务档案」展示 + 内部协议定「每任务必须写报告、新对话只读一屏」；并按真实历史播种四 AI 报告。" },
+		{ "taskRef": "看板·入口+协议", "at": "2026-09-07", "text": "主站顶部导航加「指挥室」入口；内部协议补「收工必须自行上线」（每干完一个功能自己 push）与 Token 成本纪律落库。" },
 		{ "taskRef": "T-018", "at": "2026-09-07", "text": "首页文章卡与封面回归通过：4 篇封面 200、grid-mode/has-cover 正确、最长标题换行 2 行、卡片不塌陷；pnpm check 0 errors。" },
 		{ "taskRef": "看板文章", "at": "2026-09-07", "text": "发布《指挥室》AI 协作看板文章与可交互演示（3d8ba2f6）。" },
 		{ "taskRef": "T-008", "at": "2026-08-27", "text": "10G 二次元/AI 补库冲刺：Pixiv/Wallhaven/Civitai 三路并行，pixiv_* 主题夹重建。" }
