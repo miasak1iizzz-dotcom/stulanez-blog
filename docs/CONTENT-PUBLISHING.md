@@ -24,6 +24,8 @@
 3. 封面图放 `public/assets/images/posts/`，或复用站内已有图（如 `/assets/images/agent-board/*.jpg`）。`image` 字段填可访问路径。
 4. `contentType: article`；如需分章阅读体验才用 `contentType: novel` 走 NovelReader，普通文章不得强制套用小说阅读器。
 
+**⚠ 必做验证（`pnpm check` 查不出来的坑）：** MDX 里用了组件就必须在 frontmatter 后 `import` 它，否则运行时在 dev/preview 打开文章会报 `No matching import`（`pnpm check` 不报错，照样通过）。因此凡 MDX 挂了新组件，完成后**必须在浏览器打开该文章页确认渲染**，别只靠 `pnpm check`。另外，全新新增的文章若 dev server 一直 404，是该 server 的内容扫描没跟上，重启 `pnpm dev` 即可。
+
 ## 2. 发布文章：自己推送，不用老板确认
 
 **规矩：内容/功能改动做完、验证通过后，AI 直接自行 `commit` + `push`，无需等老板点头。** 老板只看结果。
