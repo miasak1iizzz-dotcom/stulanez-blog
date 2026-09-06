@@ -69,9 +69,20 @@ export interface AgentInfo {
 	summaries: string[];
 }
 
+/** 任务主理人交接记录（卡片详情「主理人跟踪」竖向时间轴） */
+export interface OwnershipEvent {
+	/** 代理 id：bigmodel / deepseek / codex / cursor / user / all */
+	owner: string;
+	/** 日期 YYYY-MM-DD */
+	at: string;
+	/** 大白话：创建 / 接手 / 协助 … */
+	note: string;
+}
+
 export interface Task {
 	id: string;
 	title: string;
+	/** 当前主理人（卡片左下角只看这个字段） */
 	owner: string;
 	state: string;
 	priority: string;
@@ -91,6 +102,11 @@ export interface Task {
 	cover: string;
 	cat: string;
 	artifacts: string[];
+	/**
+	 * 主理人跟踪时间轴（从早到晚）。
+	 * 接手任务时：把 owner 改成自己，并往本数组追加一条 { owner, at, note }。
+	 */
+	ownershipHistory?: OwnershipEvent[];
 }
 
 export type InboxKind = "review" | "decide" | "resource" | "follow";

@@ -25,6 +25,13 @@
 				"src/pages/lab/agent-board.astro",
 				"src/pages/lab/agent-board/[agent].astro",
 				"src/data/agent-board/inbox.json"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -51,6 +58,13 @@
 			"artifacts": [
 				".ai-work/quality-review/rules-v1.md",
 				".ai-work/quality-review/eliminate-candidates.json"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -72,7 +86,14 @@
 			"nextStep": "正常使用 Serpent；当前资源库和索引继续保留",
 			"cover": "/assets/images/agent-board/kpop-arch.jpg",
 			"cat": "ops",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "user",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-016",
@@ -97,6 +118,13 @@
 				"src/pages/lab/agent-board.astro",
 				"src/pages/lab/agent-board/[agent].astro",
 				"astro.config.mjs"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "codex",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -115,7 +143,14 @@
 			"nextStep": "T-011 收尾后开工；『神图』标准由 GLM 在目检工作中一并定",
 			"cover": "/assets/images/agent-board/anime-wed.jpg",
 			"cat": "assets",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-013",
@@ -131,20 +166,27 @@
 			"nextStep": "无（已拍板关闭）；等 kpop 质检收尾后再重新评估",
 			"cover": "/assets/images/agent-board/kpop-totoro.jpg",
 			"cat": "assets",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-014",
 			"title": "国内盛产图源渠道打通（B站/抖音/小红书/微博）",
-			"owner": "bigmodel",
+			"owner": "cursor",
 			"state": "doing",
 			"priority": "P3",
 			"deps": [],
-			"brief": "老板澄清目标（2026-09-07）：不是「丢链接下载」，而是像最初建数字资产库一样——给 AI 一个泛泛需求，让它自己在 B站/抖音/小红书/微博上找合适的好看图并批量下载入库。验收标准=自主检索/发现 + 可批量下载 + 去重追溯，对齐 Pixiv/IG 那种渠道能力。现状：B站专栏线早有实战但有 412；抖音仅 Codex 单条公开图文打样（45 张），无搜索发现能力；小红书/微博未开；Cookie 官方接口未验通。",
-			"plain": "你要的不是「我给你一条链接、AI 帮你下下来」，而是当初建资产库那种玩法：你随口说要什么图，AI 自己跑去 B站、抖音、小红书、微博这些盛产好看图的地方找，找到了再批量往库里收。抖音目前只证明了「已知的一条图文能抠下来」，离「自己会上网找」还差一大截；小红书和微博还没开工。B站以前下过一批，但还要继续当成同一类国内渠道一起打通。",
-			"statusLine": "目标已对齐：自主找图入库 · 抖音仅单条打样",
-			"progress": 25,
-			"nextStep": "按「自主检索→筛选→批量下→查重入库」打通国内渠道：优先把抖音从单条打样升级到能按主题自己找；同时分别验证小红书、微博是否需要登录凭证；B站沿用已有经验补强。不再把「单链接下载」当完成标准。",
+			"brief": "老板确认问题两块：(1) 抖音渠道——单条公开图文下载已通，自主检索发现未通；(2) 看板——接手人必须写进 owner；新增 ownershipHistory + 详情 Tab『主理人跟踪』。Cursor 已接手 T-014。",
+			"plain": "先直接回答你：Codex 那条抖音线，『已知一条公开图文能下载』是跑通了（45 张壁纸在），但『AI 自己上网找图再批量下』还没跑通。小红书和微博也还没开。另外看板已改：谁接手任务，左下角就显示谁；详情里多了『主理人跟踪』时间轴。",
+			"statusLine": "抖音单条能下 · 自主找图未通 · Cursor 主理中",
+			"progress": 35,
+			"nextStep": "下一步把抖音从『已知链接能下』升级到『按主题自己搜着找并批量入库』；同步验证小红书/微博；B站沿用已有经验。看板主理人规则已生效。",
 			"cover": "/assets/images/agent-board/kpop-bridge.jpg",
 			"cat": "assets",
 			"artifacts": [
@@ -153,6 +195,23 @@
 				".ai-work/douyin-sample-7666324619125407482/manifest.json",
 				"src/content/posts/digital-asset-library.mdx",
 				".ai-work/glm-download-methods.md"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-08-28",
+					"note": "创建任务：国内图源 cookie 线"
+				},
+				{
+					"owner": "codex",
+					"at": "2026-09-07",
+					"note": "协助：抖音公开图文单条打样（45 张）"
+				},
+				{
+					"owner": "cursor",
+					"at": "2026-09-07",
+					"note": "接手：对齐自主找图目标 + 看板主理人跟踪改造"
+				}
 			]
 		},
 		{
@@ -169,7 +228,14 @@
 			"nextStep": "网站体检已过 2 项；下一项查第 3 个（手机端断点与触控）",
 			"cover": "/assets/images/agent-board/kpop-flowers.jpg",
 			"cat": "site",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "deepseek",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-019",
@@ -185,7 +251,14 @@
 			"nextStep": "排在 T-018 后面依次过",
 			"cover": "/assets/images/agent-board/kpop-selfie.jpg",
 			"cat": "site",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "all",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-020",
@@ -201,7 +274,14 @@
 			"nextStep": "排在 T-019 后面依次过",
 			"cover": "/assets/images/agent-board/kpop-ferris.jpg",
 			"cat": "site",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "all",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-021",
@@ -217,7 +297,14 @@
 			"nextStep": "排在 T-020 后面依次过",
 			"cover": "/assets/images/agent-board/lol-nami.jpg",
 			"cat": "site",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "all",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-022",
@@ -233,7 +320,14 @@
 			"nextStep": "排在 T-021 后面依次过",
 			"cover": "/assets/images/agent-board/kpop-arch.jpg",
 			"cat": "site",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "all",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-023",
@@ -249,7 +343,14 @@
 			"nextStep": "排在 T-022 后面依次过",
 			"cover": "/assets/images/agent-board/kpop-sakura.jpg",
 			"cat": "site",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "all",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-024",
@@ -265,7 +366,14 @@
 			"nextStep": "排在 T-023 后面依次过",
 			"cover": "/assets/images/agent-board/lol-yuumi.jpg",
 			"cat": "site",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "all",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-025",
@@ -281,7 +389,14 @@
 			"nextStep": "排在 T-024 后面依次过",
 			"cover": "/assets/images/agent-board/lol-seraphine.jpg",
 			"cat": "site",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "all",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-026",
@@ -297,7 +412,14 @@
 			"nextStep": "排在 T-025 后面依次过",
 			"cover": "/assets/images/agent-board/kpop-boutique.jpg",
 			"cat": "site",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "all",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-001",
@@ -312,6 +434,13 @@
 			"cat": "site",
 			"artifacts": [
 				"1b112f1"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -328,6 +457,13 @@
 			"artifacts": [
 				"二次元/{画风}/",
 				"二次元/manifest.json"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -343,6 +479,13 @@
 			"cat": "assets",
 			"artifacts": [
 				"kpop/{团}/{成员_账号}/"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -359,6 +502,13 @@
 			"artifacts": [
 				"LOL/原画/",
 				"LOL/manifest.json"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -374,6 +524,13 @@
 			"cat": "assets",
 			"artifacts": [
 				"二创/kpop-danbooru/"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -390,6 +547,13 @@
 			"artifacts": [
 				"kpop/B站美图/",
 				"二次元/B站美图/"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -405,6 +569,13 @@
 			"cat": "assets",
 			"artifacts": [
 				"kpop/{团}/饭拍-kpopping/"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -421,6 +592,13 @@
 			"artifacts": [
 				"二次元/pixiv_*/",
 				"AI画作/"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "deepseek",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -434,7 +612,14 @@
 			"plain": "图片管理软件 Serpent 频繁卡死，查明是数据库文件臃肿到 225MB，已做安全备份重置。",
 			"cover": "/assets/images/agent-board/kpop-ferris.jpg",
 			"cat": "ops",
-			"artifacts": []
+			"artifacts": [],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
+			]
 		},
 		{
 			"id": "T-010",
@@ -450,6 +635,13 @@
 			"artifacts": [
 				"二次元/manifest.json",
 				"_隔离待删-0828/待人工-非插画素材/"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -466,6 +658,13 @@
 			"artifacts": [
 				"src/components/misc/HomePortal.astro",
 				"public/assets/images/portal/*.jpg"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "codex",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		},
 		{
@@ -484,6 +683,13 @@
 				"src/pages/lab/agent-board/[agent].astro",
 				"src/data/agent-board/board-enrichments.json",
 				"public/assets/images/agent-board/"
+			],
+			"ownershipHistory": [
+				{
+					"owner": "bigmodel",
+					"at": "2026-09-07",
+					"note": "主理记录起始（补录）"
+				}
 			]
 		}
 	]
