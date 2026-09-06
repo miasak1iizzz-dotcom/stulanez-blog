@@ -58,6 +58,13 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		],
 	});
 
+	// 指挥室（AI 协作看板，主站一键进入）
+	links.push({
+		name: "指挥室",
+		url: "/lab/agent-board/",
+		icon: "material-symbols:space-dashboard-rounded",
+	});
+
 	// 关于
 	links.push(LinkPresets.About);
 
