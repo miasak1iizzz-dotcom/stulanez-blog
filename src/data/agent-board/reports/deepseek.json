@@ -1,0 +1,8 @@
+{
+	"updated": "2026-09-07",
+	"reports": [
+		{ "taskRef": "T-018", "at": "2026-09-07", "text": "首页文章卡与封面回归通过：4 篇封面 200、grid-mode/has-cover 正确、最长标题换行 2 行、卡片不塌陷；pnpm check 0 errors。" },
+		{ "taskRef": "看板文章", "at": "2026-09-07", "text": "发布《指挥室》AI 协作看板文章与可交互演示（3d8ba2f6）。" },
+		{ "taskRef": "T-008", "at": "2026-08-27", "text": "10G 二次元/AI 补库冲刺：Pixiv/Wallhaven/Civitai 三路并行，pixiv_* 主题夹重建。" }
+	]
+}

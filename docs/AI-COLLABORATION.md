@@ -140,6 +140,10 @@ AI 内部（**不再上墙渲染，仍要维护**）：
 2. 需要老板处理的事写进/清掉 `inbox.json`。
 3. 更新 `CURRENT-STATE.md`；有新经验写 `experience.json`。
 
+> **任务报告（老板 2026-09-07 明确，所有 AI 强制）：** 每干完一个任务（或一个可汇报的阶段），负责的 AI 必须往**自己的**报告文件 `src/data/agent-board/reports/<agentId>.json` 追加一条 `{ taskRef, at, text }`——写明干到哪、结果如何、留了什么。这是「干活留档」，写给老板和接手方看，不是可选项；`reports/` 每 AI 只写自己的文件，互不冲突（不需短锁）。空间页 `/lab/agent-board/<agent>/` 会展示这些报告。
+
+> **新对话怎么读（省 token 铁律）：** 新对话**只读「一屏」**——`CURRENT-STATE.md`（全局现状，<200 行）＋ 被派发的那条任务的正文（`tasks.json`/`inbox.json` 对应记录）＋ 负责该任务的 AI 的空间报告（`reports/<agentId>.json`）。**禁止**把 `tasks.json` 全部任务、历史报告、`mail.json`、`experience.json` 整库吸入；需要细节时按任务号/标签精读对应记录，用 grep/脚本定位，不准全库扫描。
+
 ### 共享状态写入锁
 
 `agents.json`、`tasks.json`、`inbox.json`、`mail.json`、`experience.json`、`CURRENT-STATE.md` 是所有代理都会更新的共享状态，**禁止写进长期任务 claim**。写入时使用短临界区：

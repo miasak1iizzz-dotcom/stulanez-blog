@@ -10,6 +10,7 @@ import {
 	ownerToAgentId,
 	TASK_CATEGORIES,
 	isClaimActive,
+	loadReportsFor,
 	type AgentInfo,
 	type ClaimCard,
 	type Task,
@@ -32,6 +33,7 @@ const myActive = tasks.filter((t) => mine(t) && (t.state === "doing" || t.state 
 const myQueue = tasks.filter((t) => mine(t) && (t.state === "backlog" || t.state === "blocked"));
 const myDone = tasks.filter((t) => mine(t) && t.state === "done");
 const derived = deriveAgentStatus(agent, claims, tasks);
+const reports = loadReportsFor(agent.id);
 
 const stateChip: Record<string, { label: string; cls: string }> = {
 	doing: { label: "● 进行中", cls: "bg-sky-400/10 text-sky-300 ring-sky-400/30" },
@@ -170,6 +172,40 @@ const directiveTemplates = [
 						)
 					}
 				</div>
+			</section>
+
+			<!-- ===== 任务档案（报告/总结） ===== -->
+			<section class="mb-8">
+				<div class="mb-4 flex items-center gap-3">
+					<span class="text-[11px] font-black tracking-[0.3em] text-[#e6c26e]">REPORTS</span>
+					<h2 class="text-xl font-black text-white">任务档案</h2>
+					<div class="h-px flex-1 bg-gradient-to-r from-[#e6c26e]/40 to-transparent"></div>
+					<span class="rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-bold text-zinc-400 ring-1 ring-white/10">{reports.length} 条</span>
+				</div>
+				{
+					reports.length > 0 ? (
+						<div class="ab-card divide-y divide-white/8 overflow-hidden !p-0">
+							{reports.map((r, i) => (
+								<div class="flex gap-3.5 px-5 py-4">
+									<span class="shrink-0 pt-0.5 font-mono text-[11px] font-bold text-[#e6c26e]">{String(reports.length - i).padStart(2, "0")}</span>
+									<div class="min-w-0 flex-1">
+										<div class="flex flex-wrap items-center gap-2">
+											<span class="rounded bg-black/40 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500">{r.taskRef}</span>
+											<span class="text-[11px] text-zinc-500">{r.at}</span>
+										</div>
+										<p class="mt-1.5 text-[13px] leading-6 text-zinc-300">{r.text}</p>
+									</div>
+								</div>
+							))}
+						</div>
+					) : (
+						<p class="ab-card p-6 text-sm leading-7 text-zinc-400">
+							还没有任务报告。干完活往
+							<code class="text-zinc-500">src/data/agent-board/reports/{agent.id}.json</code>
+							追加一条，这里就会显示。
+						</p>
+					)
+				}
 			</section>
 
 			<!-- ===== 怎么指挥 + 改哪些文件 ===== -->

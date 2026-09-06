@@ -112,6 +112,13 @@ export interface InboxItem {
 	status: string;
 }
 
+/** 每个 AI 的任务报告/总结（reports/<agentId>.json）：taskRef 为任务号或短标签 */
+export interface Report {
+	taskRef: string;
+	at: string;
+	text: string;
+}
+
 export const INBOX_KIND_META: Record<InboxKind, { label: string; emoji: string }> = {
 	review: { label: "验收", emoji: "🔍" },
 	decide: { label: "拍板", emoji: "⚖️" },
@@ -352,4 +359,26 @@ export function readDoc(relPathFromCwd: string): string | null {
 	const fp = path.join(process.cwd(), relPathFromCwd);
 	if (!fs.existsSync(fp)) return null;
 	return fs.readFileSync(fp, "utf-8");
+}
+
+const REPORTS_DIR = path.join(
+	process.cwd(),
+	"src",
+	"data",
+	"agent-board",
+	"reports",
+);
+
+/** 读取某个 AI 的任务报告/总结（reports/<agentId>.json）；文件不存在或解析失败时返回空数组 */
+export function loadReportsFor(agentId: string): Report[] {
+	const fp = path.join(REPORTS_DIR, `${agentId}.json`);
+	if (!fs.existsSync(fp)) return [];
+	try {
+		const parsed = JSON.parse(fs.readFileSync(fp, "utf-8")) as {
+			reports?: Report[];
+		};
+		return Array.isArray(parsed.reports) ? parsed.reports : [];
+	} catch {
+		return [];
+	}
 }
