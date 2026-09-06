@@ -524,6 +524,65 @@ const siteLogo = await getSiteLogo();
 
     <!-- GitHub 卡片客户端实时补全（forks/stars） -->
     <GithubCardManager />
+
+    <!-- 看板反馈草稿保护（只在 #reader 弹窗存在时生效）：本地 dev 因他人改看板文件整页刷新会丢正在写的反馈，
+         这里把输入存进 sessionStorage，重渲染/刷新后自动找回，保住老板的输入。看板页结构由 Cursor 负责，本脚本以 DOM 为准、非看板页直接忽略。 -->
+    <script is:inline>
+      (function () {
+        var NS = "stulanez.deck-draft.";
+        var reader = document.getElementById("reader");
+        if (!reader) return;
+
+        function currentKey() {
+          var head = document.getElementById("reader-head");
+          if (!head) return "";
+          var span = head.querySelector("span[class*='font-mono']");
+          if (!span) return "";
+          return (span.textContent || "").split("\u00B7")[0].trim();
+        }
+        function storeKey(entry) {
+          return NS + (entry || "anon");
+        }
+        function load(entry) {
+          try {
+            return sessionStorage.getItem(storeKey(entry)) || "";
+          } catch (e) {
+            return "";
+          }
+        }
+        function save(entry, value) {
+          try {
+            sessionStorage.setItem(storeKey(entry), value);
+          } catch (e) {}
+        }
+        function hook(entry) {
+          var ta = document.getElementById("reader-input");
+          if (!ta || ta.dataset.abHooked) return;
+          ta.dataset.abHooked = "1";
+          var saved = load(entry);
+          if (saved && ta.value !== saved) ta.value = saved;
+          ta.addEventListener("input", function () {
+            save(entry, ta.value);
+          });
+        }
+
+        // 观察卷宗弹窗内的动态内容：若反馈框被重新渲染/刷新后新建，自动回填草稿
+        var mo = new MutationObserver(function () {
+          hook(currentKey());
+        });
+        mo.observe(reader, { childList: true, subtree: true });
+
+        // 刷新 / 关标签前兜底保存
+        function flush() {
+          var ta = document.getElementById("reader-input");
+          if (ta) save(currentKey(), ta.value);
+        }
+        window.addEventListener("pagehide", flush);
+        window.addEventListener("beforeunload", flush);
+
+        hook(currentKey());
+      })();
+    </script>
   </body>
 </html>
 
