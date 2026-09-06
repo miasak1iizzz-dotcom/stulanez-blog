@@ -54,8 +54,8 @@
 		"color": "#f59e0b",
 		"role": "外观 UX · 显示设置",
 		"plain": "界面美化师。负责站点外观、显示设置和交互体验的打磨。",
-		"status": "working",
-		"currentTask": "T-014 国内图源渠道 + 看板主理人跟踪",
+		"status": "idle",
+		"currentTask": null,
 		"summaries": [
 			"docs/CURSOR-SUMMARY.md"
 		]
