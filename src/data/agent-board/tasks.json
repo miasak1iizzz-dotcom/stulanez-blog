@@ -1,23 +1,24 @@
 {
-	"updated": "2026-09-04",
+	"updated": "2026-09-07",
 	"note": "字段说明见 docs/AI-COLLABORATION.md「Agent 看板中心」。plain/statusLine/nextStep/story 一律写给完全不懂技术的老板看：大白话、分段、少术语、数字具体。state: backlog → doing → blocked/review → done。",
 	"tasks": [
 		{
 			"id": "T-028",
 			"title": "看板重做 v2：大白话卷宗 + 指挥室",
 			"owner": "bigmodel",
-			"state": "review",
+			"state": "done",
 			"priority": "P1",
 			"deps": [],
-			"brief": "用户拍板全面重做：砍掉信箱/AI笔记/新手指南/已完成墙；汇报全部大白话分段；inbox.json 卷宗制（代入老板自查 + 方向性建议，不搞二选一）；黑金游戏风指挥屏；反馈在板内写好一键复制",
-			"plain": "你眼前这块指挥室本身：大白话汇报、翻页卷宗、反馈一键复制，全部按你的要求重做。",
+			"brief": "用户拍板全面重做：砍掉信箱/AI笔记/新手指南/已完成墙；汇报全部大白话分段；inbox.json 卷宗制（代入老板自查 + 方向性建议，不搞二选一）；黑金游戏风指挥屏；反馈在板内写好一键复制；老板确认先用当前版本，后续慢慢改进，本轮完成，N-006 已处理",
+			"plain": "你眼前这块指挥室本身：大白话汇报、翻页卷宗、反馈一键复制，全部按你的要求重做。 老板确认先用当前版本，本轮已完成，后续再慢慢改进。",
 			"story": [
 				"为什么要做：老板反馈旧看板全是术语和碎信息，看不懂、插不上手，反而拖慢了所有工作。",
-				"怎么改的：砍掉四个旧栏目，只留「等你过目 / 正在进行 / 团队 / 排队」；每件事做成翻页卷宗，AI 汇报前先代入老板视角自查；反馈在板内写好、一键复制成完整指令。"
+				"怎么改的：砍掉四个旧栏目，只留「等你过目 / 正在进行 / 团队 / 排队」；每件事做成翻页卷宗，AI 汇报前先代入老板视角自查；反馈在板内写好、一键复制成完整指令。",
+				"老板回复（2026-09-07）：暂时看着还行 先凑合用吧 后面我们在慢慢改进即可。本轮按先用当前版本收尾，后续结合使用反馈逐步改进。"
 			],
-			"statusLine": "全部完成，等你过目",
+			"statusLine": "老板确认先用当前版本 · 本轮完成",
 			"progress": 100,
-			"nextStep": "你验收（见「等你过目」里的验收卷宗），不顺手的直接写反馈",
+			"nextStep": "先使用当前看板，后续根据实际使用反馈慢慢改进",
 			"cover": "/assets/images/agent-board/lol-seraphine.jpg",
 			"cat": "ops",
 			"artifacts": [
@@ -30,19 +31,21 @@
 			"id": "T-011",
 			"title": "kpop 低质量图筛选",
 			"owner": "bigmodel",
-			"state": "review",
+			"state": "doing",
 			"priority": "P1",
-			"deps": ["T-015 Serpent 扫描完成（筛选涉及移动/删除）"],
-			"brief": "保底清理已收官；视觉目检轮推进中：SEVENTEEN 两批 1,175 张已判（批1 575 判/196 淘汰 34%，批2 600 判/134 淘汰 22.3%），隔离区 330 张待用户抽查后清空；下一团 Kep1er（队列按图量降序）+ 二创 47 表一次过；方案见 .ai-work/quality-review/rules-v1.md",
-			"plain": "给 4.8 万张 Kpop 图挨个做质检：好图留下，糊图废片挪进『隔离区』等你点头再删。SEVENTEEN 已判完，330 张废片正等你抽查。",
-			"story": [
-				"为什么要做：图库从十几个渠道搬回来，混了不少糊图、背影、纯食物风景照，好图被拖累。",
-				"做到哪了：SEVENTEEN 两轮判完，1,175 张里挑出 330 张进隔离区。第一轮淘汰 34%、第二轮收着点淘汰 22%，尺度已经稳了。",
-				"接下来：你抽查隔离区，点头就清空；然后按同样的标准继续下一团（Kep1er → OH MY GIRL → fromis_9……）。"
+			"deps": [
+				"T-015 Serpent 扫描完成（筛选涉及移动/删除）"
 			],
-			"statusLine": "SEVENTEEN 判完 · 330 张等你抽查 · 下一团 Kep1er",
+			"brief": "2026-09-07 管线大升级（老板要求提速）：三层架构——①机械层（YuNet人脸检测/模糊度/感知哈希，零token）已校准：无人脸规则精度83%，Seungkwan 206张已自动隔离；②本地视觉模型主力判图：Ollama + qwen2.5vl:7b 已装好，脚本就绪可断点续跑，校准（对DK 982张人工答案）CPU挂机中；③AI 只审疑难+抽检。阻塞：驱动610.88精简安装致CUDA/Vulkan组件缺失，模型跑CPU（55s/张），GPU需2-3s/张——已开 N-007 请老板重装官方驱动。Seungkwan 待判1,055张（有脸）；进度：SVT 2,157/8,190 + Seungkwan预筛1,261",
+			"plain": "给 4.8 万张 Kpop 图做质检。按你『再快一点』的要求，管线换成了新架构：机器自动干粗活（人脸检测先隔离了一批）、本地大模型干主力（用你的显卡，不花 API 钱）、我只看疑难件。现在卡在你显卡的驱动上——装个官方驱动就能解锁 20 倍速度，步骤写在『等你过目』里。",
+			"story": [
+				"为什么要提速：一张张人眼判，全库要 8 小时以上，撑不住。",
+				"新架构：机器先干粗活（Seungkwan 的 1,261 张已自动处理，206 张明显无人废片直接进隔离区），本地大模型主力判（模型已下载好，脚本已就绪），我只管疑难和抽查。",
+				"卡点：你显卡驱动是精简版，计算功能被锁，大模型只能用 CPU 慢跑。装官方驱动（5 分钟）解锁，之后全库 1-2 天挂机清完。"
+			],
+			"statusLine": "管线升级完成 · Seungkwan 预筛1,261张(206自动隔离) · 等驱动解锁GPU(见N-007)",
 			"progress": null,
-			"nextStep": "你抽查隔离区 330 张 → 回复后我清空并开判 Kep1er",
+			"nextStep": "老板重装官方 NVIDIA 驱动（N-007，5分钟）→ 我切 GPU 跑校准 → 校准达标后全库挂机清理",
 			"cover": "/assets/images/agent-board/kpop-boutique.jpg",
 			"cat": "assets",
 			"artifacts": [
@@ -54,19 +57,19 @@
 			"id": "T-015",
 			"title": "Serpent 链接资源库 + 全量重扫",
 			"owner": "user",
-			"state": "doing",
+			"state": "done",
 			"priority": "P1",
 			"deps": [],
-			"brief": "添加链接文件夹指向 资源库，首次扫描 8.2 万文件",
-			"plain": "把整个图片库接入 Serpent 建索引，以后搜图秒出。这单是老板亲自操作，AI 打辅助。",
+			"brief": "老板确认资源库已链接，Serpent 内可见且无问题，准予结案；N-005 已处理。获明确授权后，已删除旧备份 _serpent-backup-20260828（69,356 个旧数据库及缓存文件，1,162,267,457 字节）；当前资源库保留。",
+			"plain": "老板已把图片资源库接入 Serpent，确认里面可见、使用无问题，这单已结案。",
 			"story": [
 				"为什么要做：图库 5 万多张散在文件夹里，找图全靠记忆。Serpent 建好索引后，按团、按成员、按画风都能秒搜。",
-				"做到哪了：上次它频繁卡死是数据库胀到 225MB，已经备份重置干净，现在是全新空库。",
-				"接下来：老板在 Serpent 里把『资源库』文件夹挂成链接库，点开始扫描。首次约 8.2 万文件，挂机等它跑完。"
+				"做到哪了：此前卡死的旧库已备份重置。老板现已完成链接，确认资源库在 Serpent 中可见、没有问题，并同意结案。",
+				"老板回复（2026-09-07）：我已经链接好了 serpent里面已经可见了 没问题 可以结案 无用的旧数据可以删除。"
 			],
-			"statusLine": "库已重置干净 · 等挂链接、点首扫",
-			"progress": null,
-			"nextStep": "老板在 Serpent 里添加链接库并开始首扫（扫描期间 AI 暂停批量挪文件）",
+			"statusLine": "老板确认已链接可见、无问题 · 旧备份已清理 · 已结案",
+			"progress": 100,
+			"nextStep": "正常使用 Serpent；当前资源库和索引继续保留",
 			"cover": "/assets/images/agent-board/kpop-arch.jpg",
 			"cat": "ops",
 			"artifacts": []
@@ -100,14 +103,16 @@
 			"id": "T-012",
 			"title": "二创返工（成员名标签+目检筛）",
 			"owner": "bigmodel",
-			"state": "blocked",
+			"state": "backlog",
 			"priority": "P2",
-			"deps": ["T-011"],
-			"brief": "弃大标签改成员名标签，入库前逐张目检",
-			"plain": "1,092 张 Kpop 同人画重新打标签（标清楚是哪位成员）+ 逐张筛质量。现在卡着：等图库质检收尾，『神图』标准也等你定。",
-			"statusLine": "排队中 · 前面还有 T-011",
+			"deps": [
+				"T-011"
+			],
+			"brief": "弃大标签改成员名标签，入库前逐张目检；『神图』标准已拍板并进 GLM 进行中的质检/目检工作",
+			"plain": "1,092 张 Kpop 同人画重新打标签（标清楚是哪位成员）+ 逐张筛质量。老板已拍板：『神图』标准属于 GLM 正在做的图库质检/目检工作，并进去一起判，不用单独等；现在排队等 T-011 收尾后开工。",
+			"statusLine": "等 T-011 收尾 · 『神图』标准已并进进行中的工作",
 			"progress": null,
-			"nextStep": "T-011 收尾 + 你定下『神图』标准后开工",
+			"nextStep": "T-011 收尾后开工；『神图』标准由 GLM 在目检工作中一并定",
 			"cover": "/assets/images/agent-board/anime-wed.jpg",
 			"cat": "assets",
 			"artifacts": []
@@ -116,14 +121,14 @@
 			"id": "T-013",
 			"title": "IG 深挖 1500/号",
 			"owner": "bigmodel",
-			"state": "backlog",
+			"state": "done",
 			"priority": "P3",
 			"deps": [],
-			"brief": "防重档案增量，只补老图",
-			"plain": "可选加餐：把每位艺人的 Instagram 存量从 600 张加深到最多 1500 张，只补没存过的老图。等你决定做不做。",
-			"statusLine": "等你决定",
+			"brief": "老板拍板暂不做：600 张/号尚未筛完，不着急新增；N-002 已 resolved",
+			"plain": "可选加餐：把每位艺人的 Instagram 存量从 600 张加深到最多 1500 张。老板已拍板暂不做——手上 600 张还没筛完，不着急新增。这单就此关闭。",
+			"statusLine": "老板拍板暂不做 · 已关闭",
 			"progress": null,
-			"nextStep": "见「等你过目」里的 IG 深挖卷宗",
+			"nextStep": "无（已拍板关闭）；等 kpop 质检收尾后再重新评估",
 			"cover": "/assets/images/agent-board/kpop-totoro.jpg",
 			"cat": "assets",
 			"artifacts": []
@@ -132,30 +137,36 @@
 			"id": "T-014",
 			"title": "微博/小红书/抖音 cookie 线",
 			"owner": "bigmodel",
-			"state": "blocked",
+			"state": "doing",
 			"priority": "P3",
 			"deps": [],
-			"brief": "三平台均登录墙；cookie 到位后复制 IG 管线模式（1 小时内通）",
-			"plain": "微博 / 小红书 / 抖音都要登录才能抓图。等你从浏览器导出登录凭证，1 小时内能通三条新图源。",
-			"statusLine": "等你的登录凭证",
-			"progress": null,
-			"nextStep": "见「等你过目」里的国内图源卷宗",
+			"brief": "Cursor 对照《数字资产库》方法论复盘：成熟主力线标准=可批量+可去重+可追溯+稳定可复用（文章里 Pixiv/Wallhaven/Civitai/IG gallery-dl）。Codex 抖音样例 7666324619125407482 仍成立（45 张 WebP、sha256 无重复、已打包），但仅公开单条网页打样；yt-dlp/gallery-dl 无稳定图文提取器；Cookie 官方接口未验通；无批量队列/看护；微博与小红书未开。结论：未达可批量主力，属「先出一小批真成果」阶段。",
+			"plain": "我刚对照网站那篇数字资产库文章，把抖音这条线过了一遍。文章里真正能当主力的渠道，得能批量下、能查重、能追溯、还能反复跑。Codex 试通的那条抖音图文是真的：45 张壁纸都在，也检查过没重复。但它现在只是「给你一条链接就能抠一张图文」的打样，还不能像 IG 那样一口气拉上万张，微博和小红书也还没碰。所以：抖音线有苗头，但还不算成熟渠道，别急着当主力囤图。",
+			"statusLine": "成熟度复盘：单条打样有成 · 未达批量主力",
+			"progress": 30,
+			"nextStep": "下一步先把抖音做成「丢一条公开图文链接就能复用」的采集法并写进方法手册；微博/小红书先别冲。日常壁纸可以靠人工丢链接补货，别指望它现在扛量。",
 			"cover": "/assets/images/agent-board/kpop-bridge.jpg",
 			"cat": "assets",
-			"artifacts": []
+			"artifacts": [
+				"https://www.douyin.com/note/7666324619125407482",
+				".ai-work/douyin-sample-7666324619125407482.zip",
+				".ai-work/douyin-sample-7666324619125407482/manifest.json",
+				"src/content/posts/digital-asset-library.mdx",
+				".ai-work/glm-download-methods.md"
+			]
 		},
 		{
 			"id": "T-018",
 			"title": "首页文章卡与封面回归",
-			"owner": "all",
-			"state": "backlog",
+			"owner": "deepseek",
+			"state": "done",
 			"priority": "P0",
 			"deps": [],
-			"brief": "3 列网格 + 封面 + 卡片质感分层在新增文章下的表现，封面缺失/换行/高度塌陷排查",
-			"plain": "检查首页文章卡片的封面与排版：新增文章后是否依然整齐、不塌陷、不破图。",
-			"statusLine": "网站体检第 2 项 · 排队中",
-			"progress": null,
-			"nextStep": "Codex 额度恢复后第一个查它",
+			"brief": "回归通过，无需源码修复：4 篇新增文章封面全部存在且 200 正常（197-366KB JPEG）、卡含 has-cover 且 grid-mode 正确、最长标题（45GB 资产库）换行为 2 行正常、卡片不塌陷；pnpm check 0 errors",
+			"plain": "检查首页文章卡片的封面与排版：新增文章后是否依然整齐、不塌陷、不破图。已通过，不用改代码。",
+			"statusLine": "回归通过 · 无需改代码",
+			"progress": 100,
+			"nextStep": "网站体检已过 2 项；下一项查第 3 个（手机端断点与触控）",
 			"cover": "/assets/images/agent-board/kpop-flowers.jpg",
 			"cat": "site",
 			"artifacts": []
@@ -299,7 +310,9 @@
 			"plain": "给游戏攻略工具「TFT 阵容规划器」改版：把『纹章』和『奥恩神器』拆成独立页签，四页签更好找。",
 			"cover": "/assets/images/agent-board/lol-yuumi.jpg",
 			"cat": "site",
-			"artifacts": ["1b112f1"]
+			"artifacts": [
+				"1b112f1"
+			]
 		},
 		{
 			"id": "T-002",
@@ -312,7 +325,10 @@
 			"plain": "把 1,327 张动漫美图按『画的是什么内容』和『属于什么画风』两个维度分类归档，随时可检索。",
 			"cover": "/assets/images/agent-board/anime-cn.jpg",
 			"cat": "assets",
-			"artifacts": ["二次元/{画风}/", "二次元/manifest.json"]
+			"artifacts": [
+				"二次元/{画风}/",
+				"二次元/manifest.json"
+			]
 		},
 		{
 			"id": "T-003",
@@ -325,7 +341,9 @@
 			"plain": "从 Instagram 为 167 位 Kpop 艺人各抓取最多 600 张照片，打好了 Kpop 图库的基本盘。",
 			"cover": "/assets/images/agent-board/kpop-balloons.jpg",
 			"cat": "assets",
-			"artifacts": ["kpop/{团}/{成员_账号}/"]
+			"artifacts": [
+				"kpop/{团}/{成员_账号}/"
+			]
 		},
 		{
 			"id": "T-004",
@@ -338,7 +356,10 @@
 			"plain": "英雄联盟全部英雄与皮肤的官方高清原画 1,700 张，从官方源直连下载。",
 			"cover": "/assets/images/agent-board/lol-nami.jpg",
 			"cat": "assets",
-			"artifacts": ["LOL/原画/", "LOL/manifest.json"]
+			"artifacts": [
+				"LOL/原画/",
+				"LOL/manifest.json"
+			]
 		},
 		{
 			"id": "T-005",
@@ -351,7 +372,9 @@
 			"plain": "从画师社区 Danbooru 收集 1,092 张 Kpop 主题同人画作，按团归档入库。",
 			"cover": "/assets/images/agent-board/anime-fairy.jpg",
 			"cat": "assets",
-			"artifacts": ["二创/kpop-danbooru/"]
+			"artifacts": [
+				"二创/kpop-danbooru/"
+			]
 		},
 		{
 			"id": "T-006",
@@ -364,7 +387,10 @@
 			"plain": "打通 B 站图片抓取管线：Kpop 与二次元两条线共 800+ 张入库，还治好了接口风控。",
 			"cover": "/assets/images/agent-board/kpop-sakura.jpg",
 			"cat": "assets",
-			"artifacts": ["kpop/B站美图/", "二次元/B站美图/"]
+			"artifacts": [
+				"kpop/B站美图/",
+				"二次元/B站美图/"
+			]
 		},
 		{
 			"id": "T-007",
@@ -377,7 +403,9 @@
 			"plain": "从 kpopping 网站收集 821 张打歌舞台与饭拍图，顺带破解了它的防爬封锁。",
 			"cover": "/assets/images/agent-board/kpop-flowers.jpg",
 			"cat": "assets",
-			"artifacts": ["kpop/{团}/饭拍-kpopping/"]
+			"artifacts": [
+				"kpop/{团}/饭拍-kpopping/"
+			]
 		},
 		{
 			"id": "T-008",
@@ -390,7 +418,10 @@
 			"plain": "DeepSeek 主刀的补库冲刺：从 Pixiv / Wallhaven / Civitai 三个站补了约 10G 动漫与 AI 精美图。",
 			"cover": "/assets/images/agent-board/anime-wed.jpg",
 			"cat": "assets",
-			"artifacts": ["二次元/pixiv_*/", "AI画作/"]
+			"artifacts": [
+				"二次元/pixiv_*/",
+				"AI画作/"
+			]
 		},
 		{
 			"id": "T-009",
@@ -416,7 +447,10 @@
 			"plain": "两个动漫图库合并成一个大库，逐张指纹查重：4,221 张全部独一无二，零重复。",
 			"cover": "/assets/images/agent-board/lol-lillia.jpg",
 			"cat": "assets",
-			"artifacts": ["二次元/manifest.json", "_隔离待删-0828/待人工-非插画素材/"]
+			"artifacts": [
+				"二次元/manifest.json",
+				"_隔离待删-0828/待人工-非插画素材/"
+			]
 		},
 		{
 			"id": "T-017",
@@ -429,7 +463,10 @@
 			"plain": "检查首页 8 张快捷入口卡片：手机窄屏、夜间模式、链接、背景图全部过关，不用改代码。",
 			"cover": "/assets/images/agent-board/kpop-balloons.jpg",
 			"cat": "site",
-			"artifacts": ["src/components/misc/HomePortal.astro", "public/assets/images/portal/*.jpg"]
+			"artifacts": [
+				"src/components/misc/HomePortal.astro",
+				"public/assets/images/portal/*.jpg"
+			]
 		},
 		{
 			"id": "T-027",
