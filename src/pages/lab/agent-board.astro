@@ -57,6 +57,13 @@ const stateChip: Record<string, { label: string; cls: string }> = {
 
 // —— 交给前端的卷宗数据（任务/卷宗统一成翻页阅读器格式）——
 type ReaderPage = { h: string; p: string[] };
+type ReaderOwnerStep = {
+	name: string;
+	color: string;
+	at: string;
+	note: string;
+	current: boolean;
+};
 type ReaderEntry = {
 	key: string;
 	source: "inbox" | "task";
@@ -67,8 +74,24 @@ type ReaderEntry = {
 	ownerColor: string;
 	taskRef: string;
 	pages: ReaderPage[];
+	/** 主理人跟踪（从早到晚）；任务必填，卷宗可空 */
+	ownership: ReaderOwnerStep[];
 	copyContext: string;
 };
+
+function ownershipSteps(t: Task): ReaderOwnerStep[] {
+	const hist =
+		t.ownershipHistory && t.ownershipHistory.length > 0
+			? t.ownershipHistory
+			: [{ owner: t.owner, at: updated.slice(0, 10), note: "当前主理" }];
+	return hist.map((ev, i) => ({
+		name: ownerName(ev.owner),
+		color: ownerColor(ev.owner),
+		at: ev.at,
+		note: ev.note,
+		current: i === hist.length - 1 && ownerToAgentId(ev.owner) === ownerToAgentId(t.owner),
+	}));
+}
 
 const inboxEntries: ReaderEntry[] = inboxOpen.map((i) => ({
 	key: i.id,
@@ -80,6 +103,7 @@ const inboxEntries: ReaderEntry[] = inboxOpen.map((i) => ({
 	ownerColor: colorOf(ownerToAgentId(i.owner)),
 	taskRef: i.taskRef,
 	pages: i.pages.map((pg) => ({ h: pg.h, p: pg.p })),
+	ownership: [],
 	copyContext:
 		"完成后把 src/data/agent-board/inbox.json 里这一条标为 resolved，并同步 tasks.json 的状态。",
 }));
@@ -109,8 +133,9 @@ const taskEntries: ReaderEntry[] = [...doingTasks, ...reviewTasks, ...queueTasks
 			...taskPages(t),
 			...(t.nextStep ? [{ h: "下一步", p: [t.nextStep] }] : []),
 		],
+		ownership: ownershipSteps(t),
 		copyContext:
-			"请按上面的意见调整，完成后更新 src/data/agent-board/tasks.json 的进度与状态。",
+			"请按上面的意见调整，完成后更新 src/data/agent-board/tasks.json 的进度与状态。接手任务时：把 owner 改成自己，并往 ownershipHistory 追加一条交接记录。",
 	}),
 );
 
@@ -380,7 +405,7 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 	<!-- 卷宗阅读器 -->
 	<dialog id="reader" class="ab-reader backdrop:bg-black/70 backdrop:backdrop-blur-sm">
 		<div class="flex h-full flex-col">
-			<div id="reader-head" class="relative h-40 shrink-0 overflow-hidden sm:h-44"></div>
+			<div id="reader-head" class="relative h-48 shrink-0 overflow-hidden sm:h-52"></div>
 			<div class="flex min-h-0 flex-1 flex-col">
 				<div id="reader-body" class="ab-scroll min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-9"></div>
 				<div id="reader-foot" class="shrink-0 border-t border-white/10 px-6 py-4 sm:px-9"></div>
@@ -603,6 +628,13 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 
 <script>
 	type ReaderPage = { h: string; p: string[] };
+	type ReaderOwnerStep = {
+		name: string;
+		color: string;
+		at: string;
+		note: string;
+		current: boolean;
+	};
 	type ReaderEntry = {
 		key: string;
 		source: "inbox" | "task";
@@ -613,6 +645,7 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 		ownerColor: string;
 		taskRef: string;
 		pages: ReaderPage[];
+		ownership: ReaderOwnerStep[];
 		copyContext: string;
 	};
 
@@ -631,10 +664,19 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 
 	let current: ReaderEntry | null = null;
 	let page = 0;
+	/** progress = 任务进展翻页；owners = 主理人跟踪 */
+	let tab: "progress" | "owners" = "progress";
 	/** 总页数 = 汇报页数 + 1 页「你来定」（反馈输入） */
 	const total = (e: ReaderEntry) => e.pages.length + 1;
+	const hasOwnerTab = (e: ReaderEntry) => e.source === "task" && e.ownership.length > 0;
 
 	function renderHead(e: ReaderEntry) {
+		const tabs = hasOwnerTab(e)
+			? `<div class="mt-3 flex flex-wrap gap-2">
+					<button type="button" class="ab-rtab${tab === "progress" ? " on" : ""}" data-rtab="progress">任务进展</button>
+					<button type="button" class="ab-rtab${tab === "owners" ? " on" : ""}" data-rtab="owners">主理人跟踪</button>
+				</div>`
+			: "";
 		headEl.innerHTML = `
 			<img src="${e.cover}" alt="" class="absolute inset-0 h-full w-full object-cover" />
 			<div class="absolute inset-0" style="background:linear-gradient(180deg,rgba(8,8,11,.25) 0%,rgba(13,13,18,.55) 55%,#0d0d12 100%)"></div>
@@ -643,10 +685,43 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 				<div class="flex flex-wrap items-center gap-2">
 					<span class="rounded-full bg-[#e6c26e]/15 px-2.5 py-1 text-[10px] font-black text-[#e6c26e] ring-1 ring-[#e6c26e]/40 backdrop-blur">${e.source === "inbox" ? "卷宗 · " + e.kindLabel : e.kindLabel + "详情"}</span>
 					<span class="rounded-full bg-black/45 px-2.5 py-1 font-mono text-[10px] text-white/75 backdrop-blur">${esc(e.key)}${e.taskRef && e.taskRef !== e.key ? " · 关联 " + esc(e.taskRef) : ""}</span>
+					<span class="inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[10px] text-white/80 backdrop-blur">
+						<span class="grid h-3.5 w-3.5 place-items-center rounded-full text-[8px] font-black text-white" style="background:${e.ownerColor}">${esc(e.ownerName.charAt(0))}</span>
+						${esc(e.ownerName)} 负责
+					</span>
 				</div>
 				<h2 class="mt-2 pr-10 text-xl font-black leading-snug text-white drop-shadow sm:text-2xl">${esc(e.title)}</h2>
-			</div>`;
+				${tabs}
+			</div>
+			<style>
+				.ab-rtab {
+					border-radius: 9999px;
+					border: 1px solid rgb(255 255 255 / 0.18);
+					background: rgb(0 0 0 / 0.35);
+					padding: 0.35rem 0.85rem;
+					color: rgb(212 212 216);
+					font-size: 0.65rem;
+					font-weight: 800;
+					backdrop-filter: blur(8px);
+					transition: all 0.2s ease;
+				}
+				.ab-rtab:hover { color: #fff; border-color: rgb(255 255 255 / 0.35); }
+				.ab-rtab.on {
+					border-color: rgb(230 194 110 / 0.55);
+					background: rgb(230 194 110 / 0.18);
+					color: #f7e3ae;
+				}
+			</style>`;
 		document.getElementById("reader-close")?.addEventListener("click", () => dialog.close());
+		headEl.querySelectorAll<HTMLElement>("[data-rtab]").forEach((btn) => {
+			btn.addEventListener("click", (ev) => {
+				ev.stopPropagation();
+				tab = (btn.dataset.rtab as "progress" | "owners") ?? "progress";
+				page = 0;
+				renderHead(e);
+				renderPage(e, page);
+			});
+		});
 	}
 
 	function renderFeedback(e: ReaderEntry) {
@@ -695,7 +770,111 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 		});
 	}
 
+	function renderOwners(e: ReaderEntry) {
+		const steps = [...e.ownership].reverse();
+		bodyEl.innerHTML = `
+			<div class="ab-page">
+				<p class="text-[11px] font-black tracking-[0.3em] text-[#e6c26e]">OWNERSHIP</p>
+				<h3 class="mt-2 text-2xl font-black text-white">主理人跟踪</h3>
+				<p class="mt-2 text-[13px] leading-6 text-zinc-400">
+					谁先接的、谁又接手了——从上到下是时间倒序。卡片左下角永远只显示<strong class="text-zinc-200">当前</strong>主理人。
+				</p>
+				<ol class="ab-own-tl mt-6">
+					${steps
+						.map(
+							(s, i) => `
+						<li class="ab-own-item${s.current ? " is-current" : ""}">
+							<span class="ab-own-rail" aria-hidden="true"></span>
+							<span class="ab-own-dot" style="background:${s.color};box-shadow:0 0 0 4px ${s.color}22"></span>
+							<div class="ab-own-card">
+								<div class="flex items-center gap-2">
+									<span class="grid h-7 w-7 place-items-center rounded-full text-[11px] font-black text-white" style="background:${s.color}">${esc(s.name.charAt(0))}</span>
+									<span class="text-sm font-black text-white">${esc(s.name)}</span>
+									${s.current ? `<span class="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300 ring-1 ring-emerald-400/30">当前</span>` : ""}
+								</div>
+								<p class="mt-2 text-[12px] font-bold text-zinc-500">${esc(s.at)}</p>
+								<p class="mt-1 text-[14px] leading-7 text-zinc-300">${esc(s.note)}</p>
+							</div>
+						</li>`,
+						)
+						.join("")}
+				</ol>
+			</div>
+			<style>
+				.ab-own-tl { list-style: none; margin: 0; padding: 0; }
+				.ab-own-item {
+					position: relative;
+					display: grid;
+					grid-template-columns: 18px 1fr;
+					gap: 0.85rem;
+					padding-bottom: 1.25rem;
+				}
+				.ab-own-item:last-child { padding-bottom: 0; }
+				.ab-own-rail {
+					position: absolute;
+					left: 7px;
+					top: 18px;
+					bottom: 0;
+					width: 2px;
+					background: linear-gradient(180deg, rgb(230 194 110 / 0.35), rgb(255 255 255 / 0.08));
+				}
+				.ab-own-item:last-child .ab-own-rail { display: none; }
+				.ab-own-dot {
+					position: relative;
+					z-index: 1;
+					margin-top: 6px;
+					height: 14px;
+					width: 14px;
+					border-radius: 9999px;
+					border: 2px solid #0d0d12;
+				}
+				.ab-own-card {
+					border-radius: 1rem;
+					border: 1px solid rgb(255 255 255 / 0.08);
+					background: rgb(255 255 255 / 0.03);
+					padding: 0.9rem 1rem;
+				}
+				.ab-own-item.is-current .ab-own-card {
+					border-color: rgb(230 194 110 / 0.28);
+					background: rgb(230 194 110 / 0.06);
+				}
+			</style>`;
+		footEl.innerHTML = `
+			<div class="flex items-center justify-between gap-3">
+				<p class="text-[11px] text-zinc-500">接手规则：改 tasks.json 的 owner，并往 ownershipHistory 追加一条。</p>
+				<button type="button" id="pg-back-progress" class="ab-pgbtn ab-pgbtn-gold">看任务进展 →</button>
+			</div>
+			<style>
+				.ab-pgbtn {
+					border-radius: 9999px;
+					border: 1px solid rgb(255 255 255 / 0.15);
+					padding: 0.5rem 1.1rem;
+					color: rgb(212 212 216);
+					font-size: 0.75rem;
+					font-weight: 800;
+					transition: all 0.2s ease;
+				}
+				.ab-pgbtn-gold {
+					border: none;
+					background: linear-gradient(120deg, #f7e3ae, #d9a441);
+					color: #1a1408;
+					box-shadow: 0 10px 26px -10px rgb(230 194 110 / 0.55);
+				}
+			</style>`;
+		document.getElementById("pg-back-progress")?.addEventListener("click", () => {
+			tab = "progress";
+			page = 0;
+			renderHead(e);
+			renderPage(e, 0);
+		});
+		bodyEl.scrollTop = 0;
+	}
+
 	function renderPage(e: ReaderEntry, idx: number) {
+		if (tab === "owners" && hasOwnerTab(e)) {
+			renderOwners(e);
+			return;
+		}
 		if (idx >= e.pages.length) {
 			renderFeedback(e);
 		} else {
@@ -787,7 +966,7 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 			const label = e.source === "inbox" ? "老板回复" : "老板指令";
 			const msg =
 				`【指挥室 · ${e.key} ${e.title}】\n${label}：${text}\n\n` +
-				`——来自 Agent 看板（/lab/agent-board/）的${label}，请 ${e.ownerName} 处理` +
+				`——来自 Agent 看板（/lab/agent-board/）的${label}，请你处理` +
 				`${e.taskRef && e.taskRef !== e.key ? `（关联任务 ${e.taskRef}）` : ""}：${e.copyContext}`;
 			copyText(msg)
 				.then(() => showToast("✓ 指令已复制，粘贴给任何 AI 即可"))
@@ -800,6 +979,7 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 		if (!e) return;
 		current = e;
 		page = 0;
+		tab = "progress";
 		renderHead(e);
 		renderPage(e, 0);
 		dialog.showModal();

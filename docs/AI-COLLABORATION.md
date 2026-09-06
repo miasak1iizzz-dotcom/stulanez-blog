@@ -136,9 +136,9 @@ AI 内部（**不再上墙渲染，仍要维护**）：
 
 ### 收工三步（每段工作结束必做）
 
-1. 更新 `tasks.json`：状态、`statusLine`（做到哪了）、`nextStep`（大白话下一步）。
+1. 更新 `tasks.json`：状态、`statusLine`（做到哪了）、`nextStep`（大白话下一步）。**谁接手任务，谁就把该任务的 `owner` 改成自己**（卡片左下角只看 `owner`）；同时往 `ownershipHistory` 追加一条 `{ owner, at, note }`，供详情页「主理人跟踪」时间轴展示。
 2. 需要老板处理的事写进/清掉 `inbox.json`。
-3. 更新 `CURRENT-STATE.md`；有新经验写 `experience.json`。
+3. 更新 `CURRENT-STATE.md`；有新经验写 `experience.json`。同步把自己在 `agents.json` 的 `status`/`currentTask` 改成当前手上的活（这样团队区绿点才会亮）。
 
 > **任务报告（老板 2026-09-07 明确，所有 AI 强制）：** 每干完一个任务（或一个可汇报的阶段），负责的 AI 必须往**自己的**报告文件 `src/data/agent-board/reports/<agentId>.json` 追加一条 `{ taskRef, at, text }`——写明干到哪、结果如何、留了什么。这是「干活留档」，写给老板和接手方看，不是可选项；`reports/` 每 AI 只写自己的文件，互不冲突（不需短锁）。空间页 `/lab/agent-board/<agent>/` 会展示这些报告。
 
