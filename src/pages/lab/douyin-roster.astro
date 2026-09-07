@@ -1,0 +1,55 @@
+---
+import DouyinRoster from "@/components/lab/DouyinRoster.svelte";
+import roster from "@/data/douyin-roster/roster.json";
+
+const title = "抖音下载名单 · 本地过目";
+const description = "勾选团与成员、调整每项张数；过目通过后再开始抖音壁纸下载。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex, nofollow, noarchive" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<style>
+			html,
+			body {
+				margin: 0;
+				min-height: 100%;
+				background:
+					radial-gradient(1200px 600px at 10% -10%, rgba(230, 194, 110, 0.12), transparent 55%),
+					radial-gradient(900px 500px at 90% 0%, rgba(56, 189, 248, 0.08), transparent 50%),
+					#09090b;
+				color: #f4f4f5;
+			}
+			.top {
+				max-width: 980px;
+				margin: 0 auto;
+				padding: 1rem 1rem 0;
+				display: flex;
+				justify-content: space-between;
+				gap: 1rem;
+				align-items: center;
+				font-size: 0.85rem;
+				color: #a1a1aa;
+			}
+			.top a {
+				color: #e6c26e;
+				text-decoration: none;
+			}
+			.top a:hover {
+				text-decoration: underline;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="top">
+			<a href="/lab/agent-board/">← 回指挥室</a>
+			<span>内部工具 · 不进搜索引擎 · 数据来自素材库 kpop 名单</span>
+		</div>
+		<DouyinRoster client:load roster={roster} />
+	</body>
+</html>
