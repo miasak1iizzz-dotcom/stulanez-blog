@@ -11,11 +11,11 @@
 		"library": "E:/AI/Serpent/资源库/kpop"
 	},
 	"stats": {
-		"groups": 37,
+		"groups": 38,
 		"members": 240,
-		"avatarOk": 185,
-		"avatarMiss": 90,
-		"defaultTotalImages": 2770
+		"avatarOk": 183,
+		"avatarMiss": 92,
+		"defaultTotalImages": 2780
 	},
 	"groups": [
 		{
@@ -2937,28 +2937,38 @@
 					"qty": 10,
 					"avatar": null,
 					"hasLibraryFolder": false
-				},
+				}
+			]
+		},
+		{
+			"id": "group:ADP",
+			"group": "ADP",
+			"slug": "ADP",
+			"enabled": true,
+			"qty": 10,
+			"avatar": null,
+			"members": [
 				{
-					"id": "member:MEOVV:Bailey",
+					"id": "member:ADP:Bailey",
 					"idol": "Bailey",
 					"stageName": "Bailey",
 					"realName": "",
 					"ig": "baileysok",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/MEOVV/Bailey.webp",
-					"hasLibraryFolder": true
+					"avatar": null,
+					"hasLibraryFolder": false
 				},
 				{
-					"id": "member:MEOVV:Annie3",
+					"id": "member:ADP:Annie3",
 					"idol": "Annie3",
 					"stageName": "Annie",
 					"realName": "",
 					"ig": "anniesymoon",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/MEOVV/Annie3.webp",
-					"hasLibraryFolder": true
+					"avatar": null,
+					"hasLibraryFolder": false
 				}
 			]
 		},

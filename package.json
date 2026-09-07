@@ -101,6 +101,7 @@
     "@types/sanitize-html": "^2.16.1",
     "esbuild": "^0.28.2",
     "pinyin-pro": "^3.29.3",
+    "playwright": "^1.63.0",
     "postcss-import": "^16.1.1",
     "postcss-nesting": "^14.0.1",
     "rehype-callouts": "^2.2.0",
