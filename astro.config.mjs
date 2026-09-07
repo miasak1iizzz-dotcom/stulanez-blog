@@ -238,8 +238,11 @@ export default defineConfig({
 			filter: (page) => {
 				const url = new URL(page);
 				const pathname = url.pathname;
-				// Agent 看板是内部协作面板，不进入公开站点地图。
-				if (pathname.startsWith("/lab/agent-board/")) {
+				// 内部实验室面板不进入公开站点地图。
+				if (
+					pathname.startsWith("/lab/agent-board/") ||
+					pathname.startsWith("/lab/douyin-roster")
+				) {
 					return false;
 				}
 				// 根据页面开关配置过滤sitemap

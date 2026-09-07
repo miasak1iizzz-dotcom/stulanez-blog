@@ -56,3 +56,7 @@ package/
 scripts/_incoming-list.json
 scripts/_wallpaper-sizes.json
 
+# T-014 douyin roster local thumbs + boss prefs
+public/assets/images/douyin-roster/
+.ai-work/douyin-roster-prefs.json
+

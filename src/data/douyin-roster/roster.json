@@ -1,0 +1,3031 @@
+{
+	"updated": "2026-09-07",
+	"purpose": "抖音手机壁纸下载名单（老板过目调参用）",
+	"defaults": {
+		"memberQty": 10,
+		"groupQty": 10,
+		"orientation": "portrait-wallpaper"
+	},
+	"source": {
+		"memberList": ".ai-work/kpop-member-ig.json",
+		"library": "E:/AI/Serpent/资源库/kpop"
+	},
+	"stats": {
+		"groups": 37,
+		"members": 240,
+		"avatarOk": 185,
+		"avatarMiss": 90,
+		"defaultTotalImages": 2770
+	},
+	"groups": [
+		{
+			"id": "group:BLACKPINK",
+			"group": "BLACKPINK",
+			"slug": "BLACKPINK",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/_group.webp",
+			"members": [
+				{
+					"id": "member:BLACKPINK:Jisoo",
+					"idol": "Jisoo",
+					"stageName": "Jisoo",
+					"realName": "Kim Ji-soo",
+					"ig": "sooyaaa__",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Jisoo.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:BLACKPINK:Jennie",
+					"idol": "Jennie",
+					"stageName": "Jennie",
+					"realName": "Kim Jennie",
+					"ig": "jennierubyjane",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Jennie.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:BLACKPINK:Rose",
+					"idol": "Rose",
+					"stageName": "Rose",
+					"realName": "Park Chae-young",
+					"ig": "roses_are_rosie",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Rose.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:BLACKPINK:Lisa",
+					"idol": "Lisa",
+					"stageName": "Lisa",
+					"realName": "Lalisa Manoban",
+					"ig": "lalalalisa_m",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Lisa.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:aespa",
+			"group": "aespa",
+			"slug": "aespa",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/aespa/_group.webp",
+			"members": [
+				{
+					"id": "member:aespa:Karina2",
+					"idol": "Karina2",
+					"stageName": "Karina",
+					"realName": "Yu Ji-min",
+					"ig": "katarinabluu",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/aespa/Karina2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:aespa:giselle",
+					"idol": "giselle",
+					"stageName": "giselle",
+					"realName": "Uchinaga Aeri",
+					"ig": "aerichandesu",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/aespa/giselle.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:aespa:winter",
+					"idol": "winter",
+					"stageName": "winter",
+					"realName": "Kim Min-jeong",
+					"ig": "imwinter",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/aespa/winter.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:aespa:ningning",
+					"idol": "ningning",
+					"stageName": "ningning",
+					"realName": "Ning Yizhuo",
+					"ig": "imnotningning",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/aespa/ningning.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:NewJeans",
+			"group": "NewJeans",
+			"slug": "NewJeans",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/NewJeans/_group.webp",
+			"members": [
+				{
+					"id": "member:NewJeans:Minji8",
+					"idol": "Minji8",
+					"stageName": "Minji",
+					"realName": "Kim Min-ji",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NewJeans:Hanni",
+					"idol": "Hanni",
+					"stageName": "Hanni",
+					"realName": "Phạm Ngọc Hân",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NewJeans:Haerin2",
+					"idol": "Haerin2",
+					"stageName": "Haerin",
+					"realName": "Kang Hae-rin",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NewJeans:Hyein4",
+					"idol": "Hyein4",
+					"stageName": "Hyein",
+					"realName": "Lee Hye-in",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NewJeans:Danielle",
+					"idol": "Danielle",
+					"stageName": "Danielle",
+					"realName": "Danielle Marsh",
+					"ig": "dazzibelle",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/NewJeans/Danielle.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:IVE",
+			"group": "IVE",
+			"slug": "IVE",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/IVE/_group.webp",
+			"members": [
+				{
+					"id": "member:IVE:Gaeul5",
+					"idol": "Gaeul5",
+					"stageName": "Gaeul",
+					"realName": "Kim Ga-eul",
+					"ig": "fallingin__fall",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Gaeul5.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IVE:Yujin3",
+					"idol": "Yujin3",
+					"stageName": "Yujin",
+					"realName": "An Yu-jin",
+					"ig": "_yujin_an",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Yujin3.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IVE:Rei2",
+					"idol": "Rei2",
+					"stageName": "Rei",
+					"realName": "Naoi Rei",
+					"ig": "reinyourheart",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Rei2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IVE:Wonyoung",
+					"idol": "Wonyoung",
+					"stageName": "Wonyoung",
+					"realName": "Jang Won-young",
+					"ig": "for_everyoung10",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Wonyoung.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IVE:Liz2",
+					"idol": "Liz2",
+					"stageName": "Liz",
+					"realName": "Kim Ji-won",
+					"ig": "liz.yeyo",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Liz2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IVE:Leeseo",
+					"idol": "Leeseo",
+					"stageName": "Leeseo",
+					"realName": "Lee Hyun-seo",
+					"ig": "eeseooes",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Leeseo.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:LE SSERAFIM",
+			"group": "LE SSERAFIM",
+			"slug": "LE-SSERAFIM",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/_group.webp",
+			"members": [
+				{
+					"id": "member:LE SSERAFIM:Sakura",
+					"idol": "Sakura",
+					"stageName": "Sakura",
+					"realName": "Miyawaki Sakura",
+					"ig": "39saku_chan",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Sakura.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:LE SSERAFIM:Kim-Chaewon",
+					"idol": "Kim-Chaewon",
+					"stageName": "Kim-Chaewon",
+					"realName": "Kim Chae-won",
+					"ig": "_chaechae_1",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Kim-Chaewon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:LE SSERAFIM:Huh-Yunjin",
+					"idol": "Huh-Yunjin",
+					"stageName": "Huh-Yunjin",
+					"realName": "Huh Yun-jin",
+					"ig": "jenaissante",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Huh-Yunjin.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:LE SSERAFIM:Kazuha",
+					"idol": "Kazuha",
+					"stageName": "Kazuha",
+					"realName": "Nakamura Kazuha",
+					"ig": "zuhazana",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Kazuha.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:LE SSERAFIM:Hong-Eunchae",
+					"idol": "Hong-Eunchae",
+					"stageName": "Hong-Eunchae",
+					"realName": "Hong Eun-chae",
+					"ig": "hhh.e_c.v",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Hong-Eunchae.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:TWICE",
+			"group": "TWICE",
+			"slug": "TWICE",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/TWICE/_group.webp",
+			"members": [
+				{
+					"id": "member:TWICE:Nayeon",
+					"idol": "Nayeon",
+					"stageName": "Nayeon",
+					"realName": "Im Na-yeon",
+					"ig": "nayeonyny",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Nayeon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:TWICE:Jeongyeon",
+					"idol": "Jeongyeon",
+					"stageName": "Jeongyeon",
+					"realName": "Yoo Jeong-yeon",
+					"ig": "jy_piece",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Jeongyeon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:TWICE:Momo",
+					"idol": "Momo",
+					"stageName": "Momo",
+					"realName": "Hirai Momo",
+					"ig": "momo",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Momo.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:TWICE:Sana",
+					"idol": "Sana",
+					"stageName": "Sana",
+					"realName": "Minatozaki Sana",
+					"ig": "m.by__sana",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Sana.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:TWICE:Jihyo",
+					"idol": "Jihyo",
+					"stageName": "Jihyo",
+					"realName": "Park Ji-hyo",
+					"ig": "_zyozyo",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Jihyo.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:TWICE:Mina2",
+					"idol": "Mina2",
+					"stageName": "Mina",
+					"realName": "Myoui Mina",
+					"ig": "mina_sr_my",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Mina2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:TWICE:Dahyun",
+					"idol": "Dahyun",
+					"stageName": "Dahyun",
+					"realName": "Kim Da-hyun",
+					"ig": "dahhyunnee",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Dahyun.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:TWICE:Chaeyoung",
+					"idol": "Chaeyoung",
+					"stageName": "Chaeyoung",
+					"realName": "Son Chae-young",
+					"ig": "chaeyo.0",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Chaeyoung.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:TWICE:Tzuyu",
+					"idol": "Tzuyu",
+					"stageName": "Tzuyu",
+					"realName": "Chou Tzu-yu",
+					"ig": "thinkaboutzu",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Tzuyu.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:ITZY",
+			"group": "ITZY",
+			"slug": "ITZY",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/ITZY/_group.webp",
+			"members": [
+				{
+					"id": "member:ITZY:Yeji",
+					"idol": "Yeji",
+					"stageName": "Yeji",
+					"realName": "Hwang Ye-ji",
+					"ig": "yezyizhere",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Yeji.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ITZY:Lia",
+					"idol": "Lia",
+					"stageName": "Lia",
+					"realName": "Choi Ji-su",
+					"ig": "lia_loves___",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Lia.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ITZY:Ryujin",
+					"idol": "Ryujin",
+					"stageName": "Ryujin",
+					"realName": "Shin Ryu-jin",
+					"ig": "iamfinethankyouandryu",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Ryujin.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ITZY:Chaeryeong",
+					"idol": "Chaeryeong",
+					"stageName": "Chaeryeong",
+					"realName": "Lee Chae-ryeong",
+					"ig": "chaerrry0",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Chaeryeong.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ITZY:Yuna3",
+					"idol": "Yuna3",
+					"stageName": "Yuna",
+					"realName": "Shin Yu-na",
+					"ig": "igotyuandme",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Yuna3.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:Red Velvet",
+			"group": "Red Velvet",
+			"slug": "Red-Velvet",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/_group.webp",
+			"members": [
+				{
+					"id": "member:Red Velvet:Irene",
+					"idol": "Irene",
+					"stageName": "Irene",
+					"realName": "Bae Joo-hyun",
+					"ig": "renebaebae",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Irene.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Red Velvet:Seulgi",
+					"idol": "Seulgi",
+					"stageName": "Seulgi",
+					"realName": "Kang Seul-gi",
+					"ig": "hi_sseulgi",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Seulgi.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Red Velvet:Wendy",
+					"idol": "Wendy",
+					"stageName": "Wendy",
+					"realName": "Son Seung-wan",
+					"ig": "todayis_wendy",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Wendy.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Red Velvet:Joy",
+					"idol": "Joy",
+					"stageName": "Joy",
+					"realName": "Park Soo-young",
+					"ig": "_imyour_joy",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Joy.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Red Velvet:Yeri",
+					"idol": "Yeri",
+					"stageName": "Yeri",
+					"realName": "Kim Ye-rim",
+					"ig": "yerimiese",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Yeri.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:(G)I-DLE",
+			"group": "(G)I-DLE",
+			"slug": "i-dle",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/i-dle/_group.webp",
+			"members": [
+				{
+					"id": "member:(G)I-DLE:Miyeon",
+					"idol": "Miyeon",
+					"stageName": "Miyeon",
+					"realName": "Cho Mi-yeon",
+					"ig": "noodle.zip",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Miyeon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:(G)I-DLE:Minnie",
+					"idol": "Minnie",
+					"stageName": "Minnie",
+					"realName": "Nicha Yontararak",
+					"ig": "min.nicha",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Minnie.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:(G)I-DLE:Soyeon3",
+					"idol": "Soyeon3",
+					"stageName": "Soyeon",
+					"realName": "Jeon So-yeon",
+					"ig": "tiny.pretty.j",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Soyeon3.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:(G)I-DLE:Yuqi",
+					"idol": "Yuqi",
+					"stageName": "Yuqi",
+					"realName": "Song Yuqi",
+					"ig": "yuqisong.923",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Yuqi.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:(G)I-DLE:Shuhua",
+					"idol": "Shuhua",
+					"stageName": "Shuhua",
+					"realName": "Yeh Shuhua",
+					"ig": "yeh.shaa_",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Shuhua.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:NMIXX",
+			"group": "NMIXX",
+			"slug": "NMIXX",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/NMIXX/_group.webp",
+			"members": [
+				{
+					"id": "member:NMIXX:Lily3",
+					"idol": "Lily3",
+					"stageName": "Lily",
+					"realName": "Lily Morrow",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NMIXX:Haewon2",
+					"idol": "Haewon2",
+					"stageName": "Haewon",
+					"realName": "Oh Hae-won",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NMIXX:Sullyoon",
+					"idol": "Sullyoon",
+					"stageName": "Sullyoon",
+					"realName": "Seol Yoon-a",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NMIXX:Bae",
+					"idol": "Bae",
+					"stageName": "Bae",
+					"realName": "Bae Jin-sol",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NMIXX:Jiwoo8",
+					"idol": "Jiwoo8",
+					"stageName": "Jiwoo",
+					"realName": "Kim Ji-woo",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NMIXX:Kyujin",
+					"idol": "Kyujin",
+					"stageName": "Kyujin",
+					"realName": "Jang Kyu-jin",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:NMIXX:Jini4",
+					"idol": "Jini4",
+					"stageName": "Jini",
+					"realName": "",
+					"ig": "jiniyxxn",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/NMIXX/Jini4.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:STAYC",
+			"group": "STAYC",
+			"slug": "STAYC",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/STAYC/_group.webp",
+			"members": [
+				{
+					"id": "member:STAYC:Sumin4",
+					"idol": "Sumin4",
+					"stageName": "Sumin",
+					"realName": "Bae Su-min",
+					"ig": "baesuminiee",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Sumin4.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:STAYC:Sieun2",
+					"idol": "Sieun2",
+					"stageName": "Sieun",
+					"realName": "Park Si-eun",
+					"ig": "hermesieunn",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Sieun2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:STAYC:Isa",
+					"idol": "Isa",
+					"stageName": "Isa",
+					"realName": "Lee Chae-young",
+					"ig": "isamovingon",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Isa.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:STAYC:Seeun",
+					"idol": "Seeun",
+					"stageName": "Seeun",
+					"realName": "Yoon Se-eun",
+					"ig": "i.m.princesseun",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Seeun.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:STAYC:Yoon2",
+					"idol": "Yoon2",
+					"stageName": "Yoon",
+					"realName": "Shim Ja-yun",
+					"ig": "yoon_nxxy",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Yoon2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:STAYC:J3",
+					"idol": "J3",
+					"stageName": "J",
+					"realName": "Jang Ye-eun",
+					"ig": "jang.j_2",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/J3.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:Kep1er",
+			"group": "Kep1er",
+			"slug": "Kep1er",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/Kep1er/_group.webp",
+			"members": [
+				{
+					"id": "member:Kep1er:Yujin",
+					"idol": "Yujin",
+					"stageName": "Yujin",
+					"realName": "",
+					"ig": "utokki_u",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Yujin.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Kep1er:Xiaoting",
+					"idol": "Xiaoting",
+					"stageName": "Xiaoting",
+					"realName": "",
+					"ig": "whosxiaoting_",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Xiaoting.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Kep1er:Chaehyun2",
+					"idol": "Chaehyun2",
+					"stageName": "Chaehyun",
+					"realName": "",
+					"ig": "iioflhyun",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Chaehyun2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Kep1er:Dayeon4",
+					"idol": "Dayeon4",
+					"stageName": "Dayeon",
+					"realName": "",
+					"ig": "ddayyeonii",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Dayeon4.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Kep1er:Hikaru",
+					"idol": "Hikaru",
+					"stageName": "Hikaru",
+					"realName": "",
+					"ig": "e__hikaru.xx",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Hikaru.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Kep1er:Huening-Bahiyyih",
+					"idol": "Huening-Bahiyyih",
+					"stageName": "Huening-Bahiyyih",
+					"realName": "",
+					"ig": "hiyeahhh_",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Huening-Bahiyyih.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Kep1er:Youngeun",
+					"idol": "Youngeun",
+					"stageName": "Youngeun",
+					"realName": "",
+					"ig": "0.e_na",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Youngeun.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Kep1er:Yeseo",
+					"idol": "Yeseo",
+					"stageName": "Yeseo",
+					"realName": "",
+					"ig": "yes_e0_0",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Yeseo.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Kep1er:Mashiro",
+					"idol": "Mashiro",
+					"stageName": "Mashiro",
+					"realName": "",
+					"ig": "shir0._.chann",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Mashiro.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:fromis_9",
+			"group": "fromis_9",
+			"slug": "fromis9",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/fromis9/_group.webp",
+			"members": [
+				{
+					"id": "member:fromis_9:Hayoung2",
+					"idol": "Hayoung2",
+					"stageName": "Hayoung",
+					"realName": "Song Ha-young",
+					"ig": "shy9_29",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Hayoung2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:fromis_9:Jiwon2",
+					"idol": "Jiwon2",
+					"stageName": "Jiwon",
+					"realName": "Park Ji-won",
+					"ig": "xjiwonparkx",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Jiwon2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:fromis_9:Chaeyoung2",
+					"idol": "Chaeyoung2",
+					"stageName": "Chaeyoung",
+					"realName": "Lee Chae-young",
+					"ig": "chaengrang_",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Chaeyoung2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:fromis_9:Nagyung",
+					"idol": "Nagyung",
+					"stageName": "Nagyung",
+					"realName": "Lee Na-gyung",
+					"ig": "blossomlng_0",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Nagyung.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:fromis_9:Jiheon",
+					"idol": "Jiheon",
+					"stageName": "Jiheon",
+					"realName": "Baek Ji-heon",
+					"ig": "jiheonnibaek",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Jiheon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:fromis_9:Lee-Saerom",
+					"idol": "Lee-Saerom",
+					"stageName": "Lee-Saerom",
+					"realName": "",
+					"ig": "saeromssee",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Lee-Saerom.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:fromis_9:Yi-Seoyeon",
+					"idol": "Yi-Seoyeon",
+					"stageName": "Yi-Seoyeon",
+					"realName": "",
+					"ig": "im_theyeon",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Yi-Seoyeon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:fromis_9:Jisun",
+					"idol": "Jisun",
+					"stageName": "Jisun",
+					"realName": "Roh Ji-sun",
+					"ig": "rosieline_",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Jisun.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:OH MY GIRL",
+			"group": "OH MY GIRL",
+			"slug": "OH-MY-GIRL",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/_group.webp",
+			"members": [
+				{
+					"id": "member:OH MY GIRL:Hyojung",
+					"idol": "Hyojung",
+					"stageName": "Hyojung",
+					"realName": "",
+					"ig": "candyz_hyojung",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Hyojung.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:OH MY GIRL:Mimi2",
+					"idol": "Mimi2",
+					"stageName": "Mimi",
+					"realName": "",
+					"ig": "mimmiiiya",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Mimi2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:OH MY GIRL:YooA",
+					"idol": "YooA",
+					"stageName": "YooA",
+					"realName": "",
+					"ig": "yoo__sha",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/YooA.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:OH MY GIRL:Seunghee2",
+					"idol": "Seunghee2",
+					"stageName": "Seunghee",
+					"realName": "",
+					"ig": "hyun_maxiang",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Seunghee2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:OH MY GIRL:Yubin3",
+					"idol": "Yubin3",
+					"stageName": "Yubin",
+					"realName": "",
+					"ig": "baeyu_b",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Yubin3.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:OH MY GIRL:Arin",
+					"idol": "Arin",
+					"stageName": "Arin",
+					"realName": "",
+					"ig": "ye._.vely618",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Arin.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:OH MY GIRL:Jiho",
+					"idol": "Jiho",
+					"stageName": "Jiho",
+					"realName": "",
+					"ig": "jihoa_f",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Jiho.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:OH MY GIRL:JinE",
+					"idol": "JinE",
+					"stageName": "JinE",
+					"realName": "",
+					"ig": "c_nye.zini",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/JinE.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:MAMAMOO",
+			"group": "MAMAMOO",
+			"slug": "MAMAMOO",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/_group.webp",
+			"members": [
+				{
+					"id": "member:MAMAMOO:Solar",
+					"idol": "Solar",
+					"stageName": "Solar",
+					"realName": "Kim Yong-sun",
+					"ig": "solarkeem",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Solar.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:MAMAMOO:Moonbyul",
+					"idol": "Moonbyul",
+					"stageName": "Moonbyul",
+					"realName": "Moon Byul-yi",
+					"ig": "mo_onbyul",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Moonbyul.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:MAMAMOO:Wheein",
+					"idol": "Wheein",
+					"stageName": "Wheein",
+					"realName": "Jung Whee-in",
+					"ig": "whee_inthemood",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Wheein.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:MAMAMOO:Hwasa",
+					"idol": "Hwasa",
+					"stageName": "Hwasa",
+					"realName": "Ahn Hye-jin",
+					"ig": "_mariahwasa",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Hwasa.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:ILLIT",
+			"group": "ILLIT",
+			"slug": "ILLIT",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/ILLIT/_group.webp",
+			"members": [
+				{
+					"id": "member:ILLIT:Yunah",
+					"idol": "Yunah",
+					"stageName": "Yunah",
+					"realName": "Noh Yun-ah",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ILLIT:Minju6",
+					"idol": "Minju6",
+					"stageName": "Minju",
+					"realName": "Park Min-ju",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ILLIT:Moka",
+					"idol": "Moka",
+					"stageName": "Moka",
+					"realName": "Sakurai Moka",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ILLIT:Wonhee",
+					"idol": "Wonhee",
+					"stageName": "Wonhee",
+					"realName": "Lee Won-hee",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ILLIT:Iroha",
+					"idol": "Iroha",
+					"stageName": "Iroha",
+					"realName": "Tokuno Iroha",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:BABYMONSTER",
+			"group": "BABYMONSTER",
+			"slug": "BABYMONSTER",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/BABYMONSTER/_group.webp",
+			"members": [
+				{
+					"id": "member:BABYMONSTER:Ruka2",
+					"idol": "Ruka2",
+					"stageName": "Ruka",
+					"realName": "Kawai Ruka",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BABYMONSTER:Pharita",
+					"idol": "Pharita",
+					"stageName": "Pharita",
+					"realName": "Pharita Bunpakdi",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BABYMONSTER:Asa",
+					"idol": "Asa",
+					"stageName": "Asa",
+					"realName": "Enami Asa",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BABYMONSTER:Ahyeon",
+					"idol": "Ahyeon",
+					"stageName": "Ahyeon",
+					"realName": "Jung Ah-yeon",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BABYMONSTER:Rami",
+					"idol": "Rami",
+					"stageName": "Rami",
+					"realName": "Shin Ha-ram",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BABYMONSTER:Rora2",
+					"idol": "Rora2",
+					"stageName": "Rora",
+					"realName": "Lee Seung-eun",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BABYMONSTER:Chiquita",
+					"idol": "Chiquita",
+					"stageName": "Chiquita",
+					"realName": "Riranchana Kannung",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:KISS OF LIFE",
+			"group": "KISS OF LIFE",
+			"slug": "KISS-OF-LIFE",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/KISS-OF-LIFE/_group.webp",
+			"members": [
+				{
+					"id": "member:KISS OF LIFE:Julie2",
+					"idol": "Julie2",
+					"stageName": "Julie",
+					"realName": "Julie Han",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:KISS OF LIFE:Natty",
+					"idol": "Natty",
+					"stageName": "Natty",
+					"realName": "Ahnachiya Pichayapa",
+					"ig": "natty_0530",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/KISS-OF-LIFE/Natty.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:KISS OF LIFE:Belle",
+					"idol": "Belle",
+					"stageName": "Belle",
+					"realName": "Belle",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:KISS OF LIFE:Haneul",
+					"idol": "Haneul",
+					"stageName": "Haneul",
+					"realName": "Haneul",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:VIVIZ",
+			"group": "VIVIZ",
+			"slug": "VIVIZ",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/VIVIZ/_group.webp",
+			"members": [
+				{
+					"id": "member:VIVIZ:Eunha",
+					"idol": "Eunha",
+					"stageName": "Eunha",
+					"realName": "",
+					"ig": "rlo.ldl",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:VIVIZ:SinB",
+					"idol": "SinB",
+					"stageName": "SinB",
+					"realName": "",
+					"ig": "bscenez",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/VIVIZ/SinB.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:VIVIZ:Umji",
+					"idol": "Umji",
+					"stageName": "Umji",
+					"realName": "",
+					"ig": "ummmmm_j.i",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/VIVIZ/Umji.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:BTS",
+			"group": "BTS",
+			"slug": "BTS",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/BTS/_group.webp",
+			"members": [
+				{
+					"id": "member:BTS:Jin",
+					"idol": "Jin",
+					"stageName": "Jin",
+					"realName": "Kim Seok-jin",
+					"ig": "jin",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/Jin.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:BTS:Suga",
+					"idol": "Suga",
+					"stageName": "Suga",
+					"realName": "Min Yoon-gi",
+					"ig": "agustd",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/Suga.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:BTS:j-hope",
+					"idol": "j-hope",
+					"stageName": "j-hope",
+					"realName": "Jung Ho-seok",
+					"ig": "uarmyhope",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/j-hope.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:BTS:RM",
+					"idol": "RM",
+					"stageName": "RM",
+					"realName": "Kim Nam-joon",
+					"ig": "rkive",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/RM.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:BTS:Jimin2",
+					"idol": "Jimin2",
+					"stageName": "Jimin",
+					"realName": "Park Ji-min",
+					"ig": "j.m",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/Jimin2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:BTS:V",
+					"idol": "V",
+					"stageName": "V",
+					"realName": "Kim Tae-hyung",
+					"ig": "thv",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/V.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:BTS:Jungkook",
+					"idol": "Jungkook",
+					"stageName": "Jungkook",
+					"realName": "Jeon Jung-kook",
+					"ig": "mnijungkook",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/Jungkook.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:SEVENTEEN",
+			"group": "SEVENTEEN",
+			"slug": "SEVENTEEN",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/_group.webp",
+			"members": [
+				{
+					"id": "member:SEVENTEEN:scoups",
+					"idol": "scoups",
+					"stageName": "scoups",
+					"realName": "Choi Seung-cheol",
+					"ig": "sound_of_coups",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/scoups.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Jeonghan",
+					"idol": "Jeonghan",
+					"stageName": "Jeonghan",
+					"realName": "Yoon Jeong-han",
+					"ig": "jeonghaniyoo_n",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Jeonghan.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Joshua",
+					"idol": "Joshua",
+					"stageName": "Joshua",
+					"realName": "Hong Ji-soo",
+					"ig": "joshu_acoustic",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Joshua.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Jun",
+					"idol": "Jun",
+					"stageName": "Jun",
+					"realName": "Wen Junhui",
+					"ig": "junhui_moon",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Jun.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Hoshi",
+					"idol": "Hoshi",
+					"stageName": "Hoshi",
+					"realName": "Kwon Soon-young",
+					"ig": "ho5hi_kwon",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Hoshi.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Wonwoo",
+					"idol": "Wonwoo",
+					"stageName": "Wonwoo",
+					"realName": "Jeon Won-woo",
+					"ig": "everyone_woo",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Wonwoo.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Woozi",
+					"idol": "Woozi",
+					"stageName": "Woozi",
+					"realName": "Lee Ji-hoon",
+					"ig": "woozi_universefactory",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Woozi.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:DK",
+					"idol": "DK",
+					"stageName": "DK",
+					"realName": "Lee Seok-min",
+					"ig": "dk_is_dokyeom",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/DK.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Mingyu",
+					"idol": "Mingyu",
+					"stageName": "Mingyu",
+					"realName": "Kim Min-gyu",
+					"ig": "min9yu_k",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Mingyu.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:the88",
+					"idol": "the88",
+					"stageName": "the",
+					"realName": "",
+					"ig": "xuminghao_o",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/the88.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Seungkwan",
+					"idol": "Seungkwan",
+					"stageName": "Seungkwan",
+					"realName": "Boo Seung-kwan",
+					"ig": "pledis_boos",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Seungkwan.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Vernon",
+					"idol": "Vernon",
+					"stageName": "Vernon",
+					"realName": "Hansol Vernon Chwe",
+					"ig": "vernonline",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Vernon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:SEVENTEEN:Dino",
+					"idol": "Dino",
+					"stageName": "Dino",
+					"realName": "Lee Chan",
+					"ig": "feat.dino",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Dino.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:Stray Kids",
+			"group": "Stray Kids",
+			"slug": "Stray-Kids",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/_group.webp",
+			"members": [
+				{
+					"id": "member:Stray Kids:Bang-Chan",
+					"idol": "Bang-Chan",
+					"stageName": "Bang-Chan",
+					"realName": "Bang Chan",
+					"ig": "gnabnahc",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Bang-Chan.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Stray Kids:Lee-Know",
+					"idol": "Lee-Know",
+					"stageName": "Lee-Know",
+					"realName": "Lee Min-ho",
+					"ig": "t.leeknowsaurus",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Lee-Know.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Stray Kids:Changbin",
+					"idol": "Changbin",
+					"stageName": "Changbin",
+					"realName": "Seo Chang-bin",
+					"ig": "jutdwae",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Changbin.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Stray Kids:Hyunjin2",
+					"idol": "Hyunjin2",
+					"stageName": "Hyunjin",
+					"realName": "Hwang Hyun-jin",
+					"ig": "hynjinnnn",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Hyunjin2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Stray Kids:Han",
+					"idol": "Han",
+					"stageName": "Han",
+					"realName": "Han Ji-sung",
+					"ig": "_doolsetnet",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Han.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Stray Kids:Felix",
+					"idol": "Felix",
+					"stageName": "Felix",
+					"realName": "Lee Felix",
+					"ig": "yong.lixx",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Felix.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Stray Kids:Seungmin2",
+					"idol": "Seungmin2",
+					"stageName": "Seungmin",
+					"realName": "Kim Seung-min",
+					"ig": "miniseungkim",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Seungmin2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Stray Kids:in",
+					"idol": "in",
+					"stageName": "in",
+					"realName": "",
+					"ig": "i.2.n.8",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/in.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:Stray Kids:Kim-Woojin",
+					"idol": "Kim-Woojin",
+					"stageName": "Kim-Woojin",
+					"realName": "",
+					"ig": "woooojin0408",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Kim-Woojin.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:TXT",
+			"group": "TXT",
+			"slug": "TXT",
+			"enabled": true,
+			"qty": 10,
+			"avatar": null,
+			"members": []
+		},
+		{
+			"id": "group:ENHYPEN",
+			"group": "ENHYPEN",
+			"slug": "ENHYPEN",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/ENHYPEN/_group.webp",
+			"members": [
+				{
+					"id": "member:ENHYPEN:Jay3",
+					"idol": "Jay3",
+					"stageName": "Jay",
+					"realName": "Park Jong-seong",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ENHYPEN:Jake",
+					"idol": "Jake",
+					"stageName": "Jake",
+					"realName": "Sim Jae-yun",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ENHYPEN:Sunghoon3",
+					"idol": "Sunghoon3",
+					"stageName": "Sunghoon",
+					"realName": "Park Sung-hoon",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ENHYPEN:Sunoo",
+					"idol": "Sunoo",
+					"stageName": "Sunoo",
+					"realName": "Kim Sun-oo",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ENHYPEN:Jungwon",
+					"idol": "Jungwon",
+					"stageName": "Jungwon",
+					"realName": "Yang Jung-won",
+					"ig": "baby._.maeum",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ENHYPEN/Jungwon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ENHYPEN:Ni-ki",
+					"idol": "Ni-ki",
+					"stageName": "Ni-ki",
+					"realName": "Nishimura Riki",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ENHYPEN:Evan",
+					"idol": "Evan",
+					"stageName": "Evan",
+					"realName": "",
+					"ig": "h_evva_n",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ENHYPEN/Evan.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:NCT DREAM",
+			"group": "NCT DREAM",
+			"slug": "NCT-Dream",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/_group.webp",
+			"members": [
+				{
+					"id": "member:NCT DREAM:Renjun",
+					"idol": "Renjun",
+					"stageName": "Renjun",
+					"realName": "",
+					"ig": "yellow_3to3",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Renjun.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:NCT DREAM:Jeno",
+					"idol": "Jeno",
+					"stageName": "Jeno",
+					"realName": "",
+					"ig": "leejen_o_423",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Jeno.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:NCT DREAM:Haechan",
+					"idol": "Haechan",
+					"stageName": "Haechan",
+					"realName": "",
+					"ig": "haechanahceah",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Haechan.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:NCT DREAM:Jaemin",
+					"idol": "Jaemin",
+					"stageName": "Jaemin",
+					"realName": "",
+					"ig": "na.jaemin0813",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Jaemin.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:NCT DREAM:Chenle",
+					"idol": "Chenle",
+					"stageName": "Chenle",
+					"realName": "",
+					"ig": "kh1000le",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Chenle.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:NCT DREAM:Jisung2",
+					"idol": "Jisung2",
+					"stageName": "Jisung",
+					"realName": "",
+					"ig": "the__and.y",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Jisung2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:NCT DREAM:Mark2",
+					"idol": "Mark2",
+					"stageName": "Mark",
+					"realName": "",
+					"ig": "onyourm__ark",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Mark2.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:EXO",
+			"group": "EXO",
+			"slug": "EXO",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/EXO/_group.webp",
+			"members": [
+				{
+					"id": "member:EXO:Xiumin",
+					"idol": "Xiumin",
+					"stageName": "Xiumin",
+					"realName": "",
+					"ig": "e_xiu_o",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Xiumin.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:EXO:Suho",
+					"idol": "Suho",
+					"stageName": "Suho",
+					"realName": "",
+					"ig": "kimjuncotton",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Suho.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:EXO:Lay",
+					"idol": "Lay",
+					"stageName": "Lay",
+					"realName": "",
+					"ig": "layzhang",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Lay.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:EXO:Baekhyun",
+					"idol": "Baekhyun",
+					"stageName": "Baekhyun",
+					"realName": "",
+					"ig": "baekhyunee_exo",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Baekhyun.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:EXO:Chen",
+					"idol": "Chen",
+					"stageName": "Chen",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:EXO:Chanyeol",
+					"idol": "Chanyeol",
+					"stageName": "Chanyeol",
+					"realName": "",
+					"ig": "real__pcy",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:EXO:do",
+					"idol": "do",
+					"stageName": "do",
+					"realName": "",
+					"ig": "d.o.hkyungsoo",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:EXO:Kai",
+					"idol": "Kai",
+					"stageName": "Kai",
+					"realName": "",
+					"ig": "zkdlin",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Kai.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:EXO:Sehun",
+					"idol": "Sehun",
+					"stageName": "Sehun",
+					"realName": "",
+					"ig": "oohsehun",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Sehun.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:EXO:ztao",
+					"idol": "ztao",
+					"stageName": "ztao",
+					"realName": "",
+					"ig": "hztttao",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:EXO:Luhan",
+					"idol": "Luhan",
+					"stageName": "Luhan",
+					"realName": "",
+					"ig": "7_luhan_m",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Luhan.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:EXO:Kris-Wu",
+					"idol": "Kris-Wu",
+					"stageName": "Kris-Wu",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:ATEEZ",
+			"group": "ATEEZ",
+			"slug": "ATEEZ",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/_group.webp",
+			"members": [
+				{
+					"id": "member:ATEEZ:Seonghwa",
+					"idol": "Seonghwa",
+					"stageName": "Seonghwa",
+					"realName": "Park Seong-hwa",
+					"ig": "_starhwa_",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Seonghwa.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ATEEZ:Hongjoong",
+					"idol": "Hongjoong",
+					"stageName": "Hongjoong",
+					"realName": "Kim Hong-joong",
+					"ig": "no1likeme8_8",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Hongjoong.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ATEEZ:Yunho",
+					"idol": "Yunho",
+					"stageName": "Yunho",
+					"realName": "Jeong Yun-ho",
+					"ig": "yunou._.u",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Yunho.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ATEEZ:Yeosang",
+					"idol": "Yeosang",
+					"stageName": "Yeosang",
+					"realName": "Kang Yeo-sang",
+					"ig": "im_ovation",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Yeosang.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ATEEZ:San",
+					"idol": "San",
+					"stageName": "San",
+					"realName": "Choi San",
+					"ig": "choi3an",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/San.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ATEEZ:Mingi",
+					"idol": "Mingi",
+					"stageName": "Mingi",
+					"realName": "Song Min-gi",
+					"ig": "fixon_n_on",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Mingi.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ATEEZ:Wooyoung3",
+					"idol": "Wooyoung3",
+					"stageName": "Wooyoung",
+					"realName": "Jung Woo-young",
+					"ig": "wooyounggg__",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Wooyoung3.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ATEEZ:Jongho",
+					"idol": "Jongho",
+					"stageName": "Jongho",
+					"realName": "Choi Jong-ho",
+					"ig": "imfinalho_",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Jongho.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:ZEROBASEONE",
+			"group": "ZEROBASEONE",
+			"slug": "ZEROBASEONE",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/ZEROBASEONE/_group.webp",
+			"members": [
+				{
+					"id": "member:ZEROBASEONE:Kim-Jiwoong",
+					"idol": "Kim-Jiwoong",
+					"stageName": "Kim-Jiwoong",
+					"realName": "Kim Ji-woong",
+					"ig": "official_kimjiwoong",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/ZEROBASEONE/Kim-Jiwoong.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:ZEROBASEONE:Sung-Hanbin",
+					"idol": "Sung-Hanbin",
+					"stageName": "Sung-Hanbin",
+					"realName": "Sung Han-bin",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ZEROBASEONE:Seok-Matthew",
+					"idol": "Seok-Matthew",
+					"stageName": "Seok-Matthew",
+					"realName": "Seok Matthew",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ZEROBASEONE:Kim-Tae-Rae",
+					"idol": "Kim-Tae-Rae",
+					"stageName": "Kim-Tae-Rae",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ZEROBASEONE:Park-Gun-Wook",
+					"idol": "Park-Gun-Wook",
+					"stageName": "Park-Gun-Wook",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ZEROBASEONE:Zhang-Hao",
+					"idol": "Zhang-Hao",
+					"stageName": "Zhang-Hao",
+					"realName": "Zhang Hao",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ZEROBASEONE:Han-Yu-Jin",
+					"idol": "Han-Yu-Jin",
+					"stageName": "Han-Yu-Jin",
+					"realName": "",
+					"ig": "hanyujin788",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ZEROBASEONE:Kim-Gyu-Vin",
+					"idol": "Kim-Gyu-Vin",
+					"stageName": "Kim-Gyu-Vin",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:ZEROBASEONE:Ricky3",
+					"idol": "Ricky3",
+					"stageName": "Ricky",
+					"realName": "Shen Quanrui",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:RIIZE",
+			"group": "RIIZE",
+			"slug": "RIIZE",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/RIIZE/_group.webp",
+			"members": [
+				{
+					"id": "member:RIIZE:Shotaro",
+					"idol": "Shotaro",
+					"stageName": "Shotaro",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:RIIZE:Eunseok",
+					"idol": "Eunseok",
+					"stageName": "Eunseok",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:RIIZE:Sungchan",
+					"idol": "Sungchan",
+					"stageName": "Sungchan",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:RIIZE:Wonbin2",
+					"idol": "Wonbin2",
+					"stageName": "Wonbin",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:RIIZE:Sohee9",
+					"idol": "Sohee9",
+					"stageName": "Sohee",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:RIIZE:Anton",
+					"idol": "Anton",
+					"stageName": "Anton",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:RIIZE:XngHan",
+					"idol": "XngHan",
+					"stageName": "XngHan",
+					"realName": "",
+					"ig": "xnghan",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/RIIZE/XngHan.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:BOYNEXTDOOR",
+			"group": "BOYNEXTDOOR",
+			"slug": "BOYNEXTDOOR",
+			"enabled": true,
+			"qty": 10,
+			"avatar": null,
+			"members": [
+				{
+					"id": "member:BOYNEXTDOOR:Sungho",
+					"idol": "Sungho",
+					"stageName": "Sungho",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BOYNEXTDOOR:Riwoo",
+					"idol": "Riwoo",
+					"stageName": "Riwoo",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BOYNEXTDOOR:Jaehyun5",
+					"idol": "Jaehyun5",
+					"stageName": "Jaehyun",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BOYNEXTDOOR:Taesan",
+					"idol": "Taesan",
+					"stageName": "Taesan",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BOYNEXTDOOR:Leehan",
+					"idol": "Leehan",
+					"stageName": "Leehan",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:BOYNEXTDOOR:Woonhak",
+					"idol": "Woonhak",
+					"stageName": "Woonhak",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:KiiiKiii",
+			"group": "KiiiKiii",
+			"slug": "KiiiKiii",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/KiiiKiii/_group.webp",
+			"members": [
+				{
+					"id": "member:KiiiKiii:Leesol",
+					"idol": "Leesol",
+					"stageName": "Leesol",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:KiiiKiii:Sui6",
+					"idol": "Sui6",
+					"stageName": "Sui",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:KiiiKiii:Jiyu3",
+					"idol": "Jiyu3",
+					"stageName": "Jiyu",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:KiiiKiii:Haum",
+					"idol": "Haum",
+					"stageName": "Haum",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:KiiiKiii:Kya",
+					"idol": "Kya",
+					"stageName": "Kya",
+					"realName": "",
+					"ig": "beautyduty_korea",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:Rescene",
+			"group": "Rescene",
+			"slug": "RESCENE",
+			"enabled": true,
+			"qty": 10,
+			"avatar": null,
+			"members": [
+				{
+					"id": "member:Rescene:Woni",
+					"idol": "Woni",
+					"stageName": "Woni",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:Rescene:Liv2",
+					"idol": "Liv2",
+					"stageName": "Liv",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:Rescene:Minami",
+					"idol": "Minami",
+					"stageName": "Minami",
+					"realName": "",
+					"ig": "namii__nami",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:Rescene:May4",
+					"idol": "May4",
+					"stageName": "May",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:Rescene:Zena2",
+					"idol": "Zena2",
+					"stageName": "Zena",
+					"realName": "",
+					"ig": "k.im_g.y_",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:TWS",
+			"group": "TWS",
+			"slug": "TWS",
+			"enabled": true,
+			"qty": 10,
+			"avatar": null,
+			"members": [
+				{
+					"id": "member:TWS:Shinyu",
+					"idol": "Shinyu",
+					"stageName": "Shinyu",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:TWS:Dohoon",
+					"idol": "Dohoon",
+					"stageName": "Dohoon",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:TWS:Youngjae3",
+					"idol": "Youngjae3",
+					"stageName": "Youngjae",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:TWS:Hanjin",
+					"idol": "Hanjin",
+					"stageName": "Hanjin",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:TWS:Jihoon",
+					"idol": "Jihoon",
+					"stageName": "Jihoon",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:TWS:Kyungmin2",
+					"idol": "Kyungmin2",
+					"stageName": "Kyungmin",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:IZONE",
+			"group": "IZONE",
+			"slug": "izone",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/izone/_group.webp",
+			"members": [
+				{
+					"id": "member:IZONE:Kwon-Eunbi",
+					"idol": "Kwon-Eunbi",
+					"stageName": "Kwon-Eunbi",
+					"realName": "",
+					"ig": "kwoneunbi.official",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Kwon-Eunbi.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IZONE:Sakura",
+					"idol": "Sakura",
+					"stageName": "Sakura",
+					"realName": "",
+					"ig": "39saku_chan",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:IZONE:Kang-Hyewon",
+					"idol": "Kang-Hyewon",
+					"stageName": "Kang-Hyewon",
+					"realName": "",
+					"ig": "hyemhyemu",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Kang-Hyewon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IZONE:Yena2",
+					"idol": "Yena2",
+					"stageName": "Yena",
+					"realName": "",
+					"ig": "yena.jigumina",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:IZONE:Lee-Chae-Yeon",
+					"idol": "Lee-Chae-Yeon",
+					"stageName": "Lee-Chae-Yeon",
+					"realName": "",
+					"ig": "chaestival_",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:IZONE:Kim-Chaewon",
+					"idol": "Kim-Chaewon",
+					"stageName": "Kim-Chaewon",
+					"realName": "",
+					"ig": "_chaechae_1",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:IZONE:Minju3",
+					"idol": "Minju3",
+					"stageName": "Minju",
+					"realName": "",
+					"ig": "minn.__.ju",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Minju3.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IZONE:Nako",
+					"idol": "Nako",
+					"stageName": "Nako",
+					"realName": "",
+					"ig": "75_yabuki",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Nako.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IZONE:Hitomi",
+					"idol": "Hitomi",
+					"stageName": "Hitomi",
+					"realName": "",
+					"ig": "10_hitomi_06",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Hitomi.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IZONE:Jo-Yuri",
+					"idol": "Jo-Yuri",
+					"stageName": "Jo-Yuri",
+					"realName": "",
+					"ig": "zo__glasss",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Jo-Yuri.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IZONE:Yujin3",
+					"idol": "Yujin3",
+					"stageName": "Yujin",
+					"realName": "",
+					"ig": "_yujin_an",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Yujin3.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:IZONE:Wonyoung",
+					"idol": "Wonyoung",
+					"stageName": "Wonyoung",
+					"realName": "",
+					"ig": "for_everyoung10",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		},
+		{
+			"id": "group:KATSEYE",
+			"group": "KATSEYE",
+			"slug": "KATSEYE",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/_group.webp",
+			"members": [
+				{
+					"id": "member:KATSEYE:Manon",
+					"idol": "Manon",
+					"stageName": "Manon",
+					"realName": "",
+					"ig": "meretmanon",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Manon.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:KATSEYE:Sophia3",
+					"idol": "Sophia3",
+					"stageName": "Sophia",
+					"realName": "",
+					"ig": "sophia_laforteza",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Sophia3.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:KATSEYE:Daniela",
+					"idol": "Daniela",
+					"stageName": "Daniela",
+					"realName": "",
+					"ig": "daniela_avanzini",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Daniela.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:KATSEYE:Lara2",
+					"idol": "Lara2",
+					"stageName": "Lara",
+					"realName": "",
+					"ig": "lararajj",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Lara2.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:KATSEYE:Megan",
+					"idol": "Megan",
+					"stageName": "Megan",
+					"realName": "",
+					"ig": "meganskiendiel",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Megan.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:KATSEYE:Yoonchae",
+					"idol": "Yoonchae",
+					"stageName": "Yoonchae",
+					"realName": "",
+					"ig": "yoonchae",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Yoonchae.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:MEOVV",
+			"group": "MEOVV",
+			"slug": "MEOVV",
+			"enabled": true,
+			"qty": 10,
+			"avatar": "/assets/images/douyin-roster/avatars/MEOVV/_group.webp",
+			"members": [
+				{
+					"id": "member:MEOVV:Sooin2",
+					"idol": "Sooin2",
+					"stageName": "Sooin",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:MEOVV:Gawon",
+					"idol": "Gawon",
+					"stageName": "Gawon",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:MEOVV:Anna6",
+					"idol": "Anna6",
+					"stageName": "Anna",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:MEOVV:Narin4",
+					"idol": "Narin4",
+					"stageName": "Narin",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:MEOVV:Ella5",
+					"idol": "Ella5",
+					"stageName": "Ella",
+					"realName": "",
+					"ig": "ellagross",
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:MEOVV:Bailey",
+					"idol": "Bailey",
+					"stageName": "Bailey",
+					"realName": "",
+					"ig": "baileysok",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/MEOVV/Bailey.webp",
+					"hasLibraryFolder": true
+				},
+				{
+					"id": "member:MEOVV:Annie3",
+					"idol": "Annie3",
+					"stageName": "Annie",
+					"realName": "",
+					"ig": "anniesymoon",
+					"enabled": true,
+					"qty": 10,
+					"avatar": "/assets/images/douyin-roster/avatars/MEOVV/Annie3.webp",
+					"hasLibraryFolder": true
+				}
+			]
+		},
+		{
+			"id": "group:CORTIS",
+			"group": "CORTIS",
+			"slug": "CORTIS",
+			"enabled": true,
+			"qty": 10,
+			"avatar": null,
+			"members": [
+				{
+					"id": "member:CORTIS:James",
+					"idol": "James",
+					"stageName": "James",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:CORTIS:Juhoon",
+					"idol": "Juhoon",
+					"stageName": "Juhoon",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:CORTIS:Martin",
+					"idol": "Martin",
+					"stageName": "Martin",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:CORTIS:Seonghyeon",
+					"idol": "Seonghyeon",
+					"stageName": "Seonghyeon",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				},
+				{
+					"id": "member:CORTIS:Keonho",
+					"idol": "Keonho",
+					"stageName": "Keonho",
+					"realName": "",
+					"ig": null,
+					"enabled": true,
+					"qty": 10,
+					"avatar": null,
+					"hasLibraryFolder": false
+				}
+			]
+		}
+	]
+}
