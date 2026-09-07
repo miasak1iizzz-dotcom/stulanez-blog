@@ -3,6 +3,12 @@
 	// 直接 import，避免把整份名单塞进 astro-island props 属性（会撑爆水合）
 	import rosterJson from "@/data/douyin-roster/roster.json";
 
+	let {
+		compact = false,
+	}: {
+		compact?: boolean;
+	} = $props();
+
 	type Member = {
 		id: string;
 		idol: string;
@@ -253,12 +259,12 @@
 	}
 </script>
 
-<div class="roster">
+<div class="roster" class:compact>
 	<header class="hero">
 		<p class="eyebrow">T-014 · 抖音实战前 · 本地过目</p>
-		<h1>下载名单调参台</h1>
+		<h1>{compact ? "下载名单调参" : "下载名单调参台"}</h1>
 		<p class="lead">
-			先勾谁要下、各下几张。默认：每个团 10 张 + 每位成员 10 张手机壁纸。你改完保存，我再去抖音找图。
+			先勾谁要下、各下几张。默认：每个团 10 张 + 每位成员 10 张手机壁纸。你改完保存，我再按名单继续下。
 		</p>
 		<div class="stats">
 			<div><b>{totals.groupsOn}</b><span>启用的团</span></div>
@@ -402,6 +408,10 @@
 		margin: 0 auto;
 		padding: 1.25rem 1rem 3rem;
 		font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+	}
+	.roster.compact {
+		max-width: none;
+		padding: 0.25rem 0 1.5rem;
 	}
 	.hero h1 {
 		font-size: clamp(1.6rem, 3vw, 2.1rem);
