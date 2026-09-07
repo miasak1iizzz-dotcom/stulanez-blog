@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	// 直接 import，避免把整份名单塞进 astro-island props 属性（会撑爆水合）
+	import rosterJson from "@/data/douyin-roster/roster.json";
 
 	type Member = {
 		id: string;
@@ -42,15 +44,16 @@
 		}>;
 	};
 
-	let {
-		roster,
-	}: {
-		roster: Roster;
-	} = $props();
+	const roster = rosterJson as Roster;
 
 	const STORAGE_KEY = "douyin-roster-prefs-v1";
 
-	let groups = $state<Group[]>(structuredClone(roster.groups));
+	let groups = $state<Group[]>(
+		roster.groups.map((g) => ({
+			...g,
+			members: g.members.map((m) => ({ ...m })),
+		})),
+	);
 	let query = $state("");
 	let onlyEnabled = $state(false);
 	let missingName = $state(false);

@@ -1,6 +1,5 @@
 ---
 import DouyinRoster from "@/components/lab/DouyinRoster.svelte";
-import roster from "@/data/douyin-roster/roster.json";
 
 const title = "抖音下载名单 · 本地过目";
 const description = "勾选团与成员、调整每项张数；过目通过后再开始抖音壁纸下载。";
@@ -50,6 +49,7 @@ const description = "勾选团与成员、调整每项张数；过目通过后�
 			<a href="/lab/agent-board/">← 回指挥室</a>
 			<span>内部工具 · 不进搜索引擎 · 数据来自素材库 kpop 名单</span>
 		</div>
-		<DouyinRoster client:load roster={roster} />
+		<!-- 名单在组件内 import，勿再经 props 传递（大 JSON 会撑爆 island 水合） -->
+		<DouyinRoster client:load />
 	</body>
 </html>
