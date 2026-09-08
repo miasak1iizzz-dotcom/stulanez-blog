@@ -90,6 +90,15 @@ let links: NavBarLink[] = resolveNavbarLinks(
 		.filter((link): link is NavBarLink => link !== null),
 );
 
+// 独立艺术馆入口；相册继续保留自己的用途。
+if (!links.some((link) => link.url === "/art/")) {
+	links.splice(1, 0, {
+		name: "艺术馆",
+		url: "/art/",
+		icon: "material-symbols:photo-library",
+	});
+}
+
 // 处理导航栏 Logo 图片，image / url 类型支持亮暗色分别设置
 const logoConfig = siteConfig.navbar.logo;
 const logoAlt = logoConfig?.alt || siteConfig.title;

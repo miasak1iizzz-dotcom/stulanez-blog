@@ -1,0 +1,9 @@
+---
+import ArtMuseum from "@/components/art/ArtMuseum.svelte";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+---
+
+<MainGridLayout title="艺术馆" description="从团体、成员和画风出发，逛一逛自己的图库。">
+	<ArtMuseum client:load />
+	<noscript>艺术馆需要启用 JavaScript 才能选择本机图库、筛选和浏览图片。</noscript>
+</MainGridLayout>
