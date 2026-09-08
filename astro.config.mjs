@@ -1,5 +1,6 @@
 import { setMaxListeners } from "node:events";
 import cloudflare from "@astrojs/cloudflare";
+import vercel from "@astrojs/vercel";
 import { unified } from "@astrojs/markdown-remark";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
@@ -63,7 +64,10 @@ const adapter = process.env.CF_WORKERS
 	? cloudflare({
 			prerenderEnvironment: "node",
 		})
-	: undefined;
+	: vercel({
+			// 本地临时区不应打进 serverless 函数；它们在 Vercel 干净环境本就不存在，排除可避免本地构建误扫
+			excludeFiles: [".ai-work/**", "_blog_scan/**", "_site_scan/**", "_design/**", "_kpop_tmp/**", ".wrangler/**"],
+		});
 
 // https://astro.build/config
 export default defineConfig({
@@ -361,7 +365,7 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		server: {
 			watch: {
-				ignored: ["**/package/**", "**/Firefly-docs/**"],
+				ignored: ["**/package/**", "**/Firefly-docs/**", "**/.ai-work/**"],
 			},
 		},
 		resolve: {
