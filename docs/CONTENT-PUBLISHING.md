@@ -21,10 +21,15 @@
 
 1. 发文在 `src/content/posts/*.mdx`。
 2. 互动展示做成本地 Svelte 组件（Svelte 5 runes），放 `src/components/<领域>/`，在文章里 `import X from "@/components/<领域>/X.svelte"` 并用 `client:load`（或 `client:visible`）挂载。
-3. 封面图放 `public/assets/images/posts/`，或复用站内已有图（如 `/assets/images/agent-board/*.jpg`）。`image` 字段填可访问路径。
+3. **新文章封面一律通过桌面 Grok API 新生成**，不得复用资产库、看板横幅或站内旧图。落盘 `public/assets/images/posts/*-grok-cover.jpg`，frontmatter 的 `image` 填对应 `/assets/images/posts/*-grok-cover.jpg` 路径。图上不要硬生成中文标题，标题交给网页排版。旧文章封面本轮不动。
 4. `contentType: article`；如需分章阅读体验才用 `contentType: novel` 走 NovelReader，普通文章不得强制套用小说阅读器。
 
 **⚠ 必做验证（`pnpm check` 查不出来的坑）：** MDX 里用了组件就必须在 frontmatter 后 `import` 它，否则运行时在 dev/preview 打开文章会报 `No matching import`（`pnpm check` 不报错，照样通过）。因此凡 MDX 挂了新组件，完成后**必须在浏览器打开该文章页确认渲染**，别只靠 `pnpm check`。另外，全新新增的文章若 dev server 一直 404，是该 server 的内容扫描没跟上，重启 `pnpm dev` 即可。
+
+### 新文封面 · 2026-09-09 老板拍板（M-010）
+
+上面的 Grok 新出图要求替代旧版“可复用站内已有图”。只有实际出图时才定位 [AGENT-1-SUMMARY](AGENT-1-SUMMARY.md) §3 获取端点说明；凭证在桌面 `GrokAPI.txt`，仅本机使用，禁止写进日志、界面、复制包或提交。不要为了读本文提前加载凭证。
+API 不可用则如实说明封面未完成，不回退复用旧图或宣称已生成。此规则仅约束新文章，旧文封面不批量替换。
 
 ## 2. 发布文章：自己推送，不用老板确认
 
