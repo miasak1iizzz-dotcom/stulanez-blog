@@ -81,9 +81,53 @@ const catalog = {
 				var titleRightEl = root.querySelector("[data-splash-title-right]");
 				var sakuraPoll = 0;
 				var sakuraBorrowed = false;
+				var blockInputHandler = null;
 
 				function reducedMotion() {
 					return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+				}
+
+				function clearSplashPending() {
+					document.documentElement.removeAttribute("data-splash-pending");
+				}
+
+				function bindInputBlock() {
+					unbindInputBlock();
+					blockInputHandler = function (event) {
+						// 开屏层已 pointer-events:auto；这里再挡滚轮/触控/快捷键，防漏网
+						if (event.type === "keydown") {
+							var key = event.key || "";
+							if (
+								key === "Tab" ||
+								key === " " ||
+								key === "PageUp" ||
+								key === "PageDown" ||
+								key === "Home" ||
+								key === "End" ||
+								key === "ArrowUp" ||
+								key === "ArrowDown" ||
+								key === "Escape"
+							) {
+								event.preventDefault();
+								event.stopPropagation();
+							}
+							return;
+						}
+						event.preventDefault();
+						event.stopPropagation();
+					};
+					var opts = { capture: true, passive: false };
+					window.addEventListener("wheel", blockInputHandler, opts);
+					window.addEventListener("touchmove", blockInputHandler, opts);
+					window.addEventListener("keydown", blockInputHandler, opts);
+				}
+
+				function unbindInputBlock() {
+					if (!blockInputHandler) return;
+					window.removeEventListener("wheel", blockInputHandler, true);
+					window.removeEventListener("touchmove", blockInputHandler, true);
+					window.removeEventListener("keydown", blockInputHandler, true);
+					blockInputHandler = null;
 				}
 
 				function storedEnabled() {
@@ -244,11 +288,16 @@ const catalog = {
 
 				function finish() {
 					playing = false;
+					if (hideTimer) {
+						window.clearTimeout(hideTimer);
+						hideTimer = 0;
+					}
+					unbindInputBlock();
 					restoreBorrowedSakura();
 					root.hidden = true;
 					root.classList.remove("is-playing", "is-preview", "is-leaving");
 					root.setAttribute("aria-hidden", "true");
-					document.documentElement.removeAttribute("data-splash-pending");
+					clearSplashPending();
 				}
 
 				function play(detail, isPreview) {
@@ -267,6 +316,7 @@ const catalog = {
 					root.classList.remove("is-leaving", "is-playing");
 					root.setAttribute("aria-hidden", "false");
 					document.documentElement.setAttribute("data-splash-pending", "true");
+					bindInputBlock();
 					startSiteSakuraForSplash();
 					whenImageReady(characterEl, function () {
 						if (seq !== playSeq) return;
@@ -309,6 +359,14 @@ const catalog = {
 						finish();
 					}
 				});
+				// 切页时立刻收掉开屏锁，避免 data-splash-pending 残留把主页滚轮锁死
+				function abortSplashOnNavigate() {
+					if (playing || document.documentElement.hasAttribute("data-splash-pending")) {
+						finish();
+					}
+				}
+				document.addEventListener("swup:visit:start", abortSplashOnNavigate);
+				window.addEventListener("pagehide", abortSplashOnNavigate);
 			})();
 		</script>
 	)

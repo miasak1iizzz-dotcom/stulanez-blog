@@ -332,6 +332,11 @@ function registerSwupHooks(): void {
 
 			// 移除页面切换保护，恢复过渡动画
 			document.documentElement.classList.remove("is-page-transitioning");
+			// 兜底：开屏已结束却残留 pending 时，html overflow:hidden 会让主页无法滚轮
+			const splash = document.getElementById("splash-screen");
+			if (!splash || splash.hasAttribute("hidden") || splash.hidden) {
+				document.documentElement.removeAttribute("data-splash-pending");
+			}
 			scrollFunction();
 		}, 200);
 	});
