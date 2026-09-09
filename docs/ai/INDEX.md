@@ -10,6 +10,7 @@
 - 协作指挥、任务卡、主理人、依赖：[board.md](board.md) + [board-tasks.md](board-tasks.md)。
 - 等你过目、卷宗、老板反馈：[board.md](board.md) + [board-inbox.md](board-inbox.md)。
 - AI 团队、代理空间、在线状态、报告：[board.md](board.md) + [board-team.md](board-team.md)。
+- 协议书、本地查阅协议/日志、复制上下文包：[board.md](board.md) + [board-library.md](board-library.md)。
 - 看板导航、多 Tab、草稿保护、API：board + 所涉 Tab；改组件再读 [site.md](site.md)。
 - 网页、组件、样式、配置、TFT、工具页面：[site.md](site.md)；按任务号定位该功能既有决定。
 - 写文章、MDX、阅读器、内容展示：site + [内容发布](../CONTENT-PUBLISHING.md)，其中“新文封面”必读：Grok API 新出图，禁止复用旧图。
