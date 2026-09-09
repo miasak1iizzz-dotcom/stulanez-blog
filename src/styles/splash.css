@@ -4,10 +4,19 @@
 
 html[data-splash-pending] {
 	overflow: hidden;
+	/* 开屏期间禁止底层页面滚动与手势穿透 */
+	overscroll-behavior: none;
+	touch-action: none;
+}
+
+html[data-splash-pending] body {
+	overflow: hidden;
+	touch-action: none;
 }
 
 html[data-splash-pending] #canvas_sakura {
 	z-index: 210 !important;
+	pointer-events: none !important;
 }
 
 .splash-screen {
@@ -17,7 +26,8 @@ html[data-splash-pending] #canvas_sakura {
 	overflow: hidden;
 	background: #0f1923;
 	color: #ece8e1;
-	pointer-events: none;
+	/* 必须挡住点击：none 会点穿到下面的导航/卡片 */
+	pointer-events: auto;
 }
 
 .splash-screen[hidden] {
