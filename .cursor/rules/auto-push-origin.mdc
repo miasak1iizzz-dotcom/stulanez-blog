@@ -1,17 +1,8 @@
 ---
-description: After finishing site changes, commit and push to origin automatically
-alwaysApply: true
+description: 发布或提交网站代码、内容、协议时读取；看板协作数据仅本地留档
+alwaysApply: false
 ---
 
-# Auto commit and push
-
-When a coding task is finished (not a question-only turn), commit the relevant files and push to `origin`. Do not wait to be asked again.
-
-- Use Conventional Commits (`feat:`, `fix:`, `chore:`).
-- Obey `docs/AI-COLLABORATION.md`; stage only paths owned by the current Cursor claim.
-- Before committing, verify the staged path list with `git diff --cached --name-only`.
-- Never use `git add .`, `git add -A`, or `git commit -a` in the shared worktree.
-- Push `HEAD` to `origin` only. Never push `upstream` (CuteLeaf/Firefly). Never force-push.
-- If another claim is active, do not pull, rebase, merge, or switch branches. If the push is rejected, report it for coordination instead of rewriting shared history.
-- Do not commit `素材/`, secrets, `.env*`, or unrelated files.
-- If there is nothing to commit, skip. If push fails, report the error.
+提交/推送前读 docs/ai/deployment.md 与 docs/ai/coordination.md。
+网站功能/内容/资产/协议完成且验证后自行推送 origin/main；看板任务/报告/欲望等状态不主动推送。
+禁止把“自动推送”解释为可捎带他人修改或解除生产看板隐藏。

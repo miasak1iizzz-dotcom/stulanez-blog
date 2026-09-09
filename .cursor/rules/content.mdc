@@ -1,0 +1,7 @@
+---
+description: 网站文章和内容组件的创作与验证
+globs: ["src/content/**", "src/components/novel/**"]
+alwaysApply: false
+---
+
+读 docs/ai/site.md 与 docs/CONTENT-PUBLISHING.md。MDX 组件实际渲染需验证；发布按 docs/ai/deployment.md。
