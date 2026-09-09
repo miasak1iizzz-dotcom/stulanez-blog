@@ -1,17 +1,7 @@
 ---
-description: Coordinate concurrent Codex and Cursor work without file or Git conflicts
+description: 永恒欲望 AI 入口：按任务加载规则，不全读历史协议
 alwaysApply: true
 ---
 
-# Codex–Cursor collaboration
-
-Before changing the repository, read and follow `docs/AI-COLLABORATION.md`.
-
-- Check `.ai-work/claims/` and `git status --short` first.
-- Create your own ignored claim from `.ai-work/CLAIM_TEMPLATE.md` before editing.
-- Claim exact files. Treat directory claims and shared infrastructure files as exclusive.
-- Do not touch any path covered by another active claim. If scopes overlap, choose a different task slice or ask the user to coordinate.
-- Preserve every change you did not create. Never revert, delete, rename, format, stage, or commit another owner's work.
-- Stage explicit owned paths only; never use broad Git staging or cleanup commands.
-- Do not run repository-wide write commands while another claim is active.
-- Remove only your own claim after validation, commit/handoff, and a final status check.
+先读 AGENTS.md，按 docs/ai/INDEX.md 选当前工作必读协议；不要遍历全部链接。
+写入前读 docs/ai/coordination.md。看板必须补读所涉 Tab 协议，历史报告不代替当前准则。

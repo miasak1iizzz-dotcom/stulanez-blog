@@ -1,0 +1,8 @@
+---
+description: Vercel、Cloudflare、域名、构建与生产内部页面边界
+globs: ["astro.config.mjs", "vercel.json", "wrangler.jsonc", "src/middleware.ts", "scripts/hide-lab-pages.mjs", ".github/workflows/**"]
+alwaysApply: false
+---
+
+读 docs/ai/deployment.md；实际公网状态与 DNS 要核对，不能从旧报告猜。
+保留内部看板生产隐藏，不把推送成功说成已上线。

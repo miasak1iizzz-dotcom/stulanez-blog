@@ -1,0 +1,8 @@
+---
+description: 看板数据、页面、API、团队和欲望卡：读取公共协议及所涉 Tab
+globs: ["src/data/agent-board/**", "src/components/lab/**", "src/pages/lab/**", "src/pages/api/lab/**", "src/utils/agent-board.ts", "scripts/agent-*.mjs"]
+alwaysApply: false
+---
+
+读 docs/ai/board.md，再按任务读 board-desires.md / board-tasks.md / board-inbox.md / board-team.md。
+不得只读全局协议而漏掉 Tab 已拍板约定；共享状态短锁、本地留档。

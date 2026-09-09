@@ -1,51 +1,28 @@
-# Repository Guidelines
+# 永恒欲望 · AI 工作入口
 
-## Project Structure & Module Organization
+## 新对话按需读
 
-Firefly is an Astro 7 site with Svelte islands and TypeScript configuration. Main source code lives in `src/`: routes in `src/pages`, layouts in `src/layouts`, reusable UI in `src/components`, styles in `src/styles`, content in `src/content`, helpers in `src/utils`, and Markdown/HTML plugins in `src/plugins`. Site configuration is split across `src/config` with matching type definitions in `src/types`; prefer imports from `@/config` when available. Static files served directly belong in `public`, source-managed images in `src/assets`, docs in `docs` and `Firefly-Docs`, and automation in `scripts`.
+1. 本文件 + [任务索引](docs/ai/INDEX.md) 中命中的协议，不递归读所有链接。
+2. 接手已有工作：定位 CURRENT-STATE 的相关段落、该任务正文和负责人对应报告；纯聊天/问答无需全局状态。
+3. 写入前读 [协作协议](docs/ai/coordination.md)；看板还要读所涉 Tab，网站代码还要读网站协议。
 
-## Build, Test, and Development Commands
+## 全局底线
 
-Use `pnpm`; the `preinstall` script enforces it.
+- 用户当前指令优先；历史报告里的“下一步”不等于新授权。欲望不自动转任务。
+- 写入先查认领和 Git 状态，只改自有范围、保留他人修改；看板共享数据走短锁。
+- 不批量暂存，不 stash/reset --hard/clean，不擅自释放他人认领或改写共享历史。
+- 网站功能/内容/资产/协议完成后按部署协议提交推送；看板任务、报告、欲望等协作数据只留本地。
+- 对老板用大白话，进度诚实，不捏造验收、截图或上线结果。不提交密钥、Cookie、个人素材和本地运行数据。
 
-- `pnpm dev` or `pnpm start`: run the local Astro dev server.
-- `pnpm check`: run Astro diagnostics.
-- `pnpm type-check`: run TypeScript with `--noEmit`.
-- `pnpm format`: format `src` with Biome.
-- `pnpm lint`: run Biome checks and safe fixes on `src`.
-- `pnpm build`: generate icons, LQIPs, the Astro build, font subsets, and Pagefind search output in `dist`.
-- `pnpm preview`: preview the production build locally.
-- `pnpm new-post`: scaffold a new content post.
+## Token 成本纪律
 
-## Coding Style & Naming Conventions
+- 先 rg 定位再读相关段落/JSON 条目，不整读任务库/报告库/历史档案，不重复读刚写的文件。
+- 无依赖读取并行，输出摘要；复杂脚本写 .ai-work/*.mjs，不用长 node -e。
+- 批量判图/全库扫描等高耗工作先报成本、等同意；已有授权不重复询问。
+- 图像任务先一张小图确认视觉通道；只返回不可见 URL 时不宣称目检通过，不为判图加载重型控制技能。
 
-Biome is the formatter and linter. It uses tabs for indentation and double quotes for JavaScript/TypeScript strings. Keep Astro and Svelte components in `PascalCase` (`PostCard.astro`, `Search.svelte`), config modules in `camelCase` ending with `Config.ts`, and utilities in descriptive kebab case such as `date-utils.ts`. Keep `src/types` aligned with `src/config`. Avoid unrelated formatting churn.
+## 技术速记
 
-## Testing Guidelines
-
-There is no dedicated unit-test framework configured. Before submitting changes, run `pnpm check`, `pnpm type-check`, and `pnpm build` for rendering, content, or generated asset work. For visual or interactive changes, verify with `pnpm dev` or `pnpm preview` and include screenshots in the PR. Name future tests near the feature they cover, using the local file name as the stem.
-
-## Commit & Pull Request Guidelines
-
-Use Conventional Commits, matching the current history: `feat: ...`, `fix: ...`, and `chore: ...`. Keep commits and PRs focused on one concern. PRs should include a concise summary, linked issues when relevant, validation commands run, and screenshots for UI changes. Discuss major features or design changes in an issue or discussion before implementation.
-
-## Security & Configuration Tips
-
-Do not commit secrets, tokens, or service keys in config files. Keep deployment-specific settings in the target platform environment, and review generated files such as `dist`, `src/constants/lqips.json`, and `src/constants/icons.ts` before committing them.
-
-## Codex and Cursor Collaboration
-
-This repository may be edited by Codex and Cursor at the same time. Before any
-write operation, read `docs/AI-COLLABORATION.md` and follow it as the authoritative
-coordination protocol.
-
-- Inspect `.ai-work/claims/` and `git status --short` before editing.
-- Create an ignored claim file from `.ai-work/CLAIM_TEMPLATE.md` before touching
-  source files, and claim exact paths rather than broad directories.
-- Never edit, format, stage, revert, delete, rename, or regenerate files claimed
-  by the other agent.
-- Stage explicit owned paths only. Do not use `git add .`, `git add -A`,
-  `git commit -a`, `git stash`, `git reset --hard`, or `git clean` in the shared
-  worktree.
-- Remove only your own claim after validation and handoff. Existing unclaimed
-  changes still belong to the user or the other agent and must be preserved.
+Astro 7 + Svelte 5 + TypeScript；pnpm；Biome 用 tab 和双引号。
+仅做相关工作时读取 [网站协议](docs/ai/site.md) 或 [部署协议](docs/ai/deployment.md)。
+协议原入口 [AI-COLLABORATION](docs/AI-COLLABORATION.md) 保留为兼容路由。

@@ -1,0 +1,8 @@
+---
+description: 图库、Serpent、抓取、下载、判图、去重与数字资产产品意图
+globs: [".ai-work/*asset*", ".ai-work/dl-*.mjs", ".ai-work/*judge*.mjs", "src/components/art/**", "src/pages/art/**", "src/config/galleryConfig.ts"]
+alwaysApply: false
+---
+
+读 docs/ai/assets.md；原始动机和方法按主题定位，不整读旧资产规格。
+具体阶段与授权查相关任务；产品欲望不自动当开发任务。

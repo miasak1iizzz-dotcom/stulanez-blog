@@ -1,3 +1,5 @@
+> 历史工作记录：保留原文用于追溯。文中的“必读”、当前任务、分工、端口及待办只代表当时状态，不作为今天的开工指令。当前规则从 [任务索引](ai/INDEX.md) 选择；只按任务号读取本文相关段落。
+
 # Cursor → Codex briefing
 
 Machine-to-machine snapshot for parallel work on **永恒欲望** (`stulanez.com`).
