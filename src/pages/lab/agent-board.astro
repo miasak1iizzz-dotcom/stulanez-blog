@@ -3,6 +3,9 @@ import Layout from "@/layouts/Layout.astro";
 import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
 import DouyinRoster from "@/components/lab/DouyinRoster.svelte";
 import DouyinDownloadProgress from "@/components/lab/DouyinDownloadProgress.svelte";
+import CleanupMonitor from "@/components/lab/CleanupMonitor.svelte";
+import DesireIncubator from "@/components/lab/DesireIncubator.svelte";
+import ProtocolLibrary from "@/components/lab/ProtocolLibrary.svelte";
 import { siteConfig } from "@/config";
 import agentsData from "@/data/agent-board/agents.json";
 import tasksData from "@/data/agent-board/tasks.json";
@@ -197,7 +200,10 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 			>
 				<button type="button" class="ab-decktab on" data-deck="collab">协作指挥</button>
 				<button type="button" class="ab-decktab" data-deck="wallpaper">壁纸下载</button>
-				<span class="ml-auto hidden px-3 text-[11px] text-zinc-500 sm:inline">名单调参 + 每人下载进度</span>
+				<button type="button" class="ab-decktab" data-deck="cleanup">图库清理</button>
+				<button type="button" class="ab-decktab" data-deck="desire">欲望滋生室</button>
+				<button type="button" class="ab-decktab" data-deck="protocols">协议书</button>
+				<span class="ml-auto hidden px-3 text-[11px] text-zinc-500 sm:inline">名单 · 清理 · 欲望 · 协议</span>
 			</nav>
 
 			<div id="ab-panel-collab" data-deck-panel="collab">
@@ -430,7 +436,7 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 			</section>
 
 			<footer class="border-t border-white/8 pt-5 text-center text-[11px] leading-5 text-zinc-600">
-				内部面板 · 已禁止搜索引擎收录 · 数据在 <code class="text-zinc-500">src/data/agent-board/</code>（tasks / inbox / agents）·
+				内部面板 · 已禁止搜索引擎收录 · 数据在 <code class="text-zinc-500">src/data/agent-board/</code>（tasks / inbox / agents / desires）·
 				信箱、AI 笔记、全局现状仍在仓库里供 AI 使用，不再上墙 · 本地 dev 实时刷新
 			</footer>
 			</div>
@@ -456,6 +462,21 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 				<div data-wp-panel="roster" hidden>
 					<DouyinRoster client:load compact={true} />
 				</div>
+			</div>
+
+			<!-- ===== 图库清理大 Tab ===== -->
+			<div id="ab-panel-cleanup" data-deck-panel="cleanup" hidden>
+				<CleanupMonitor client:load />
+			</div>
+
+			<!-- ===== 欲望滋生室大 Tab ===== -->
+			<div id="ab-panel-desire" data-deck-panel="desire" hidden>
+				<DesireIncubator client:load />
+			</div>
+
+			<!-- ===== 协议与日志书大 Tab ===== -->
+			<div id="ab-panel-protocols" data-deck-panel="protocols" hidden>
+				<ProtocolLibrary client:load />
 			</div>
 		</div>
 	</main>
@@ -1107,8 +1128,8 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 		});
 	}
 
-	// —— 大 Tab：协作指挥 / 壁纸下载 ——
-	function setDeck(deck: "collab" | "wallpaper") {
+	// —— 大 Tab：协作指挥 / 壁纸下载 / 图库清理 / 欲望滋生室 / 协议书 ——
+	function setDeck(deck: "collab" | "wallpaper" | "cleanup" | "desire" | "protocols") {
 		document.querySelectorAll<HTMLElement>("[data-deck]").forEach((btn) => {
 			btn.classList.toggle("on", btn.dataset.deck === deck);
 		});
@@ -1120,11 +1141,19 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 				? location.hash.startsWith("#wallpaper")
 					? location.hash
 					: "#wallpaper-progress"
-				: "#collab";
+				: deck === "cleanup"
+					? "#cleanup"
+					: deck === "desire"
+						? "#desire"
+						: deck === "protocols"
+							? location.hash.startsWith("#protocols")
+								? location.hash
+								: "#protocols"
+							: "#collab";
 		if (location.hash !== hash) history.replaceState(null, "", hash);
 	}
 	function setWp(wp: "progress" | "roster") {
-		document.querySelectorAll<HTMLElement>("[data-wp]").forEach((btn) => {
+		document.querySelectorAll<HTMLElement>("#ab-wp-tabs [data-wp]").forEach((btn) => {
 			if (!btn.hasAttribute("data-wp") || btn.tagName !== "BUTTON") return;
 			btn.classList.toggle("on", btn.dataset.wp === wp);
 		});
@@ -1134,7 +1163,12 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 		history.replaceState(null, "", `#wallpaper-${wp}`);
 	}
 	document.querySelectorAll<HTMLElement>("#ab-deck-tabs [data-deck]").forEach((btn) => {
-		btn.addEventListener("click", () => setDeck((btn.dataset.deck as "collab" | "wallpaper") || "collab"));
+		btn.addEventListener("click", () =>
+			setDeck(
+				(btn.dataset.deck as "collab" | "wallpaper" | "cleanup" | "desire" | "protocols") ||
+					"collab",
+			),
+		);
 	});
 	document.querySelectorAll<HTMLElement>("#ab-wp-tabs [data-wp]").forEach((btn) => {
 		btn.addEventListener("click", () => setWp((btn.dataset.wp as "progress" | "roster") || "progress"));
@@ -1143,6 +1177,12 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 	if (bootHash.startsWith("#wallpaper")) {
 		setDeck("wallpaper");
 		setWp(bootHash.includes("roster") ? "roster" : "progress");
+	} else if (bootHash.startsWith("#cleanup")) {
+		setDeck("cleanup");
+	} else if (bootHash.startsWith("#desire")) {
+		setDeck("desire");
+	} else if (bootHash.startsWith("#protocols")) {
+		setDeck("protocols");
 	} else {
 		setDeck("collab");
 	}

@@ -6,7 +6,7 @@
 - 看板任务/报告/欲望等数据只留本地；功能代码按部署协议提交，但保留生产隐藏策略。
 - v2 已拍板黑金指挥室、卷宗式汇报；不恢复撤掉的信箱/AI笔记/新手指南/已完成墙渲染。
 - mail/experience/CURRENT-STATE 仍维护但不上墙。decisions 已并 inbox，board-enrichments 已并 tasks，不重建旧文件。
-- **改哪个 Tab 补读哪个协议**：欲望 → [board-desires](board-desires.md)；任务 → [board-tasks](board-tasks.md)；等你过目 → [board-inbox](board-inbox.md)；团队/空间 → [board-team](board-team.md)。跨 Tab 取并集。
+- 改哪个 Tab 补读哪个协议：欲望 → [board-desires](board-desires.md)；任务 → [board-tasks](board-tasks.md)；等你过目 → [board-inbox](board-inbox.md)；团队/空间 → [board-team](board-team.md)；协议书 → [board-library](board-library.md)。跨 Tab 取并集。
 
 ## 共享数据短锁
 

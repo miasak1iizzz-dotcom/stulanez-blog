@@ -1,0 +1,17 @@
+---
+// T-011 图库清理挂机监控:独立页。已并入指挥室「图库清理」大 Tab,本页作备用直达入口。
+import Layout from "@/layouts/Layout.astro";
+import CleanupMonitor from "@/components/lab/CleanupMonitor.svelte";
+---
+<Layout title="图库清理监控" description="T-011 Kpop 全库清理挂机进度监控(内部)">
+	<meta name="robots" content="noindex, nofollow" slot="head" />
+	<main class="mx-auto min-h-screen w-full max-w-5xl px-4 py-10">
+		<h1 class="mb-1 text-xl font-black text-white">🧹 T-011 图库清理 · 挂机监控</h1>
+		<p class="mb-6 text-xs text-zinc-500">
+			每 15 秒自动刷新 · 已并入
+			<a href="/lab/agent-board/#cleanup" class="text-[#e6c26e] hover:underline">指挥室「图库清理」大 Tab</a>
+			· 全程只移入隔离区、不删除,错关可捞回
+		</p>
+		<CleanupMonitor client:load />
+	</main>
+</Layout>
