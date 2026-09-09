@@ -12,7 +12,7 @@
 - AI 团队、代理空间、在线状态、报告：[board.md](board.md) + [board-team.md](board-team.md)。
 - 看板导航、多 Tab、草稿保护、API：board + 所涉 Tab；改组件再读 [site.md](site.md)。
 - 网页、组件、样式、配置、TFT、工具页面：[site.md](site.md)；按任务号定位该功能既有决定。
-- 写文章、MDX、阅读器、内容展示：site + [内容发布](../CONTENT-PUBLISHING.md)。
+- 写文章、MDX、阅读器、内容展示：site + [内容发布](../CONTENT-PUBLISHING.md)，其中“新文封面”必读：Grok API 新出图，禁止复用旧图。
 - 图库、Serpent、下载、判图、去重、尺寸/分类：[assets.md](assets.md)。做网页加 site；写欲望卡加 board-desires。
 - Git 提交推送、Vercel、Cloudflare/Cloudfare、Workers、DNS、域名、生产故障：[deployment.md](deployment.md)。
 - 整理协议、补记忆、消除冲突：[memory.md](memory.md)；追溯才查看 [HISTORY.md](HISTORY.md)。

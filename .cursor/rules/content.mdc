@@ -5,3 +5,4 @@ alwaysApply: false
 ---
 
 读 docs/ai/site.md 与 docs/CONTENT-PUBLISHING.md。MDX 组件实际渲染需验证；发布按 docs/ai/deployment.md。
+新文章封面必须用桌面 Grok API 新生成，禁止复用图库/看板旧图；落盘 public/assets/images/posts/*-grok-cover.jpg，图上不硬写中文标题。旧文封面先不动。凭证仅本机使用，不进入复制包或日志。
