@@ -1,11 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
-import DouyinRoster from "@/components/lab/DouyinRoster.svelte";
-import DouyinDownloadProgress from "@/components/lab/DouyinDownloadProgress.svelte";
-import CleanupMonitor from "@/components/lab/CleanupMonitor.svelte";
-import DesireIncubator from "@/components/lab/DesireIncubator.svelte";
-import ProtocolLibrary from "@/components/lab/ProtocolLibrary.svelte";
+import LazyDeckPanel from "@/components/lab/LazyDeckPanel.svelte";
 import { siteConfig } from "@/config";
 import agentsData from "@/data/agent-board/agents.json";
 import tasksData from "@/data/agent-board/tasks.json";
@@ -14,6 +10,7 @@ import {
 	deriveAgentStatus,
 	getClaims,
 	ownerToAgentId,
+	warmAgentProcessCache,
 	TASK_CATEGORIES,
 	INBOX_KIND_META,
 	type AgentInfo,
@@ -41,6 +38,7 @@ const ownerColor = (owner: string): string =>
 	owner === "all" ? "#71717a" : colorOf(ownerToAgentId(owner));
 
 const claims = getClaims();
+warmAgentProcessCache(agents);
 const doingTasks = tasks.filter((t) => t.state === "doing");
 const reviewTasks = tasks.filter((t) => t.state === "review");
 const queueTasks = tasks.filter(
@@ -457,26 +455,26 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 					>
 				</nav>
 				<div data-wp-panel="progress">
-					<DouyinDownloadProgress client:load />
+					<LazyDeckPanel client:load deck="wallpaper-progress" />
 				</div>
 				<div data-wp-panel="roster" hidden>
-					<DouyinRoster client:load compact={true} />
+					<LazyDeckPanel client:load deck="wallpaper-roster" compact={true} />
 				</div>
 			</div>
 
 			<!-- ===== 图库清理大 Tab ===== -->
 			<div id="ab-panel-cleanup" data-deck-panel="cleanup" hidden>
-				<CleanupMonitor client:load />
+				<LazyDeckPanel client:load deck="cleanup" />
 			</div>
 
 			<!-- ===== 欲望滋生室大 Tab ===== -->
 			<div id="ab-panel-desire" data-deck-panel="desire" hidden>
-				<DesireIncubator client:load />
+				<LazyDeckPanel client:load deck="desire" />
 			</div>
 
 			<!-- ===== 协议与日志书大 Tab ===== -->
 			<div id="ab-panel-protocols" data-deck-panel="protocols" hidden>
-				<ProtocolLibrary client:load />
+				<LazyDeckPanel client:load deck="protocols" />
 			</div>
 		</div>
 	</main>
@@ -1151,6 +1149,16 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 								: "#protocols"
 							: "#collab";
 		if (location.hash !== hash) history.replaceState(null, "", hash);
+		if (deck === "wallpaper") {
+			const wp = location.hash.includes("roster") ? "roster" : "progress";
+			window.dispatchEvent(
+				new CustomEvent("ab-deck-show", {
+					detail: wp === "roster" ? "wallpaper-roster" : "wallpaper-progress",
+				}),
+			);
+		} else {
+			window.dispatchEvent(new CustomEvent("ab-deck-show", { detail: deck }));
+		}
 	}
 	function setWp(wp: "progress" | "roster") {
 		document.querySelectorAll<HTMLElement>("#ab-wp-tabs [data-wp]").forEach((btn) => {
@@ -1161,6 +1169,11 @@ const readerData: ReaderEntry[] = [...inboxEntries, ...taskEntries];
 			panel.hidden = panel.dataset.wpPanel !== wp;
 		});
 		history.replaceState(null, "", `#wallpaper-${wp}`);
+		window.dispatchEvent(
+			new CustomEvent("ab-deck-show", {
+				detail: wp === "roster" ? "wallpaper-roster" : "wallpaper-progress",
+			}),
+		);
 	}
 	document.querySelectorAll<HTMLElement>("#ab-deck-tabs [data-deck]").forEach((btn) => {
 		btn.addEventListener("click", () =>
