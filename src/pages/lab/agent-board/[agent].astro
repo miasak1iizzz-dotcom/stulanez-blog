@@ -8,6 +8,7 @@ import {
 	deriveAgentStatus,
 	getClaimsFor,
 	ownerToAgentId,
+	warmAgentProcessCache,
 	TASK_CATEGORIES,
 	isClaimActive,
 	loadReportsFor,
@@ -27,12 +28,19 @@ const { agent } = Astro.props as { agent: AgentInfo };
 const tasks = (tasksData as { tasks: Task[] }).tasks;
 const claims: ClaimCard[] = getClaimsFor(agent.id);
 const activeClaims = claims.filter((c) => isClaimActive(c.status));
+warmAgentProcessCache([agent]);
 
 const mine = (t: Task) => ownerToAgentId(t.owner) === agent.id;
 const myActive = tasks.filter((t) => mine(t) && (t.state === "doing" || t.state === "review"));
 const myQueue = tasks.filter((t) => mine(t) && (t.state === "backlog" || t.state === "blocked"));
 const myDone = tasks.filter((t) => mine(t) && t.state === "done");
 const derived = deriveAgentStatus(agent, claims, tasks);
+const derivedBadge =
+	derived.key === "working"
+		? { cls: "bg-emerald-400/15 text-emerald-300 ring-emerald-400/40", text: "🔧 工作中" }
+		: derived.key === "idle"
+			? { cls: "bg-amber-400/15 text-amber-300 ring-amber-400/40", text: "○ 空闲中" }
+			: { cls: "bg-white/10 text-zinc-400 ring-white/20", text: derived.label };
 const reports = loadReportsFor(agent.id);
 
 const stateChip: Record<string, { label: string; cls: string }> = {
@@ -105,12 +113,10 @@ const directiveTemplates = [
 							<span
 								class:list={[
 									"rounded-full px-3 py-1 text-[11px] font-black ring-1 backdrop-blur",
-									derived.key !== "idle"
-										? "bg-emerald-400/15 text-emerald-300 ring-emerald-400/40"
-										: "bg-white/10 text-zinc-400 ring-white/20",
+									derivedBadge.cls,
 								]}
 							>
-								{derived.key === "coding" ? "🔧 任务执行中" : derived.key === "working" ? `● ${derived.label}` : "○ 空闲"}
+								{derivedBadge.text}
 							</span>
 						</h1>
 						<p class="mt-1.5 text-xs text-zinc-400">

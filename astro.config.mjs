@@ -365,7 +365,18 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		server: {
 			watch: {
-				ignored: ["**/package/**", "**/Firefly-docs/**", "**/.ai-work/**"],
+				ignored: [
+					"**/package/**",
+					"**/Firefly-docs/**",
+					"**/.ai-work/**",
+					"**/Serpent/**",
+					"**/资源库/**",
+					"**/素材/**",
+					"**/.wrangler/**",
+					"**/_blog_scan/**",
+					"**/_site_scan/**",
+					"**/_kpop_tmp/**",
+				],
 			},
 		},
 		resolve: {

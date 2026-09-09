@@ -2,6 +2,8 @@
 // 构建时（Vercel）.ai-work 不存在 → 认领返回空数组；本地 dev 实时读取
 // 面向用户的三个数据文件：agents.json / tasks.json / inbox.json（规范见 docs/AI-COLLABORATION.md）
 // mail.json / experience.json / CURRENT-STATE.md 仍是 AI 内部文件，但不再上看板渲染
+
+import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -44,14 +46,16 @@ export const SHARED_BOARD_PATHS = [
 	"src/data/agent-board/mail.json",
 	"src/data/agent-board/experience.json",
 	"src/data/agent-board/CURRENT-STATE.md",
+	"src/data/agent-board/desires.json",
 ] as const;
 
 /** 任务分类（看板展示用，代码内维护，不再单独放数据文件） */
-export const TASK_CATEGORIES: Record<string, { label: string; emoji: string }> = {
-	assets: { label: "图库资产", emoji: "🖼️" },
-	site: { label: "网站功能", emoji: "🛠️" },
-	ops: { label: "工具基建", emoji: "🧰" },
-};
+export const TASK_CATEGORIES: Record<string, { label: string; emoji: string }> =
+	{
+		assets: { label: "图库资产", emoji: "🖼️" },
+		site: { label: "网站功能", emoji: "🛠️" },
+		ops: { label: "工具基建", emoji: "🧰" },
+	};
 
 export const DEFAULT_COVER = "/assets/images/agent-board/lol-zoe.jpg";
 
@@ -67,6 +71,10 @@ export interface AgentInfo {
 	status: string;
 	currentTask: string | null;
 	summaries: string[];
+	/** 客户端展示名（离线时提示「打开哪个客户端」），如 zcode / Deepseek harness EAC / codex / Cursor */
+	client?: string;
+	/** 该客户端在本机的进程名（子串匹配，不区分大小写），用于判断是否离线 */
+	processNames?: string[];
 }
 
 /** 任务主理人交接记录（卡片详情「主理人跟踪」竖向时间轴） */
@@ -135,7 +143,10 @@ export interface Report {
 	text: string;
 }
 
-export const INBOX_KIND_META: Record<InboxKind, { label: string; emoji: string }> = {
+export const INBOX_KIND_META: Record<
+	InboxKind,
+	{ label: string; emoji: string }
+> = {
 	review: { label: "验收", emoji: "🔍" },
 	decide: { label: "拍板", emoji: "⚖️" },
 	resource: { label: "要资源", emoji: "🔑" },
@@ -155,31 +166,216 @@ export function isClaimActive(status: string): boolean {
 	return /^(active|running|doing|in[- ]?progress|进行中)/i.test(status.trim());
 }
 
+/** 客户端进程快照缓存（跨请求短缓存，避免每次打开看板都跑慢速 tasklist） */
+let _procCache: { at: number; names: Set<string> } | null = null;
+let _procFailed = false;
+const PROCESS_TTL_MS = 30_000;
+const PROC_CACHE_FILE = path.join(
+	process.cwd(),
+	".ai-work",
+	"agent-proc-cache.json",
+);
+
+function readProcFileCache(): Set<string> | null {
+	try {
+		const raw = JSON.parse(fs.readFileSync(PROC_CACHE_FILE, "utf8")) as {
+			at?: number;
+			names?: string[];
+		};
+		if (!raw.at || !Array.isArray(raw.names)) return null;
+		if (Date.now() - raw.at > PROCESS_TTL_MS) return null;
+		return new Set(raw.names.map((n) => n.toLowerCase()));
+	} catch {
+		return null;
+	}
+}
+
+function writeProcFileCache(names: Set<string>): void {
+	try {
+		fs.mkdirSync(path.dirname(PROC_CACHE_FILE), { recursive: true });
+		fs.writeFileSync(
+			PROC_CACHE_FILE,
+			`${JSON.stringify({ at: Date.now(), names: [...names] })}\n`,
+			"utf8",
+		);
+	} catch {
+		/* 本地缓存写失败不影响看板 */
+	}
+}
+
 /**
- * 代理实时状态：以认领卡和任务数据为准推导，agents.json 的 status 仅作兜底。
- * 有活跃认领 = 正在改代码；否则有 doing/review 任务 = 干活中；否则空闲。
+ * 只探测候选进程名。有短缓存则同步返回；缓存未命中时不阻塞首屏，
+ * 后台暖缓存，本轮用心跳状态顶上（避免每次打开看板卡 1–2 秒）。
+ */
+function probeRunningProcessNames(candidates: string[]): Set<string> | null {
+	if (_procFailed) return null;
+	const now = Date.now();
+	if (_procCache && now - _procCache.at < PROCESS_TTL_MS)
+		return _procCache.names;
+	const fileCached = readProcFileCache();
+	if (fileCached) {
+		_procCache = { at: now, names: fileCached };
+		return fileCached;
+	}
+	scheduleProcRefresh(candidates);
+	return null;
+}
+
+let _procRefreshing = false;
+function scheduleProcRefresh(candidates: string[]): void {
+	if (_procRefreshing || _procFailed) return;
+	_procRefreshing = true;
+	const needles = [
+		...new Set(
+			candidates
+				.map((n) =>
+					n
+						.trim()
+						.toLowerCase()
+						.replace(/\.exe$/i, ""),
+				)
+				.filter(Boolean),
+		),
+	];
+	const run = () => {
+		try {
+			if (needles.length === 0) {
+				_procCache = { at: Date.now(), names: new Set() };
+				writeProcFileCache(_procCache.names);
+				return;
+			}
+			const listed = needles.map((n) => `'${n.replace(/'/g, "''")}'`).join(",");
+			const out = execSync(
+				`powershell -NoProfile -Command "Get-Process -Name ${listed} -ErrorAction SilentlyContinue | Select-Object -ExpandProperty ProcessName"`,
+				{ encoding: "utf8", windowsHide: true, timeout: 2500 },
+			);
+			const names = new Set(
+				out
+					.split(/\r?\n/)
+					.map((line) => line.trim().toLowerCase())
+					.filter(Boolean),
+			);
+			_procCache = { at: Date.now(), names };
+			writeProcFileCache(names);
+		} catch {
+			_procFailed = true;
+		} finally {
+			_procRefreshing = false;
+		}
+	};
+	// 不挡本次 SSR；下一趟打开看板即可命中缓存
+	setTimeout(run, 0);
+}
+
+/** 打开看板前先暖一次缓存，避免每个 agent 各探测一次 */
+export function warmAgentProcessCache(agents: AgentInfo[]): void {
+	const candidates = agents.flatMap((a) => a.processNames ?? []);
+	probeRunningProcessNames(candidates);
+}
+
+/**
+ * 该 AI 的客户端进程是否在本机打开——「离线」的唯一依据（老板 2026-09-07 定）。
+ * - agent 未配置 processNames → null（未知，不强制判离线）
+ * - 探测不可用（远程构建/非 Windows）→ null（未知）
+ */
+export function isAgentClientOnline(agent: AgentInfo): boolean | null {
+	if (!agent.processNames || agent.processNames.length === 0) return null;
+	const running = probeRunningProcessNames(agent.processNames);
+	if (!running) return null;
+	const needles = agent.processNames.map((p) =>
+		p.toLowerCase().replace(/\.exe$/i, ""),
+	);
+	return needles.some((needle) =>
+		[...running].some((name) => name.includes(needle)),
+	);
+}
+
+/** 心跳文件：每位 AI 在工作开始时把 state 写成 working、干完停下时写成 idle（本地、gitignore） */
+const PRESENCE_FILE = path.join(
+	process.cwd(),
+	".ai-work",
+	"agent-presence.json",
+);
+/** 心跳超过该时长未更新 → 视为已停下（空闲），即使还标着 working */
+const PRESENCE_STALE_MS = 10 * 60 * 1000;
+const PRESENCE_TTL_MS = 2000;
+
+let _presenceCache: {
+	at: number;
+	data: Record<string, { state?: string; at?: string }>;
+} | null = null;
+
+function getAgentPresence(): Record<string, { state?: string; at?: string }> {
+	const now = Date.now();
+	if (_presenceCache && now - _presenceCache.at < PRESENCE_TTL_MS) {
+		return _presenceCache.data;
+	}
+	try {
+		const data = JSON.parse(fs.readFileSync(PRESENCE_FILE, "utf8")) as Record<
+			string,
+			{ state?: string; at?: string }
+		>;
+		_presenceCache = { at: now, data };
+		return data;
+	} catch {
+		return {};
+	}
+}
+
+/**
+ * 该 AI 当前的心跳状态：working（正在干/心跳新鲜）| idle（明说停下或心跳过期）| null（无心跳记录）。
+ * 有记录就以心跳为准；无记录返回 null，由调用方回退到任务启发式。
+ */
+export function getPresenceState(agentId: string): "working" | "idle" | null {
+	const p = getAgentPresence()[agentId];
+	if (!p) return null;
+	if (p.state === "working") {
+		const at = p.at ? Date.parse(p.at) : Number.NaN;
+		if (!Number.isNaN(at) && Date.now() - at < PRESENCE_STALE_MS)
+			return "working";
+		return "idle";
+	}
+	if (p.state === "idle") return "idle";
+	return null;
+}
+
+export type AgentStatusKey = "working" | "idle" | "offline";
+
+/**
+ * 代理实时状态：三态——工作中 / 空闲中 / 离线（老板 2026-09-07 定）。
+ * 离线 = 客户端进程没在本机打开（唯一依据）。
+ * 在线时「工作中/空闲中」以**心跳**为准（老板 2026-09-07 两次反馈：状态要反映“此刻有没有在干活”）：
+ *   - 心跳 working 且新鲜 → 工作中；心跳 idle 或过期 → 空闲中；
+ *   - 无心跳记录 → 回退启发式：挂着 doing 任务 = 工作中，否则空闲中（认领卡与 review 不算）。
+ * 前提：前两态只在该看板本地在线时才有意义（看板本就是本地工具）。agents.json 的 status 不再参与推导。
  */
 export function deriveAgentStatus(
 	agent: AgentInfo,
 	claims: ClaimCard[],
 	tasks: Task[],
-): { key: "coding" | "working" | "idle"; label: string } {
+): { key: AgentStatusKey; label: string } {
 	if (agent.id === "user") {
 		return tasks.some((t) => t.owner === "user" && t.state === "doing")
 			? { key: "working", label: "亲自干活中" }
 			: { key: "idle", label: "待命" };
 	}
-	const hasClaim = claims.some(
-		(c) => ownerToAgentId(c.owner) === agent.id && isClaimActive(c.status),
+	const online = isAgentClientOnline(agent);
+	if (online === false) {
+		return {
+			key: "offline",
+			label: agent.client ? `离线 · 打开${agent.client}` : "离线",
+		};
+	}
+	// 在线时先看心跳；无心跳记录再回退到 doing 任务启发式。
+	const pres = getPresenceState(agent.id);
+	if (pres === "working") return { key: "working", label: "工作中" };
+	if (pres === "idle") return { key: "idle", label: "空闲中" };
+	// 无心跳记录 → 回退：挂着 doing 任务 = 工作中；认领卡与 review 不算。
+	const hasDoingTask = tasks.some(
+		(t) => ownerToAgentId(t.owner) === agent.id && t.state === "doing",
 	);
-	if (hasClaim) return { key: "coding", label: "任务执行中" };
-	const hasTask = tasks.some(
-		(t) =>
-			ownerToAgentId(t.owner) === agent.id &&
-			(t.state === "doing" || t.state === "review"),
-	);
-	if (hasTask) return { key: "working", label: "干活中" };
-	return { key: "idle", label: "空闲" };
+	if (hasDoingTask) return { key: "working", label: "工作中" };
+	return { key: "idle", label: "空闲中" };
 }
 
 function parseSectionPaths(raw: string, heading: string): string[] {
@@ -333,12 +529,19 @@ export function getBoardWriteLock(): BoardWriteLock | null {
 	}
 }
 
+let _claimsCache: { at: number; cards: ClaimCard[] } | null = null;
+const CLAIMS_TTL_MS = 5_000;
+
 export function getClaims(): ClaimCard[] {
+	const now = Date.now();
+	if (_claimsCache && now - _claimsCache.at < CLAIMS_TTL_MS) {
+		return _claimsCache.cards;
+	}
 	const dir = path.join(process.cwd(), ".ai-work", "claims");
 	if (!fs.existsSync(dir)) return [];
 	const out: ClaimCard[] = [];
 	for (const f of fs.readdirSync(dir)) {
-		if (!f.endsWith(".md")) continue;
+		if (!f.endsWith(".md") || f.startsWith(".")) continue;
 		try {
 			const raw = fs.readFileSync(path.join(dir, f), "utf-8");
 			const grab = (re: RegExp): string => {
@@ -362,6 +565,7 @@ export function getClaims(): ClaimCard[] {
 			});
 		} catch {}
 	}
+	_claimsCache = { at: now, cards: out };
 	return out.sort(
 		(a, b) => Number(isClaimActive(b.status)) - Number(isClaimActive(a.status)),
 	);
