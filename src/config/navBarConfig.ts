@@ -16,6 +16,9 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 	// 主页
 	links.push(LinkPresets.Home);
 
+	// 取图
+	links.push(LinkPresets.Pull);
+
 	// 文章及其子菜单
 	links.push({
 		name: "文章",
@@ -86,6 +89,38 @@ export const LinkPresets: Record<string, NavBarLink> = {
 		name: "主页",
 		url: "/",
 		icon: "material-symbols:home",
+	},
+	Pull: {
+		name: "取图",
+		url: "#",
+		icon: "material-symbols:download-2-rounded",
+		children: [
+			{
+				name: "总览",
+				url: "/pull/",
+				icon: "material-symbols:grid-view-rounded",
+			},
+			{
+				name: "Instagram",
+				url: "/pull/instagram/",
+				icon: "fa7-brands:instagram",
+			},
+			{
+				name: "抖音",
+				url: "/pull/douyin/",
+				icon: "material-symbols:videocam-rounded",
+			},
+			{
+				name: "小红书",
+				url: "/pull/xiaohongshu/",
+				icon: "material-symbols:favorite-rounded",
+			},
+			{
+				name: "微博",
+				url: "/pull/weibo/",
+				icon: "fa7-brands:weibo",
+			},
+		],
 	},
 	Archive: {
 		name: "归档",

@@ -1,0 +1,23 @@
+---
+import PullVault from "@/components/pull/PullVault.svelte";
+import { getPullChannel, PULL_CHANNELS } from "@/config/pullConfig";
+import PullLayout from "@/layouts/PullLayout.astro";
+import type { PullChannelId } from "@/utils/pull/types";
+
+export function getStaticPaths(): { params: { channel: PullChannelId } }[] {
+	return PULL_CHANNELS.map((channel) => ({ params: { channel: channel.id } }));
+}
+
+const channel = Astro.params.channel as PullChannelId;
+const meta = getPullChannel(channel);
+if (!meta) {
+	return Astro.redirect("/404/");
+}
+
+const title = `${meta.name} 取图`;
+const description = meta.blurb;
+---
+
+<PullLayout {title} {description}>
+	<PullVault client:load channelId={channel} />
+</PullLayout>
