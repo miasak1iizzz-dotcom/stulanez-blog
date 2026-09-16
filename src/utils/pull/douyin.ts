@@ -185,7 +185,9 @@ async function readNotePage(id: string): Promise<{ pics: string[]; title: string
 			},
 		});
 		const pics = uniqueNotePics(collectFromHtml(html.text));
-		if (pics.length) {
+		const rich =
+			/RENDER_DATA|RENDER-DATA|_ROUTER_DATA/i.test(html.text) || pics.length > 1;
+		if (pics.length && rich) {
 			const meta = pickMeta(html.text);
 			return { pics, title: meta.title, author: meta.author };
 		}
@@ -294,12 +296,14 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 		}
 		return {
 			ok: false,
-			error: "抖音网页没有把图给我。把 App 分享口令整段贴过来再试一次。",
+			error:
+				"抖音网页没有把图给我。线上服务器在国外时常抽空；本机开着代理时再试，或把 App 分享口令整段贴过来。",
 		};
 	}
 
 	if (!warning && images.length === 1) {
-		warning = "这是视频帖的话，目前只能先给你封面。";
+		warning =
+			"只抽到 1 张。多半是线上服务器在国外，抖音图文页没放开；本机有代理时通常能抽满。";
 	}
 
 	return {

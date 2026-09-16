@@ -51,7 +51,7 @@ const pageImages = $derived.by(() => {
 	return deck.slice(start, start + pageSize);
 });
 const marqueeImages = $derived(
-	pageImages.length ? [...pageImages, ...pageImages] : [],
+	pageImages.length > 1 ? [...pageImages, ...pageImages] : pageImages,
 );
 const pageStart = $derived((page - 1) * pageSize);
 
