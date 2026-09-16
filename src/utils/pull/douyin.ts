@@ -178,15 +178,16 @@ function collectFromHtml(html: string): string[] {
 const BINGBOT_UA =
 	"Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)";
 
-async function readNotePage(id: string): Promise<{ pics: string[]; title: string; author?: string }> {
-	const pages = [
-		`https://www.douyin.com/note/${id}`,
-		`https://www.iesdouyin.com/share/slides/${id}`,
-		`https://www.iesdouyin.com/share/note/${id}/`,
-		`https://www.douyin.com/video/${id}`,
-	];
-	for (const pageUrl of pages) {
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function readOneNotePage(
+	pageUrl: string,
+): Promise<{ pics: string[]; title: string; author?: string } | null> {
+	try {
 		const html = await fetchText(pageUrl, {
+			timeoutMs: 12000,
 			headers: {
 				"User-Agent": CRAWLER_UA,
 				Accept: "text/html,*/*",
@@ -196,10 +197,30 @@ async function readNotePage(id: string): Promise<{ pics: string[]; title: string
 		const pics = uniqueNotePics(collectFromHtml(html.text));
 		const rich =
 			/RENDER_DATA|RENDER-DATA|_ROUTER_DATA/i.test(html.text) || pics.length > 1;
-		if (pics.length && rich) {
-			const meta = pickMeta(html.text);
-			return { pics, title: meta.title, author: meta.author };
-		}
+		if (!(pics.length && rich)) return null;
+		const meta = pickMeta(html.text);
+		return { pics, title: meta.title, author: meta.author };
+	} catch {
+		return null;
+	}
+}
+
+async function readNotePage(id: string): Promise<{ pics: string[]; title: string; author?: string }> {
+	const pages = [
+		`https://www.douyin.com/note/${id}`,
+		`https://www.iesdouyin.com/share/slides/${id}`,
+		`https://www.iesdouyin.com/share/note/${id}/`,
+		`https://www.douyin.com/video/${id}`,
+	];
+	// Douyin SSR from overseas IPs flaps; retry the note URL before falling through.
+	for (let attempt = 0; attempt < 3; attempt++) {
+		const hit = await readOneNotePage(pages[0]!);
+		if (hit && hit.pics.length > 1) return hit;
+		if (attempt < 2) await sleep(400 * (attempt + 1));
+	}
+	for (const pageUrl of pages.slice(1)) {
+		const hit = await readOneNotePage(pageUrl);
+		if (hit && hit.pics.length > 1) return hit;
 	}
 	return { pics: [], title: "" };
 }
@@ -347,24 +368,29 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 				`https://www.iesdouyin.com/share/video/${id}/`,
 				working,
 			]) {
-				const html = await fetchText(pageUrl, {
-					headers: {
-						"User-Agent": CRAWLER_UA,
-						Accept: "text/html,*/*",
-						Referer: "https://www.douyin.com/",
-					},
-				});
-				const more = uniqueNotePics(collectFromHtml(html.text));
-				if (more.length > pics.length) {
-					pics = more;
-					warning = undefined;
+				try {
+					const html = await fetchText(pageUrl, {
+						timeoutMs: 12000,
+						headers: {
+							"User-Agent": CRAWLER_UA,
+							Accept: "text/html,*/*",
+							Referer: "https://www.douyin.com/",
+						},
+					});
+					const more = uniqueNotePics(collectFromHtml(html.text));
+					if (more.length > pics.length) {
+						pics = more;
+						warning = undefined;
+					}
+					if (!title) {
+						const meta = pickMeta(html.text);
+						title = meta.title;
+						author = author || meta.author;
+					}
+					if (pics.length > 1) break;
+				} catch {
+					/* next page */
 				}
-				if (!title) {
-					const meta = pickMeta(html.text);
-					title = meta.title;
-					author = author || meta.author;
-				}
-				if (pics.length > 1) break;
 			}
 		}
 	}
@@ -379,7 +405,7 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 		}
 		return {
 			ok: false,
-			error: "抖音这边没有把图给我。稍后再试，或换一条公开图文链接。",
+			error: "抖音这边没有把图给我。国外节点有时会抽空，再点一次提取通常就行。",
 		};
 	}
 
