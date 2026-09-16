@@ -1,0 +1,141 @@
+/* 页面氛围层：低对比底纹 + 波浪分隔，跟 --primary 走，不抢内容 */
+
+.page-atmosphere {
+	pointer-events: none;
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+}
+
+.page-atmosphere__veil,
+.page-atmosphere__dots,
+.page-atmosphere__petals,
+.page-atmosphere__contour,
+.page-atmosphere__sheen {
+	position: absolute;
+	inset: 0;
+}
+
+/* 主题色氛围光（比纯色底多一层呼吸感） */
+.page-atmosphere__veil {
+	background:
+		radial-gradient(
+			42% 36% at 12% 8%,
+			color-mix(in oklch, var(--primary) 14%, transparent),
+			transparent 70%
+		),
+		radial-gradient(
+			38% 34% at 88% 18%,
+			color-mix(in oklch, var(--primary) 10%, transparent),
+			transparent 72%
+		),
+		radial-gradient(
+			46% 40% at 70% 92%,
+			color-mix(in oklch, var(--primary) 8%, transparent),
+			transparent 68%
+		);
+	opacity: 0.9;
+}
+
+.page-atmosphere__dots {
+	background-color: color-mix(in oklch, var(--primary) 55%, transparent);
+	-webkit-mask-image: url("/assets/decor/soft-dots.svg");
+	mask-image: url("/assets/decor/soft-dots.svg");
+	-webkit-mask-size: 22px 22px;
+	mask-size: 22px 22px;
+	-webkit-mask-repeat: repeat;
+	mask-repeat: repeat;
+	opacity: 0.07;
+}
+
+.page-atmosphere__petals {
+	background-color: color-mix(in oklch, var(--primary) 70%, transparent);
+	-webkit-mask-image: url("/assets/decor/petal-scatter.svg");
+	mask-image: url("/assets/decor/petal-scatter.svg");
+	-webkit-mask-size: 140px 140px;
+	mask-size: 140px 140px;
+	-webkit-mask-repeat: repeat;
+	mask-repeat: repeat;
+	opacity: 0.045;
+	transform: rotate(-4deg) scale(1.05);
+}
+
+.page-atmosphere__contour {
+	left: auto;
+	top: 8%;
+	right: -4%;
+	width: min(48vw, 560px);
+	height: min(52vh, 520px);
+	background-color: color-mix(in oklch, var(--primary) 65%, transparent);
+	-webkit-mask-image: url("/assets/decor/contour-haze.svg");
+	mask-image: url("/assets/decor/contour-haze.svg");
+	-webkit-mask-size: 180px 180px;
+	mask-size: 180px 180px;
+	-webkit-mask-repeat: repeat;
+	mask-repeat: repeat;
+	opacity: 0.08;
+	filter: blur(0.2px);
+}
+
+.page-atmosphere__sheen {
+	left: -8%;
+	right: auto;
+	bottom: 0;
+	top: 42%;
+	width: min(56vw, 640px);
+	background-color: color-mix(in oklch, var(--primary) 50%, transparent);
+	-webkit-mask-image: url("/assets/decor/diagonal-sheen.svg");
+	mask-image: url("/assets/decor/diagonal-sheen.svg");
+	-webkit-mask-size: 56px 56px;
+	mask-size: 56px 56px;
+	-webkit-mask-repeat: repeat;
+	mask-repeat: repeat;
+	opacity: 0.05;
+}
+
+.page-atmosphere__wave {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: clamp(72px, 12vw, 128px);
+	background-color: color-mix(in oklch, var(--primary) 28%, transparent);
+	-webkit-mask-image: url("/assets/decor/wave-divider.svg");
+	mask-image: url("/assets/decor/wave-divider.svg");
+	-webkit-mask-size: 100% 100%;
+	mask-size: 100% 100%;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	opacity: 0.22;
+}
+
+/* 主内容抬到氛围层之上（不改布局结构） */
+body > #progress-bar,
+body > .top-gradient-highlight,
+#top-row,
+.content-panel,
+.pull-tool-main,
+.art-tool-main,
+.library-tool-main,
+.tft-tool-main {
+	position: relative;
+	z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.page-atmosphere__petals {
+		transform: none;
+	}
+}
+
+@media (max-width: 640px) {
+	.page-atmosphere__contour,
+	.page-atmosphere__sheen {
+		opacity: 0.035;
+	}
+	.page-atmosphere__wave {
+		opacity: 0.16;
+		height: 64px;
+	}
+}
