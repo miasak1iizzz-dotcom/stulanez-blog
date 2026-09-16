@@ -8,10 +8,8 @@ import {
 import {
 	countPullAlbums,
 	defaultAlbumName,
-	downloadPullAlbumsBackup,
 	findAlbumByUrl,
 	hydratePullAlbums,
-	importPullAlbumsBackup,
 	listPullAlbums,
 	removePullAlbum,
 	renamePullAlbum,
@@ -48,39 +46,10 @@ let editingId = $state<string | null>(null);
 let editName = $state("");
 let activeAlbumId = $state<string | null>(null);
 let pendingDeleteId = $state<string | null>(null);
-let albumNote = $state("");
-let importInput: HTMLInputElement | null = $state(null);
 
 function refreshAlbums(): void {
 	albums = listPullAlbums(channelId);
 	albumTotal = countPullAlbums();
-}
-
-function exportAlbums(): void {
-	const n = downloadPullAlbumsBackup();
-	albumNote = n ? `已导出 ${n} 个图集到下载文件夹` : "还没有可导出的图集";
-}
-
-function onImportFile(event: Event): void {
-	const input = event.currentTarget as HTMLInputElement;
-	const file = input.files?.[0];
-	input.value = "";
-	if (!file) return;
-	const reader = new FileReader();
-	reader.onload = () => {
-		try {
-			const raw = JSON.parse(String(reader.result || ""));
-			const { added, updated, total } = importPullAlbumsBackup(raw);
-			refreshAlbums();
-			albumNote = `已导入：新增 ${added}，更新 ${updated}，本机共 ${total} 个`;
-		} catch {
-			albumNote = "这个备份文件读不出来";
-		}
-	};
-	reader.onerror = () => {
-		albumNote = "这个备份文件读不出来";
-	};
-	reader.readAsText(file, "utf-8");
 }
 
 function syncAlbumDraft(data: PullSuccess, target: string): void {
@@ -161,7 +130,6 @@ function saveAlbum(): void {
 	activeAlbumId = album.id;
 	albumName = album.name;
 	refreshAlbums();
-	albumNote = "已记住";
 }
 
 function openAlbum(album: PullAlbum): void {
@@ -169,6 +137,7 @@ function openAlbum(album: PullAlbum): void {
 	const here = window.location.pathname.replace(/\/$/, "") + "/";
 	const want = path;
 	touchPullAlbum(album.id);
+	clearPullSession();
 	if (here === want || here === `/pull/${album.channel}`) {
 		url = album.url;
 		activeAlbumId = album.id;
@@ -220,7 +189,6 @@ function confirmDeleteAlbum(): void {
 	}
 	pendingDeleteId = null;
 	refreshAlbums();
-	albumNote = "已删除图集";
 }
 
 function channelLabel(id: PullChannelId): string {
@@ -232,11 +200,8 @@ let booted = $state(false);
 $effect(() => {
 	if (booted || typeof window === "undefined") return;
 	booted = true;
-	void hydratePullAlbums().then((list) => {
+	void hydratePullAlbums().then(() => {
 		refreshAlbums();
-		if (list.length > 0) {
-			albumNote = `已载入本机 ${list.length} 个图集`;
-		}
 	});
 	const passed = new URLSearchParams(window.location.search).get("u");
 	if (passed && !url) {
@@ -251,6 +216,18 @@ $effect(() => {
 	}
 	const stored = loadPullSession();
 	if (stored) {
+		const known = findAlbumByUrl(stored.url);
+		const staleThin =
+			Boolean(known?.hintCount && known.hintCount > 5) &&
+			stored.result.images.length <= 1;
+		if (staleThin) {
+			clearPullSession();
+			url = stored.url;
+			activeAlbumId = known?.id ?? null;
+			albumName = known?.name ?? "";
+			void extract(stored.url);
+			return;
+		}
 		url = stored.url;
 		result = stored.result;
 		syncAlbumDraft(stored.result, stored.url);
@@ -379,41 +356,22 @@ $effect(() => {
 			{/if}
 		</section>
 
-		<div class="side">
-			<section class="shelf" aria-label="我的图集">
-				<p class="split-kicker">我的图集</p>
-				<div class="shelf-head">
-					<h2>{channelId ? `${current?.name ?? ""}图集` : "我的图集"}</h2>
-					<div class="shelf-tools">
-						<button type="button" class="ghost" onclick={exportAlbums}>导出</button>
-						<button
-							type="button"
-							class="ghost"
-							onclick={() => importInput?.click()}
-						>
-							导入
-						</button>
-						<input
-							bind:this={importInput}
-							class="sr-only"
-							type="file"
-							accept="application/json,.json"
-							onchange={onImportFile}
-						/>
+		{#if !result}
+			<div class="side">
+				<section class="shelf" aria-label="我的图集">
+					<p class="split-kicker">我的图集</p>
+					<div class="shelf-head">
+						<h2>{channelId ? `${current?.name ?? ""}图集` : "我的图集"}</h2>
 					</div>
-				</div>
-				{#if albumTotal > 0}
-					<p class="shelf-count">
-						本机共 {albumTotal} 个
-						{#if channelId && albums.length !== albumTotal}
-							· 此渠道 {albums.length} 个
-						{/if}
-					</p>
-				{/if}
-				{#if albumNote}
-					<p class="shelf-note">{albumNote}</p>
-				{/if}
-				{#if albums.length}
+					{#if albumTotal > 0}
+						<p class="shelf-count">
+							本机共 {albumTotal} 个
+							{#if channelId && albums.length !== albumTotal}
+								· 此渠道 {albums.length} 个
+							{/if}
+						</p>
+					{/if}
+					{#if albums.length}
 					<ul class="album-list">
 						{#each albums as album (album.id)}
 							<li class="album-card">
@@ -489,7 +447,7 @@ $effect(() => {
 				{/if}
 			</section>
 
-			{#if !result && !current}
+			{#if !current}
 				<section class="tiles" aria-label="渠道入口">
 					<p class="split-kicker">四个入口</p>
 					<h2>选一条渠道，或把链接丢到左边。</h2>
@@ -510,7 +468,8 @@ $effect(() => {
 					</div>
 				</section>
 			{/if}
-		</div>
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -668,7 +627,7 @@ $effect(() => {
 	}
 
 	.desk.is-live .bench {
-		grid-template-columns: minmax(0, 1fr) minmax(240px, 0.55fr);
+		grid-template-columns: 1fr;
 		margin-top: 0.35rem;
 		min-width: 0;
 		max-width: 100%;
@@ -697,21 +656,11 @@ $effect(() => {
 		margin: 0;
 	}
 
-	.shelf-tools {
-		display: flex;
-		flex-shrink: 0;
-		gap: 0.25rem;
-	}
 
-	.shelf-count,
-	.shelf-note {
+	.shelf-count {
 		margin: 0 0 0.7rem;
 		font-size: 0.78rem;
 		color: #836c70;
-	}
-
-	.shelf-note {
-		color: #6b3743;
 	}
 
 	.work {

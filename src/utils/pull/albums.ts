@@ -6,7 +6,6 @@ const IDB_NAME = "stulanez-pull";
 const IDB_STORE = "kv";
 const IDB_ALBUMS = "albums-v1";
 const MAX_ALBUMS = 80;
-const BACKUP_VERSION = 1 as const;
 
 export type PullAlbum = {
 	id: string;
@@ -307,68 +306,4 @@ export function defaultAlbumName(opts: {
 
 export function countPullAlbums(): number {
 	return readAll().length;
-}
-
-export type PullAlbumsBackup = {
-	version: typeof BACKUP_VERSION;
-	exportedAt: string;
-	albums: PullAlbum[];
-};
-
-/** 下载当前全部图集为 JSON。 */
-export function downloadPullAlbumsBackup(): number {
-	const albums = readAll();
-	const payload: PullAlbumsBackup = {
-		version: BACKUP_VERSION,
-		exportedAt: new Date().toISOString(),
-		albums,
-	};
-	const blob = new Blob([`${JSON.stringify(payload, null, "\t")}\n`], {
-		type: "application/json",
-	});
-	const href = URL.createObjectURL(blob);
-	const stamp = new Date().toISOString().slice(0, 10);
-	const a = document.createElement("a");
-	a.href = href;
-	a.download = `stulanez-pull-albums-${stamp}.json`;
-	a.rel = "noopener";
-	document.body.appendChild(a);
-	a.click();
-	a.remove();
-	URL.revokeObjectURL(href);
-	return albums.length;
-}
-
-/**
- * 从备份合并进本机：同帖指纹更新，新帖追加；不整表清空。
- */
-export function importPullAlbumsBackup(raw: unknown): {
-	added: number;
-	updated: number;
-	total: number;
-} {
-	let list: unknown[] = [];
-	if (Array.isArray(raw)) {
-		list = raw;
-	} else if (raw && typeof raw === "object") {
-		const bag = raw as { albums?: unknown };
-		if (Array.isArray(bag.albums)) list = bag.albums;
-	}
-	const incoming = list
-		.map(normalizeAlbum)
-		.filter((item): item is PullAlbum => Boolean(item));
-
-	const before = readAll();
-	const beforeFp = new Set(before.map((a) => albumFingerprint(a.url)));
-	const merged = mergeByFingerprint([before, incoming]);
-	writeAll(merged);
-
-	let added = 0;
-	let updated = 0;
-	for (const album of incoming) {
-		const fp = albumFingerprint(album.url);
-		if (beforeFp.has(fp)) updated += 1;
-		else added += 1;
-	}
-	return { added, updated, total: merged.length };
 }

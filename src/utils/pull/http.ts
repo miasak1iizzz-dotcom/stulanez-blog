@@ -1,6 +1,7 @@
 import http from "node:http";
 import https from "node:https";
 import net from "node:net";
+import tls from "node:tls";
 import { BROWSER_UA, IPHONE_UA } from "./types";
 
 export type FetchTextResult = {
@@ -177,7 +178,11 @@ async function fetchViaHttpProxyBinary(
 					path: `${target.pathname}${target.search}`,
 					method,
 					headers,
-					socket,
+					createConnection: () =>
+						tls.connect({
+							socket,
+							servername: target.hostname,
+						}),
 				},
 				(pres) => {
 					const chunks: Buffer[] = [];
