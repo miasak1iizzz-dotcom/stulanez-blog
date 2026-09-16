@@ -451,7 +451,6 @@ async function runDownload(): Promise<void> {
 		<button type="button" class="go" disabled={Boolean(busy)} onclick={() => void runDownload()}>
 			{busy || (pack === "zip" ? "下载卡包" : "下载到文件夹")}
 		</button>
-		<p class="hint">点图片勾选。按住左右拖，松手会滑出去。右上放大镜看大图。右键仍可另开原图。卡包这版做 ZIP。</p>
 	</div>
 
 	{#if note}
@@ -580,7 +579,6 @@ async function runDownload(): Promise<void> {
 	.kicker,
 	.author,
 	.hud-stats span,
-	.hint,
 	.note,
 	.card footer,
 	.seg > span {
@@ -692,17 +690,12 @@ async function runDownload(): Promise<void> {
 		cursor: wait;
 	}
 
-	.hint,
 	.note {
-		margin: 0;
+		margin: 0 1.2rem 0.7rem;
 		width: 100%;
 		font-size: 0.75rem;
 		line-height: 1.55;
-	}
-
-	.note {
 		color: #e8c4a0;
-		margin: 0 1.2rem 0.7rem;
 	}
 
 	.pager {

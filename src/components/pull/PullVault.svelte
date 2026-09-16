@@ -39,7 +39,6 @@ let error = $state("");
 let result = $state<PullSuccess | null>(null);
 let albums = $state<PullAlbum[]>([]);
 let albumName = $state("");
-let albumNote = $state("");
 let editingId = $state<string | null>(null);
 let editName = $state("");
 let activeAlbumId = $state<string | null>(null);
@@ -57,12 +56,10 @@ function syncAlbumDraft(data: PullSuccess, target: string): void {
 			title: data.title,
 			channelName: getPullChannel(data.channel)?.name,
 		});
-	albumNote = existing ? "已记住。改名后点「更新图集」即可。" : "";
 }
 
 async function extract(pastedOverride?: string): Promise<void> {
 	error = "";
-	albumNote = "";
 	const pasted = pastedOverride ?? url;
 	const target = peelUrl(pasted);
 	if (!target) {
@@ -109,7 +106,6 @@ function clearBrowse(): void {
 	result = null;
 	url = "";
 	error = "";
-	albumNote = "";
 	activeAlbumId = null;
 	window.location.assign("/pull/");
 }
@@ -117,10 +113,7 @@ function clearBrowse(): void {
 function saveAlbum(): void {
 	if (!result) return;
 	const target = peelUrl(url) || result.sourceUrl;
-	if (!target) {
-		albumNote = "没有可记住的链接。";
-		return;
-	}
+	if (!target) return;
 	const album = upsertPullAlbum({
 		id: activeAlbumId ?? undefined,
 		name: albumName,
@@ -131,7 +124,6 @@ function saveAlbum(): void {
 	});
 	activeAlbumId = album.id;
 	albumName = album.name;
-	albumNote = "已记住图集。下次点开会按链接重新拉图，不会把原图存进浏览器。";
 	refreshAlbums();
 }
 
@@ -177,7 +169,6 @@ function deleteAlbum(id: string): void {
 	removePullAlbum(id);
 	if (activeAlbumId === id) {
 		activeAlbumId = null;
-		albumNote = "";
 	}
 	refreshAlbums();
 }
@@ -291,9 +282,6 @@ $effect(() => {
 				<section class="album-save" aria-label="记住图集">
 					<div class="album-save-copy">
 						<p class="album-kicker">{activeAlbumId ? "已记住的图集" : "记住这个图集"}</p>
-						<p class="album-help">
-							只记下链接和名字，不把图片存进浏览器。下次打开会按链接重新拉图。
-						</p>
 					</div>
 					<form
 						class="album-form"
@@ -314,9 +302,6 @@ $effect(() => {
 						/>
 						<button type="submit">{activeAlbumId ? "更新图集" : "记住图集"}</button>
 					</form>
-					{#if albumNote}
-						<p class="album-note">{albumNote}</p>
-					{/if}
 				</section>
 				<PullGallery {result} onClear={clearBrowse} />
 			{:else if loading}
@@ -336,10 +321,7 @@ $effect(() => {
 			<div class="side">
 				<section class="shelf" aria-label="我的图集">
 					<p class="split-kicker">我的图集</p>
-					<h2>{channelId ? `${current?.name ?? ""}图集` : "记住过的图集"}</h2>
-					<p class="shelf-sub">
-						这里只保存链接与命名。点开后会重新去渠道拉图，浏览器里不囤原图。
-					</p>
+					<h2>{channelId ? `${current?.name ?? ""}图集` : "我的图集"}</h2>
 					{#if albums.length}
 						<ul class="album-list">
 							{#each albums as album (album.id)}
@@ -390,7 +372,7 @@ $effect(() => {
 						</ul>
 					{:else}
 						<div class="shelf-empty">
-							<p>还没有图集。提取一组图后，可以起名记住这条链接。</p>
+							<p>还没有图集</p>
 						</div>
 					{/if}
 				</section>
@@ -728,15 +710,6 @@ $effect(() => {
 		letter-spacing: 0.04em;
 	}
 
-	.album-help,
-	.shelf-sub,
-	.shelf-empty p {
-		margin: 0;
-		line-height: 1.65;
-		font-size: 0.86rem;
-		color: #cbb7b4;
-	}
-
 	.album-form,
 	.rename-row {
 		display: flex;
@@ -769,12 +742,6 @@ $effect(() => {
 		white-space: nowrap;
 	}
 
-	.album-note {
-		margin: 0.55rem 0 0;
-		font-size: 0.8rem;
-		color: #e8c4a0;
-	}
-
 	.shelf {
 		padding: 1.05rem 1.1rem 1.15rem;
 		border-radius: 14px;
@@ -784,16 +751,11 @@ $effect(() => {
 
 	.shelf h2,
 	.tiles h2 {
-		margin: 0 0 0.45rem;
+		margin: 0 0 0.85rem;
 		font-family: "Songti SC", STSong, "Noto Serif SC", "Noto Serif CJK SC", ui-serif, Georgia, serif;
 		font-size: 1.35rem;
 		font-weight: 600;
 		color: #6b3743;
-	}
-
-	.shelf-sub {
-		color: #5c4a4e;
-		margin-bottom: 0.85rem;
 	}
 
 	.album-list {
@@ -875,7 +837,13 @@ $effect(() => {
 	}
 
 	.shelf-empty {
-		padding: 0.85rem 0.2rem 0.2rem;
+		padding: 0.35rem 0.2rem 0.2rem;
+		color: #836c70;
+		font-size: 0.86rem;
+	}
+
+	.shelf-empty p {
+		margin: 0;
 	}
 
 	.empty {
