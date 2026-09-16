@@ -1,28 +1,27 @@
 # 永恒欲望 · AI 工作入口
 
-## 新对话按需读
+## 协议唯一出处
 
-1. 本文件 + [任务索引](docs/ai/INDEX.md) 中命中的协议，不递归读所有链接。
-2. 接手已有工作：定位 CURRENT-STATE 的相关段落、该任务正文和负责人对应报告；纯聊天/问答无需全局状态。
-3. 写入前读 [协作协议](docs/ai/coordination.md)；看板还要读所涉 Tab，网站代码还要读网站协议。
+网站的全部协议和要求（技术栈、代码约定、内容发布、提交部署、协作纪律）维护在一篇长期更新的文章里，改协议就是改那篇文章：
+
+**https://stulanez.com/posts/site-protocol/**（源文件 `src/content/posts/site-protocol.mdx`）
+
+开工前读它；它与根 AGENTS.md 冲突时，以用户当前指令为准。
 
 ## 全局底线
 
-- 用户当前指令优先；历史报告里的“下一步”不等于新授权。欲望不自动转任务。
-- 写入先查认领和 Git 状态，只改自有范围、保留他人修改；看板共享数据走短锁。
-- 不批量暂存，不 stash/reset --hard/clean，不擅自释放他人认领或改写共享历史。
-- 网站功能/内容/资产/协议完成后按部署协议提交推送；看板任务、报告、欲望等协作数据只留本地。
-- 对老板用大白话，进度诚实，不捏造验收、截图或上线结果。不提交密钥、Cookie、个人素材和本地运行数据。
+- 用户当前指令优先；历史报告里的「下一步」不等于新授权。
+- 写入前查 `git status --short`：别人未提交的修改一律保留，只动本次任务明确的路径。
+- 不 `git add .` / `git add -A` / `git commit -a`，不 `stash` / `reset --hard` / `clean`，不强推。
+- 不提交密钥、Cookie、个人素材、本地运行数据；`.ai-work/` 不进仓库。
+- 对老板用大白话，进度诚实，不捏造验收、截图或上线结果。
 
-## Token 成本纪律
+## 本地保留的专题文档
 
-- 先 rg 定位再读相关段落/JSON 条目，不整读任务库/报告库/历史档案，不重复读刚写的文件。
-- 无依赖读取并行，输出摘要；复杂脚本写 .ai-work/*.mjs，不用长 node -e。
-- 批量判图/全库扫描等高耗工作先报成本、等同意；已有授权不重复询问。
-- 图像任务先一张小图确认视觉通道；只返回不可见 URL 时不宣称目检通过，不为判图加载重型控制技能。
+- 图库/Serpent/采集/判图操作规程：[docs/ai/assets.md](docs/ai/assets.md)。
+- 封面生图端点说明：[docs/AGENT-1-SUMMARY.md](docs/AGENT-1-SUMMARY.md) §3（凭证只在本机）。
+- 站点架构速查：[docs/ai/reference/](docs/ai/reference/)。
 
-## 技术速记
+## 历史
 
-Astro 7 + Svelte 5 + TypeScript；pnpm；Biome 用 tab 和双引号。
-仅做相关工作时读取 [网站协议](docs/ai/site.md) 或 [部署协议](docs/ai/deployment.md)。
-协议原入口 [AI-COLLABORATION](docs/AI-COLLABORATION.md) 保留为兼容路由。
+AI 协作看板（指挥室）与认领卡/短锁/在线状态体系已于 2026-09-16 停用移除，相关历史看 git 记录。`docs/` 根下的各 AGENT-*-SUMMARY 是旧协作期的交接档案，仅供追溯，不作为当前准则。

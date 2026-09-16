@@ -1,4 +1,11 @@
 ---
-// 旧独立页：跳到指挥室「壁纸下载」大 Tab
-return Astro.redirect("/lab/agent-board/#wallpaper-progress");
+// 抖音下载名单（本地内部工具页）：看板停用后由本页直达承载。
+import Layout from "@/layouts/Layout.astro";
+import DouyinRoster from "@/components/lab/DouyinRoster.svelte";
 ---
+<Layout title="抖音下载名单" description="抖音下载名单管理(内部)">
+	<meta name="robots" content="noindex, nofollow" slot="head" />
+	<main class="mx-auto min-h-screen w-full max-w-5xl px-4 py-10">
+		<DouyinRoster client:load />
+	</main>
+</Layout>

@@ -1,8 +1,7 @@
 ---
-description: 发布或提交网站代码、内容、协议时读取；看板协作数据仅本地留档
+description: 发布或提交网站代码、内容、协议时读取
 alwaysApply: false
 ---
 
-提交/推送前读 docs/ai/deployment.md 与 docs/ai/coordination.md。
-网站功能/内容/资产/协议完成且验证后自行推送 origin/main；看板任务/报告/欲望等状态不主动推送。
-禁止把“自动推送”解释为可捎带他人修改或解除生产看板隐藏。
+提交/推送规则见协议文章「提交与部署」一节（https://stulanez.com/posts/site-protocol/）。
+网站功能/内容/资产/协议完成且验证后自行推送 origin/main；只暂存本次明确路径，不捎带他人修改。
