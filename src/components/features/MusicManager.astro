@@ -126,8 +126,11 @@ const managerConfigStr = JSON.stringify({
     else state.playMode = 0;
 
     var LAST_TRACK_KEY = 'stulanez.music.last-track';
+    // 跨壳硬跳：短命 session 快照（优先自动续播）
     var PLAYBACK_KEY = 'stulanez.music.playback';
     var PLAYBACK_TTL_MS = 45000;
+    // 关站后再来：长期进度缓存（曲目 + 进度 + 是否在播）
+    var PROGRESS_KEY = 'stulanez.music.progress';
 
     function trackUrlBase(url) {
         return String(url || '').split('?')[0];
@@ -156,8 +159,52 @@ const managerConfigStr = JSON.stringify({
         } catch (e) {}
     }
 
+    function readProgressCache() {
+        try {
+            var raw = localStorage.getItem(PROGRESS_KEY);
+            if (!raw) return null;
+            var saved = JSON.parse(raw);
+            if (!saved || typeof saved !== 'object') return null;
+            if (typeof saved.time !== 'number' || saved.time < 0) saved.time = 0;
+            return saved;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function saveProgressCache(opts) {
+        opts = opts || {};
+        try {
+            var track = state.playlist[state.currentIndex] || null;
+            if (!track && !opts.track) return;
+            track = opts.track || track;
+            var playing = typeof opts.playing === 'boolean'
+                ? opts.playing
+                : !!(state.isPlaying && audio && !audio.paused && !audio.ended);
+            var time = typeof opts.time === 'number'
+                ? opts.time
+                : (audio && audio.currentTime ? audio.currentTime : 0);
+            // 播到结尾附近就归零到下一首逻辑由 ended 处理；这里避免存满格进度
+            if (audio && audio.duration && time > audio.duration - 0.35) {
+                time = Math.max(0, audio.duration - 0.35);
+            }
+            var payload = {
+                name: track.name || '',
+                artist: track.artist || '',
+                url: track.url || '',
+                index: state.currentIndex,
+                time: time,
+                playing: playing,
+                playMode: state.playMode,
+                ts: Date.now()
+            };
+            localStorage.setItem(PROGRESS_KEY, JSON.stringify(payload));
+            saveLastTrack(track);
+        } catch (e) {}
+    }
+
     function findSavedTrackIndex(playlist) {
-        var saved = readLastTrack();
+        var saved = readProgressCache() || readLastTrack();
         if (!saved || !playlist || !playlist.length) return -1;
         var i;
         if (saved.name) {
@@ -181,10 +228,12 @@ const managerConfigStr = JSON.stringify({
     function savePlaybackSnapshot() {
         try {
             var playing = !!(state.isPlaying && audio && !audio.paused && !audio.ended);
-            // 只在「正在播」时留快照；暂停态不自动续播，避免刷新误开声
-            if (!playing && !sessionStorage.getItem(PLAYBACK_KEY)) return;
+            // 长期进度：暂停也要记位置；正在播则一并记 playing
+            saveProgressCache({ playing: playing });
+
+            // 短命 session：只在「正在播」时留，供硬跳立刻自动续上
             if (!playing) {
-                sessionStorage.removeItem(PLAYBACK_KEY);
+                try { sessionStorage.removeItem(PLAYBACK_KEY); } catch (e2) {}
                 return;
             }
             var track = state.playlist[state.currentIndex] || null;
@@ -239,11 +288,18 @@ const managerConfigStr = JSON.stringify({
         return -1;
     }
 
-    function seekWhenReady(seconds) {
-        if (!(seconds > 0)) return;
+    function seekWhenReady(seconds, after) {
+        if (!(seconds > 0)) {
+            if (after) after();
+            return;
+        }
         var apply = function () {
-            if (!audio.duration || isNaN(audio.duration)) return;
+            if (!audio.duration || isNaN(audio.duration)) {
+                if (after) after();
+                return;
+            }
             audio.currentTime = Math.min(seconds, Math.max(0, audio.duration - 0.25));
+            if (after) after();
         };
         if (audio.readyState >= 1 && audio.duration) {
             apply();
@@ -261,12 +317,14 @@ const managerConfigStr = JSON.stringify({
             state.isPlaying = true;
             state.error = null;
             emit('fm:play-state', { isPlaying: true });
+            saveProgressCache({ playing: true });
         }).catch(function (e) {
             if (ver !== loadVersion) return;
             if (e && e.name === 'AbortError') return;
-            // 浏览器拦了自动播放：等用户下一次手势再续上，别当成失败
+            // 浏览器拦了自动播放：等用户下一次手势再续上
             state.isPlaying = false;
             emit('fm:play-state', { isPlaying: false });
+            saveProgressCache({ playing: true }); // 仍记「想续播」，手势后再开
             var once = function () {
                 document.removeEventListener('pointerdown', once, true);
                 document.removeEventListener('keydown', once, true);
@@ -275,6 +333,7 @@ const managerConfigStr = JSON.stringify({
                     if (ver !== loadVersion) return;
                     state.isPlaying = true;
                     emit('fm:play-state', { isPlaying: true });
+                    saveProgressCache({ playing: true });
                 }).catch(function () {});
             };
             document.addEventListener('pointerdown', once, true);
@@ -386,7 +445,7 @@ const managerConfigStr = JSON.stringify({
     }
 
     // ── Track loading ────────────────────────────────────────
-    function loadTrack(index, autoPlay) {
+    function loadTrack(index, autoPlay, opts) {
         if (index < 0 || index >= state.playlist.length) return;
         state.currentIndex = index;
         var track = state.playlist[index];
@@ -420,6 +479,10 @@ const managerConfigStr = JSON.stringify({
         emit('fm:track', { index: index, track: track, autoPlay: !!autoPlay });
 
         tryPlayCurrentTrackUrl(autoPlay, ver);
+        // 恢复进度时跳过，避免先把 time 写成 0 再 seek
+        if (!(opts && opts.skipProgressSave)) {
+            saveProgressCache({ track: track, time: 0, playing: !!autoPlay });
+        }
     }
 
     // ── Playback controls ────────────────────────────────────
@@ -428,6 +491,7 @@ const managerConfigStr = JSON.stringify({
             audio.play().then(function () {
                 state.isPlaying = true;
                 emit('fm:play-state', { isPlaying: true });
+                saveProgressCache({ playing: true });
             }).catch(function (e) {
                 if (e.name === 'AbortError') return;
                 console.warn('Playback failed:', e);
@@ -436,6 +500,7 @@ const managerConfigStr = JSON.stringify({
             audio.pause();
             state.isPlaying = false;
             emit('fm:play-state', { isPlaying: false });
+            saveProgressCache({ playing: false });
         }
     }
 
@@ -492,11 +557,13 @@ const managerConfigStr = JSON.stringify({
     function seek(percent) {
         if (!audio.duration) return;
         audio.currentTime = Math.max(0, Math.min(1, percent)) * audio.duration;
+        saveProgressCache();
     }
 
     function seekToTime(time) {
         if (!audio.duration) return;
         audio.currentTime = Math.max(0, Math.min(time, audio.duration));
+        saveProgressCache();
     }
 
     function playTrackByIndex(index) {
@@ -575,13 +642,25 @@ const managerConfigStr = JSON.stringify({
                 // Apply volume
                 audio.volume = state.volume;
 
-                var snap = consumePlaybackSnapshot();
-                var snapIndex = resolveSnapshotIndex(state.playlist, snap);
+                var sessionSnap = consumePlaybackSnapshot();
+                var progress = readProgressCache();
+                var sessionIndex = resolveSnapshotIndex(state.playlist, sessionSnap);
+                var progressIndex = resolveSnapshotIndex(state.playlist, progress);
                 var savedIndex = findSavedTrackIndex(state.playlist);
                 var startIndex = 0;
-                var shouldResume = snapIndex >= 0;
-                if (shouldResume) {
-                    startIndex = snapIndex;
+                var resumeTime = 0;
+                var wantAutoplay = false;
+
+                if (sessionIndex >= 0) {
+                    // 硬跳刚离开：优先 session，自动续播
+                    startIndex = sessionIndex;
+                    resumeTime = sessionSnap.time || 0;
+                    wantAutoplay = true;
+                } else if (progressIndex >= 0) {
+                    // 关站后再来：恢复曲目 + 进度；上次在播则尝试续播
+                    startIndex = progressIndex;
+                    resumeTime = progress.time || 0;
+                    wantAutoplay = !!progress.playing;
                 } else if (savedIndex >= 0) {
                     startIndex = savedIndex;
                 } else if (state.playMode === 2) {
@@ -598,14 +677,16 @@ const managerConfigStr = JSON.stringify({
                     isMuted: state.isMuted
                 });
 
-                if (shouldResume) {
-                    // 跨壳硬跳后续播：先定位进度，再尝试自动播放
-                    loadTrack(startIndex, false);
-                    seekWhenReady(snap.time || 0);
-                    resumePlayOrWaitGesture(loadVersion);
-                } else {
-                    loadTrack(startIndex, false);
-                }
+                loadTrack(startIndex, false, { skipProgressSave: true });
+                seekWhenReady(resumeTime, function () {
+                    saveProgressCache({
+                        playing: wantAutoplay,
+                        time: resumeTime > 0 ? resumeTime : (audio.currentTime || 0)
+                    });
+                    if (wantAutoplay) {
+                        resumePlayOrWaitGesture(loadVersion);
+                    }
+                });
             } else {
                 state.initialized = true;
                 emit('fm:init', {
@@ -666,11 +747,11 @@ const managerConfigStr = JSON.stringify({
         seekToTime: seekToTime,
         playTrackByIndex: playTrackByIndex,
         loadTrack: loadTrack,
-        /** 硬跳前调用：把播放中快照写入 sessionStorage，新页续播 */
+        /** 硬跳 / 关站前调用：写入 session + localStorage 进度缓存 */
         persistForNavigation: savePlaybackSnapshot
     };
 
-    // 整页离开（含跨壳硬跳）前落盘；节流写入，避免 timeupdate 刷爆
+    // 播放中节流落盘；离开页面前再强制写一次
     var persistTimer = 0;
     audio.addEventListener('timeupdate', function () {
         if (audio.paused) return;
@@ -678,7 +759,11 @@ const managerConfigStr = JSON.stringify({
         persistTimer = window.setTimeout(function () {
             persistTimer = 0;
             savePlaybackSnapshot();
-        }, 2000);
+        }, 1500);
+    });
+    audio.addEventListener('pause', function () {
+        if (!state.initialized) return;
+        saveProgressCache({ playing: false });
     });
     window.addEventListener('pagehide', savePlaybackSnapshot);
     document.addEventListener('visibilitychange', function () {
