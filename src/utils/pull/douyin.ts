@@ -175,13 +175,22 @@ function collectFromHtml(html: string): string[] {
 	return pics;
 }
 
+const BINGBOT_UA =
+	"Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)";
+
 async function readNotePage(id: string): Promise<{ pics: string[]; title: string; author?: string }> {
-	const pages = [`https://www.douyin.com/note/${id}`, `https://www.douyin.com/video/${id}`];
+	const pages = [
+		`https://www.douyin.com/note/${id}`,
+		`https://www.iesdouyin.com/share/slides/${id}`,
+		`https://www.iesdouyin.com/share/note/${id}/`,
+		`https://www.douyin.com/video/${id}`,
+	];
 	for (const pageUrl of pages) {
 		const html = await fetchText(pageUrl, {
 			headers: {
 				"User-Agent": CRAWLER_UA,
 				Accept: "text/html,*/*",
+				Referer: "https://www.douyin.com/",
 			},
 		});
 		const pics = uniqueNotePics(collectFromHtml(html.text));
@@ -193,6 +202,61 @@ async function readNotePage(id: string): Promise<{ pics: string[]; title: string
 		}
 	}
 	return { pics: [], title: "" };
+}
+
+type AwemeDetail = {
+	desc?: string;
+	author?: { nickname?: string };
+	images?: Array<{ url_list?: string[]; download_url_list?: string[] }>;
+	image_post_info?: {
+		images?: Array<{ display_image?: { url_list?: string[] } }>;
+	};
+	video?: { cover?: { url_list?: string[] }; origin_cover?: { url_list?: string[] } };
+};
+
+function picsFromAwemeDetail(detail: AwemeDetail): string[] {
+	const pics: string[] = [];
+	if (detail.images?.length) {
+		for (const img of detail.images) {
+			const list = img.download_url_list?.length
+				? img.download_url_list
+				: img.url_list || [];
+			const chosen =
+				list.find((u) => u && !u.includes("/obj/")) || list.at(-1) || list[0];
+			if (chosen) pics.push(chosen);
+		}
+	}
+	const postImgs = detail.image_post_info?.images;
+	if (postImgs) {
+		for (const img of postImgs) {
+			const last = img.display_image?.url_list?.at(-1);
+			if (last) pics.push(last);
+		}
+	}
+	return pics;
+}
+
+async function fetchAwemeDetail(id: string): Promise<AwemeDetail | null> {
+	const detailUrl = `https://www.douyin.com/aweme/v1/web/aweme/detail/?aweme_id=${encodeURIComponent(id)}&aid=6383&device_platform=webapp`;
+	for (let attempt = 0; attempt < 3; attempt++) {
+		const got = await fetchText(detailUrl, {
+			headers: {
+				"User-Agent": BINGBOT_UA,
+				Referer: "https://www.douyin.com/",
+				Accept: "application/json,text/plain,*/*",
+			},
+		});
+		try {
+			const payload = JSON.parse(got.text) as {
+				aweme_detail?: AwemeDetail;
+				status_code?: number;
+			};
+			if (payload.aweme_detail) return payload.aweme_detail;
+		} catch {
+			/* retry */
+		}
+	}
+	return null;
 }
 
 export async function extractDouyin(input: string): Promise<PullResult> {
@@ -219,15 +283,32 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 		title = page.title;
 		author = page.author;
 
-		if (!pics.length) {
+		if (pics.length <= 1) {
+			const detail = await fetchAwemeDetail(id);
+			if (detail) {
+				title = title || detail.desc || "";
+				author = author || detail.author?.nickname;
+				const fromDetail = picsFromAwemeDetail(detail);
+				if (fromDetail.length > pics.length) {
+					pics = fromDetail;
+					warning = undefined;
+				} else if (!pics.length && fromDetail.length) {
+					pics = fromDetail;
+				} else if (!pics.length) {
+					const cover =
+						detail.video?.origin_cover?.url_list?.at(-1) ||
+						detail.video?.cover?.url_list?.at(-1);
+					if (cover) {
+						pics.push(cover);
+						warning = "这是视频帖，先给你封面。图文笔记才能抽一组图。";
+					}
+				}
+			}
+		}
+
+		if (pics.length <= 1) {
 			const item = await fetchJson<{
-				item_list?: Array<{
-					desc?: string;
-					author?: { nickname?: string };
-					images?: Array<{ url_list?: string[] }>;
-					image_post_info?: { images?: Array<{ display_image?: { url_list?: string[] } }> };
-					video?: { cover?: { url_list?: string[] }; origin_cover?: { url_list?: string[] } };
-				}>;
+				item_list?: AwemeDetail[];
 			}>(
 				`https://www.iesdouyin.com/web/api/v2/aweme/iteminfo/?reflow_source=reflow_page&item_ids=${encodeURIComponent(id)}`,
 				{
@@ -241,22 +322,16 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 			if (aweme) {
 				title = title || aweme.desc || "";
 				author = author || aweme.author?.nickname;
-				if (aweme.images) {
-					for (const img of aweme.images) {
-						const last = img.url_list?.at(-1);
-						if (last) pics.push(last);
-					}
-				}
-				const postImgs = aweme.image_post_info?.images;
-				if (postImgs) {
-					for (const img of postImgs) {
-						const last = img.display_image?.url_list?.at(-1);
-						if (last) pics.push(last);
-					}
-				}
-				if (!pics.length) {
+				const fromItem = picsFromAwemeDetail(aweme);
+				if (fromItem.length > pics.length) {
+					pics = fromItem;
+					warning = undefined;
+				} else if (!pics.length && fromItem.length) {
+					pics = fromItem;
+				} else if (!pics.length) {
 					const cover =
-						aweme.video?.origin_cover?.url_list?.at(-1) || aweme.video?.cover?.url_list?.at(-1);
+						aweme.video?.origin_cover?.url_list?.at(-1) ||
+						aweme.video?.cover?.url_list?.at(-1);
 					if (cover) {
 						pics.push(cover);
 						warning = "这是视频帖，先给你封面。图文笔记才能抽一组图。";
@@ -265,23 +340,31 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 			}
 		}
 
-		if (!pics.length) {
+		if (pics.length <= 1) {
 			for (const pageUrl of [
+				`https://www.iesdouyin.com/share/slides/${id}`,
 				`https://www.iesdouyin.com/share/note/${id}/`,
 				`https://www.iesdouyin.com/share/video/${id}/`,
 				working,
 			]) {
 				const html = await fetchText(pageUrl, {
-					mobile: true,
-					headers: { Referer: "https://www.iesdouyin.com/" },
+					headers: {
+						"User-Agent": CRAWLER_UA,
+						Accept: "text/html,*/*",
+						Referer: "https://www.douyin.com/",
+					},
 				});
-				pics.push(...collectFromHtml(html.text));
+				const more = uniqueNotePics(collectFromHtml(html.text));
+				if (more.length > pics.length) {
+					pics = more;
+					warning = undefined;
+				}
 				if (!title) {
 					const meta = pickMeta(html.text);
 					title = meta.title;
 					author = author || meta.author;
 				}
-				if (uniqueNotePics(pics).length) break;
+				if (pics.length > 1) break;
 			}
 		}
 	}
@@ -296,14 +379,12 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 		}
 		return {
 			ok: false,
-			error:
-				"抖音网页没有把图给我。线上服务器在国外时常抽空；本机开着代理时再试，或把 App 分享口令整段贴过来。",
+			error: "抖音这边没有把图给我。稍后再试，或换一条公开图文链接。",
 		};
 	}
 
 	if (!warning && images.length === 1) {
-		warning =
-			"只抽到 1 张。多半是线上服务器在国外，抖音图文页没放开；本机有代理时通常能抽满。";
+		warning = "只抽到 1 张，可能不是图文帖，或这条暂时抽不全。";
 	}
 
 	return {
