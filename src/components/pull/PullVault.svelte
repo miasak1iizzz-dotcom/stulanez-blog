@@ -5,6 +5,16 @@ import {
 	PULL_CHANNELS,
 	type PullChannel,
 } from "@/config/pullConfig";
+import {
+	defaultAlbumName,
+	findAlbumByUrl,
+	listPullAlbums,
+	removePullAlbum,
+	renamePullAlbum,
+	touchPullAlbum,
+	upsertPullAlbum,
+	type PullAlbum,
+} from "@/utils/pull/albums";
 import { peelUrl } from "@/utils/pull/peel";
 import {
 	clearPullSession,
@@ -27,10 +37,33 @@ let url = $state("");
 let loading = $state(false);
 let error = $state("");
 let result = $state<PullSuccess | null>(null);
+let albums = $state<PullAlbum[]>([]);
+let albumName = $state("");
+let albumNote = $state("");
+let editingId = $state<string | null>(null);
+let editName = $state("");
+let activeAlbumId = $state<string | null>(null);
 
-async function extract(): Promise<void> {
+function refreshAlbums(): void {
+	albums = listPullAlbums(channelId);
+}
+
+function syncAlbumDraft(data: PullSuccess, target: string): void {
+	const existing = findAlbumByUrl(target);
+	activeAlbumId = existing?.id ?? null;
+	albumName =
+		existing?.name ??
+		defaultAlbumName({
+			title: data.title,
+			channelName: getPullChannel(data.channel)?.name,
+		});
+	albumNote = existing ? "已记住。改名后点「更新图集」即可。" : "";
+}
+
+async function extract(pastedOverride?: string): Promise<void> {
 	error = "";
-	const pasted = url;
+	albumNote = "";
+	const pasted = pastedOverride ?? url;
 	const target = peelUrl(pasted);
 	if (!target) {
 		error = "请先贴一条链接，或 App 里复制出来的整段分享口令。";
@@ -56,6 +89,9 @@ async function extract(): Promise<void> {
 		}
 		result = data;
 		savePullSession({ url: target, result: data });
+		syncAlbumDraft(data, target);
+		if (activeAlbumId) touchPullAlbum(activeAlbumId);
+		refreshAlbums();
 	} catch {
 		error = "网络断了一下。再试一次。";
 	} finally {
@@ -73,7 +109,81 @@ function clearBrowse(): void {
 	result = null;
 	url = "";
 	error = "";
+	albumNote = "";
+	activeAlbumId = null;
 	window.location.assign("/pull/");
+}
+
+function saveAlbum(): void {
+	if (!result) return;
+	const target = peelUrl(url) || result.sourceUrl;
+	if (!target) {
+		albumNote = "没有可记住的链接。";
+		return;
+	}
+	const album = upsertPullAlbum({
+		id: activeAlbumId ?? undefined,
+		name: albumName,
+		url: target,
+		channel: result.channel,
+		hintTitle: result.title,
+		hintCount: result.images.length,
+	});
+	activeAlbumId = album.id;
+	albumName = album.name;
+	albumNote = "已记住图集。下次点开会按链接重新拉图，不会把原图存进浏览器。";
+	refreshAlbums();
+}
+
+function openAlbum(album: PullAlbum): void {
+	const path = `/pull/${album.channel}/`;
+	const here = window.location.pathname.replace(/\/$/, "") + "/";
+	const want = path;
+	touchPullAlbum(album.id);
+	if (here === want || here === `/pull/${album.channel}`) {
+		url = album.url;
+		activeAlbumId = album.id;
+		albumName = album.name;
+		result = null;
+		void extract(album.url);
+		return;
+	}
+	window.location.assign(`${path}?u=${encodeURIComponent(album.url)}`);
+}
+
+function startRename(album: PullAlbum): void {
+	editingId = album.id;
+	editName = album.name;
+}
+
+function commitRename(): void {
+	if (!editingId) return;
+	renamePullAlbum(editingId, editName);
+	editingId = null;
+	editName = "";
+	refreshAlbums();
+	if (activeAlbumId && result) {
+		const mine = findAlbumByUrl(peelUrl(url) || result.sourceUrl);
+		if (mine) albumName = mine.name;
+	}
+}
+
+function cancelRename(): void {
+	editingId = null;
+	editName = "";
+}
+
+function deleteAlbum(id: string): void {
+	removePullAlbum(id);
+	if (activeAlbumId === id) {
+		activeAlbumId = null;
+		albumNote = "";
+	}
+	refreshAlbums();
+}
+
+function channelLabel(id: PullChannelId): string {
+	return getPullChannel(id)?.short ?? id;
 }
 
 let booted = $state(false);
@@ -81,16 +191,23 @@ let booted = $state(false);
 $effect(() => {
 	if (booted || typeof window === "undefined") return;
 	booted = true;
+	refreshAlbums();
 	const passed = new URLSearchParams(window.location.search).get("u");
 	if (passed && !url) {
 		url = passed;
-		void extract();
+		const known = findAlbumByUrl(peelUrl(passed) || passed);
+		if (known) {
+			activeAlbumId = known.id;
+			albumName = known.name;
+		}
+		void extract(passed);
 		return;
 	}
 	const stored = loadPullSession();
 	if (stored) {
 		url = stored.url;
 		result = stored.result;
+		syncAlbumDraft(stored.result, stored.url);
 	}
 });
 </script>
@@ -171,6 +288,36 @@ $effect(() => {
 			{/if}
 
 			{#if result}
+				<section class="album-save" aria-label="记住图集">
+					<div class="album-save-copy">
+						<p class="album-kicker">{activeAlbumId ? "已记住的图集" : "记住这个图集"}</p>
+						<p class="album-help">
+							只记下链接和名字，不把图片存进浏览器。下次打开会按链接重新拉图。
+						</p>
+					</div>
+					<form
+						class="album-form"
+						onsubmit={(event) => {
+							event.preventDefault();
+							saveAlbum();
+						}}
+					>
+						<label class="sr-only" for="album-name">图集名称</label>
+						<input
+							id="album-name"
+							type="text"
+							bind:value={albumName}
+							maxlength="48"
+							placeholder="给图集起个名字"
+							autocomplete="off"
+							spellcheck="false"
+						/>
+						<button type="submit">{activeAlbumId ? "更新图集" : "记住图集"}</button>
+					</form>
+					{#if albumNote}
+						<p class="album-note">{albumNote}</p>
+					{/if}
+				</section>
 				<PullGallery {result} onClear={clearBrowse} />
 			{:else if loading}
 				<div class="empty">
@@ -185,21 +332,86 @@ $effect(() => {
 			{/if}
 		</section>
 
-		{#if !current && !result}
-			<section class="tiles" aria-label="渠道入口">
-				<p class="split-kicker">四个入口</p>
-				<h2>选一条渠道，或把链接丢到左边。</h2>
-				<div class="tile-grid">
-					{#each PULL_CHANNELS as ch (ch.id)}
-						<a class="tile" href={`/pull/${ch.id}/`} style={`--tile:${ch.accent}`}>
-							<p class="tile-kicker">{ch.kicker}</p>
-							<h3>{ch.name}</h3>
-							<p>{ch.blurb}</p>
-							<span>进入取图</span>
-						</a>
-					{/each}
-				</div>
-			</section>
+		{#if !result}
+			<div class="side">
+				<section class="shelf" aria-label="我的图集">
+					<p class="split-kicker">我的图集</p>
+					<h2>{channelId ? `${current?.name ?? ""}图集` : "记住过的图集"}</h2>
+					<p class="shelf-sub">
+						这里只保存链接与命名。点开后会重新去渠道拉图，浏览器里不囤原图。
+					</p>
+					{#if albums.length}
+						<ul class="album-list">
+							{#each albums as album (album.id)}
+								<li class="album-card">
+									{#if editingId === album.id}
+										<form
+											class="rename-row"
+											onsubmit={(event) => {
+												event.preventDefault();
+												commitRename();
+											}}
+										>
+											<input
+												type="text"
+												bind:value={editName}
+												maxlength="48"
+												aria-label="重命名图集"
+											/>
+											<button type="submit">保存</button>
+											<button type="button" class="ghost" onclick={cancelRename}>取消</button>
+										</form>
+									{:else}
+										<button type="button" class="album-open" onclick={() => openAlbum(album)}>
+											<span class="album-name">{album.name}</span>
+											<span class="album-meta">
+												{channelLabel(album.channel)}
+												{#if typeof album.hintCount === "number"}
+													· 约 {album.hintCount} 张
+												{/if}
+											</span>
+											{#if album.hintTitle}
+												<span class="album-hint">{album.hintTitle}</span>
+											{/if}
+										</button>
+										<div class="album-actions">
+											<button type="button" class="ghost" onclick={() => startRename(album)}>改名</button>
+											<button
+												type="button"
+												class="ghost danger"
+												onclick={() => deleteAlbum(album.id)}
+											>
+												忘掉
+											</button>
+										</div>
+									{/if}
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<div class="shelf-empty">
+							<p>还没有图集。提取一组图后，可以起名记住这条链接。</p>
+						</div>
+					{/if}
+				</section>
+
+				{#if !current}
+					<section class="tiles" aria-label="渠道入口">
+						<p class="split-kicker">四个入口</p>
+						<h2>选一条渠道，或把链接丢到左边。</h2>
+						<div class="tile-grid">
+							{#each PULL_CHANNELS as ch (ch.id)}
+								<a class="tile" href={`/pull/${ch.id}/`} style={`--tile:${ch.accent}`}>
+									<p class="tile-kicker">{ch.kicker}</p>
+									<h3>{ch.name}</h3>
+									<p>{ch.blurb}</p>
+									<span>进入取图</span>
+								</a>
+							{/each}
+						</div>
+					</section>
+				{/if}
+			</div>
 		{/if}
 	</div>
 </div>
@@ -369,6 +581,12 @@ $effect(() => {
 		grid-column: 1 / -1;
 	}
 
+	.side {
+		display: grid;
+		gap: 1.1rem;
+		min-width: 0;
+	}
+
 	.work {
 		position: relative;
 		padding: 1.35rem 1.35rem 1.2rem;
@@ -406,7 +624,7 @@ $effect(() => {
 	}
 
 	.work:only-child,
-	.desk:not(:has(.tiles)) .work {
+	.desk:not(:has(.side)) .work {
 		grid-column: 1 / -1;
 	}
 
@@ -414,8 +632,7 @@ $effect(() => {
 		color: #cbb7b4;
 	}
 
-	.work-head h2,
-	.tiles h2 {
+	.work-head h2 {
 		margin: 0 0 1rem;
 		font-family: "Songti SC", STSong, "Noto Serif SC", "Noto Serif CJK SC", ui-serif, Georgia, serif;
 		font-size: 1.45rem;
@@ -491,6 +708,176 @@ $effect(() => {
 		font-size: 0.92rem;
 	}
 
+	.album-save {
+		margin: 1rem 1.2rem 0.35rem;
+		padding: 0.95rem 1rem;
+		border-radius: 14px;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		background: rgba(255, 255, 255, 0.05);
+	}
+
+	.album-kicker,
+	.split-kicker {
+		margin: 0 0 0.3rem;
+		font-size: 0.78rem;
+		color: #836c70;
+	}
+
+	.album-kicker {
+		color: #e8c4a0;
+		letter-spacing: 0.04em;
+	}
+
+	.album-help,
+	.shelf-sub,
+	.shelf-empty p {
+		margin: 0;
+		line-height: 1.65;
+		font-size: 0.86rem;
+		color: #cbb7b4;
+	}
+
+	.album-form,
+	.rename-row {
+		display: flex;
+		gap: 0.45rem;
+		margin-top: 0.75rem;
+	}
+
+	.album-form input,
+	.rename-row input {
+		flex: 1;
+		min-width: 0;
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		border-radius: 10px;
+		background: rgba(0, 0, 0, 0.22);
+		color: #fff;
+		padding: 0.62rem 0.75rem;
+		font-size: 0.9rem;
+		outline: none;
+	}
+
+	.album-form button,
+	.rename-row button[type="submit"] {
+		border: 0;
+		border-radius: 999px;
+		padding: 0.62rem 0.95rem;
+		background: #c67b55;
+		color: #fff;
+		font-weight: 650;
+		cursor: pointer;
+		white-space: nowrap;
+	}
+
+	.album-note {
+		margin: 0.55rem 0 0;
+		font-size: 0.8rem;
+		color: #e8c4a0;
+	}
+
+	.shelf {
+		padding: 1.05rem 1.1rem 1.15rem;
+		border-radius: 14px;
+		border: 1px solid rgba(200, 185, 170, 0.52);
+		background: #fef1ee;
+	}
+
+	.shelf h2,
+	.tiles h2 {
+		margin: 0 0 0.45rem;
+		font-family: "Songti SC", STSong, "Noto Serif SC", "Noto Serif CJK SC", ui-serif, Georgia, serif;
+		font-size: 1.35rem;
+		font-weight: 600;
+		color: #6b3743;
+	}
+
+	.shelf-sub {
+		color: #5c4a4e;
+		margin-bottom: 0.85rem;
+	}
+
+	.album-list {
+		display: grid;
+		gap: 0.55rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.album-card {
+		display: grid;
+		gap: 0.45rem;
+		padding: 0.75rem 0.8rem;
+		border-radius: 12px;
+		background: #fff;
+		border: 1px solid rgba(200, 185, 170, 0.55);
+	}
+
+	.album-open {
+		display: grid;
+		gap: 0.18rem;
+		width: 100%;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		text-align: left;
+		cursor: pointer;
+		color: inherit;
+	}
+
+	.album-name {
+		font-weight: 650;
+		font-size: 0.98rem;
+		color: #201a19;
+	}
+
+	.album-meta {
+		font-size: 0.75rem;
+		color: #836c70;
+	}
+
+	.album-hint {
+		font-size: 0.78rem;
+		color: #5c4a4e;
+		line-height: 1.45;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.album-actions {
+		display: flex;
+		gap: 0.35rem;
+	}
+
+	.ghost {
+		border: 1px solid rgba(200, 185, 170, 0.7);
+		border-radius: 999px;
+		padding: 0.28rem 0.7rem;
+		background: #fff;
+		color: #6b3743;
+		font-size: 0.75rem;
+		cursor: pointer;
+	}
+
+	.ghost.danger {
+		color: #9a3d3d;
+	}
+
+	.rename-row input {
+		background: #fff8f6;
+		border-color: rgba(200, 185, 170, 0.7);
+		color: #201a19;
+	}
+
+	.rename-row .ghost {
+		background: transparent;
+	}
+
+	.shelf-empty {
+		padding: 0.85rem 0.2rem 0.2rem;
+	}
+
 	.empty {
 		margin-top: 1.1rem;
 		padding: 1.6rem 1rem;
@@ -511,17 +898,6 @@ $effect(() => {
 
 	.tiles {
 		padding: 0.15rem 0.1rem 0;
-	}
-
-	.split-kicker {
-		margin: 0 0 0.3rem;
-		font-size: 0.78rem;
-		color: #836c70;
-	}
-
-	.tiles h2 {
-		color: #6b3743;
-		margin-bottom: 0.9rem;
 	}
 
 	.tile-grid {
@@ -561,7 +937,7 @@ $effect(() => {
 		}
 
 		.work,
-		.desk:not(:has(.tiles)) .work {
+		.desk:not(:has(.side)) .work {
 			grid-column: auto;
 		}
 
