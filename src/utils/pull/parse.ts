@@ -1,4 +1,4 @@
-import { isCdnImageUrl } from "./hosts";
+import { isCdnImageUrl, hostAllowed } from "./hosts";
 import { peelUrl } from "./peel";
 import type { PullChannelId, PullImage } from "./types";
 
@@ -38,6 +38,14 @@ export function normalizeImageUrl(raw: string): string | null {
 	if (!raw) return null;
 	let url = unescapeJsonString(raw.trim()).replace(/&amp;/g, "&");
 	if (url.startsWith("//")) url = `https:${url}`;
+	if (url.startsWith("http://")) {
+		try {
+			const host = new URL(url).hostname;
+			if (hostAllowed(host)) url = `https://${url.slice("http://".length)}`;
+		} catch {
+			/* keep */
+		}
+	}
 	if (!/douyinpic\.com/i.test(url)) url = decodeMaybeUri(url);
 	if (!isCdnImageUrl(url)) return null;
 	return url.split("#")[0] ?? url;
@@ -59,21 +67,27 @@ export function filenamesFor(channel: PullChannelId, urls: string[]): PullImage[
 }
 
 export function metaContent(html: string, key: string): string | undefined {
+	return metaContents(html, key)[0];
+}
+
+export function metaContents(html: string, key: string): string[] {
+	const out: string[] = [];
 	const patterns = [
 		new RegExp(
 			`<meta[^>]+(?:property|name)=["']${key}["'][^>]*content=["']([^"']+)["']`,
-			"i",
+			"gi",
 		),
 		new RegExp(
 			`<meta[^>]+content=["']([^"']+)["'][^>]*(?:property|name)=["']${key}["']`,
-			"i",
+			"gi",
 		),
 	];
 	for (const re of patterns) {
-		const m = re.exec(html);
-		if (m?.[1]) return decodeHtml(m[1]);
+		for (const m of html.matchAll(re)) {
+			if (m[1]) out.push(decodeHtml(m[1]));
+		}
 	}
-	return undefined;
+	return out;
 }
 
 export function decodeHtml(value: string): string {
@@ -93,7 +107,7 @@ export function decodeHtml(value: string): string {
 
 export function collectHttpUrls(text: string): string[] {
 	const found: string[] = [];
-	const re = /https:\\?\/\\?\/[^\s"'<>\\]+/g;
+	const re = /https?:\\?\/\\?\/[^\s"'<>\\]+/g;
 	for (const m of text.matchAll(re)) {
 		found.push(unescapeJsonString(m[0]));
 	}
