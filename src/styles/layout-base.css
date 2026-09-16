@@ -102,6 +102,10 @@
     right: 0 !important;
     z-index: 80 !important;
     height: 4.5rem !important;
+    will-change: transform, opacity;
+    transition:
+      transform 0.58s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.32s ease !important;
   }
 
   body.sticky-navbar #navbar-wrapper {
@@ -115,6 +119,17 @@
     opacity: 1 !important;
     transform: none !important;
     translate: none !important;
+  }
+
+  /* 全站顶栏收起 / 展开：JS 就绪后才允许隐藏，避免首屏空白闪一下 */
+  body.sticky-navbar.site-nav-ready:not(.site-nav-open):not(.site-nav-pinned) #top-row {
+    transform: translate3d(0, calc(-100% - 14px), 0);
+    opacity: 0;
+  }
+
+  body.sticky-navbar.site-nav-ready:not(.site-nav-open):not(.site-nav-pinned)
+    #navbar-wrapper {
+    pointer-events: none !important;
   }
 }
 
