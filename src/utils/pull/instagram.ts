@@ -1,4 +1,4 @@
-import { fetchText, getPullProxy, isPullNetworkError } from "./http";
+import { fetchText, isPullNetworkError } from "./http";
 import {
 	collectHttpUrls,
 	decodeHtml,
@@ -12,18 +12,9 @@ import type { PullResult } from "./types";
 import { IPHONE_UA } from "./types";
 
 async function igNetworkFail(): Promise<PullResult> {
-	const proxy = await getPullProxy();
-	if (!proxy) {
-		return {
-			ok: false,
-			error:
-				"本机连不上 Instagram（通常要外网）。请先打开本机代理（常见端口 7897 / 7890 / 10809），或设置环境变量 PULL_PROXY / HTTPS_PROXY 后再抽。",
-		};
-	}
 	return {
 		ok: false,
-		error:
-			"代理已开，但仍连不上 Instagram。检查代理能不能访问外网，或换一条节点后再抽。",
+		error: "没有魔法上网，无法访问 INS。",
 	};
 }
 

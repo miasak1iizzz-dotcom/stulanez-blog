@@ -271,10 +271,10 @@ $effect(() => {
 				</button>
 			</form>
 			{#if error}
-				{@const proxyHint = /代理|外网|PULL_PROXY|HTTPS_PROXY|连不上 Instagram/i.test(error)}
+				{@const proxyHint = /魔法上网|无法访问 INS/i.test(error)}
 				<div class="fail" role="alert">
-					<p class="fail-kicker">{proxyHint ? "外网没通" : "抽不到"}</p>
-					<h3>{proxyHint ? "本机出不了 Instagram" : "网页这边拿不到图"}</h3>
+					<p class="fail-kicker">{proxyHint ? "没外网" : "抽不到"}</p>
+					<h3>{proxyHint ? "访问不了 INS" : "网页这边拿不到图"}</h3>
 					<p>{error}</p>
 				</div>
 			{/if}
