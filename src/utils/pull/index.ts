@@ -62,8 +62,7 @@ export async function extractPull(
 			if (detected === "instagram") {
 				return {
 					ok: false,
-					error:
-						"本机连不上 Instagram（通常要外网）。请先打开本机代理（常见端口 7897 / 7890 / 10809），或设置环境变量 PULL_PROXY / HTTPS_PROXY 后再抽。",
+					error: "没有魔法上网，无法访问 INS。",
 				};
 			}
 			return {
