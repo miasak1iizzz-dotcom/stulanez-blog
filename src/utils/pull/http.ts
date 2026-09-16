@@ -9,6 +9,15 @@ export type FetchTextResult = {
 	status: number;
 };
 
+export type FetchBinaryResult = {
+	url: string;
+	status: number;
+	body: Buffer;
+	contentType: string;
+};
+
+type PullFetchInit = RequestInit & { timeoutMs?: number; mobile?: boolean };
+
 const COMMON_PROXIES = [
 	"http://127.0.0.1:7897",
 	"http://127.0.0.1:7890",
@@ -75,66 +84,68 @@ function headerRecord(init?: HeadersInit): Record<string, string> {
 	return out;
 }
 
-async function fetchDirect(
+function withDefaultHeaders(
+	init: PullFetchInit,
+	fallbackAccept: string,
+): Record<string, string> {
+	const headers = headerRecord(init.headers);
+	const has = (name: string) =>
+		Object.keys(headers).some((k) => k.toLowerCase() === name);
+	if (!has("user-agent")) {
+		headers["User-Agent"] = init.mobile ? IPHONE_UA : BROWSER_UA;
+	}
+	if (!has("accept")) headers.Accept = fallbackAccept;
+	if (!has("accept-language")) {
+		headers["Accept-Language"] = "zh-CN,zh;q=0.9,en;q=0.8";
+	}
+	return headers;
+}
+
+async function fetchDirectBinary(
 	url: string,
-	init: RequestInit & { timeoutMs?: number; mobile?: boolean },
-): Promise<FetchTextResult> {
-	const { timeoutMs = 18000, mobile, ...rest } = init;
+	init: PullFetchInit,
+	fallbackAccept: string,
+): Promise<FetchBinaryResult> {
+	const { timeoutMs = 18000, mobile: _mobile, ...rest } = init;
 	const ctrl = new AbortController();
 	const timer = setTimeout(() => ctrl.abort(), timeoutMs);
 	try {
-		const headers = new Headers(rest.headers);
-		if (!headers.has("user-agent")) {
-			headers.set("User-Agent", mobile ? IPHONE_UA : BROWSER_UA);
-		}
-		if (!headers.has("accept")) {
-			headers.set(
-				"Accept",
-				"text/html,application/json;q=0.9,application/xhtml+xml;q=0.8,*/*;q=0.7",
-			);
-		}
-		if (!headers.has("accept-language")) {
-			headers.set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
-		}
+		const headers = new Headers(withDefaultHeaders(init, fallbackAccept));
 		const res = await fetch(url, {
 			...rest,
 			redirect: "follow",
 			signal: ctrl.signal,
 			headers,
 		});
-		const text = await res.text();
-		return { url: res.url, text, status: res.status };
+		const body = Buffer.from(await res.arrayBuffer());
+		return {
+			url: res.url,
+			status: res.status,
+			body,
+			contentType: res.headers.get("content-type") || "",
+		};
 	} finally {
 		clearTimeout(timer);
 	}
 }
 
-async function fetchViaHttpProxy(
+async function fetchViaHttpProxyBinary(
 	url: string,
 	proxy: string,
-	init: RequestInit & { timeoutMs?: number; mobile?: boolean },
-): Promise<FetchTextResult> {
-	const { timeoutMs = 18000, mobile, headers: initHeaders, method = "GET" } = init;
+	init: PullFetchInit,
+	fallbackAccept: string,
+): Promise<FetchBinaryResult> {
+	const { timeoutMs = 18000, method = "GET" } = init;
 	const target = new URL(url);
 	const proxyUrl = new URL(proxy);
 	if (target.protocol !== "https:") {
 		throw new Error("proxy fetch only supports https");
 	}
 
-	const headers = headerRecord(initHeaders);
-	if (!Object.keys(headers).some((k) => k.toLowerCase() === "user-agent")) {
-		headers["User-Agent"] = mobile ? IPHONE_UA : BROWSER_UA;
-	}
-	if (!Object.keys(headers).some((k) => k.toLowerCase() === "accept")) {
-		headers.Accept =
-			"text/html,application/json;q=0.9,application/xhtml+xml;q=0.8,*/*;q=0.7";
-	}
-	if (!Object.keys(headers).some((k) => k.toLowerCase() === "accept-language")) {
-		headers["Accept-Language"] = "zh-CN,zh;q=0.9,en;q=0.8";
-	}
+	const headers = withDefaultHeaders(init, fallbackAccept);
 	headers.Host = target.host;
 
-	return await new Promise<FetchTextResult>((resolve, reject) => {
+	return await new Promise<FetchBinaryResult>((resolve, reject) => {
 		const timer = setTimeout(() => {
 			reject(new Error("abort"));
 		}, timeoutMs);
@@ -175,16 +186,21 @@ async function fetchViaHttpProxy(
 						clearTimeout(timer);
 						const status = pres.statusCode ?? 0;
 						const location = pres.headers.location;
-						const body = Buffer.concat(chunks).toString("utf8");
+						const body = Buffer.concat(chunks);
 						if (status >= 300 && status < 400 && location) {
 							const next = new URL(location, target).href;
-							void fetchViaHttpProxy(next, proxy, init).then(resolve, fail);
+							void fetchViaHttpProxyBinary(next, proxy, init, fallbackAccept).then(
+								resolve,
+								fail,
+							);
 							return;
 						}
+						const rawType = pres.headers["content-type"];
 						resolve({
 							url: target.href,
-							text: body,
 							status,
+							body,
+							contentType: Array.isArray(rawType) ? rawType[0] || "" : rawType || "",
 						});
 					});
 					pres.on("error", fail);
@@ -203,6 +219,48 @@ async function fetchViaHttpProxy(
 	});
 }
 
+const HTML_ACCEPT =
+	"text/html,application/json;q=0.9,application/xhtml+xml;q=0.8,*/*;q=0.7";
+const BIN_ACCEPT = "image/avif,image/webp,image/*,*/*;q=0.8";
+
+async function loadBinary(
+	url: string,
+	init: PullFetchInit,
+	fallbackAccept: string,
+): Promise<FetchBinaryResult> {
+	const proxy = await resolveProxy();
+	if (proxy) {
+		try {
+			return await fetchViaHttpProxyBinary(url, proxy, init, fallbackAccept);
+		} catch (error) {
+			if (!isNetworkError(error)) throw error;
+		}
+	}
+
+	try {
+		return await fetchDirectBinary(url, init, fallbackAccept);
+	} catch (error) {
+		if (!proxy && isNetworkError(error)) {
+			for (const candidate of COMMON_PROXIES) {
+				try {
+					const port = Number(new URL(candidate).port);
+					if (!(await probePort(port))) continue;
+					cachedProxy = candidate;
+					return await fetchViaHttpProxyBinary(
+						url,
+						candidate,
+						init,
+						fallbackAccept,
+					);
+				} catch {
+					/* try next */
+				}
+			}
+		}
+		throw error;
+	}
+}
+
 function isNetworkError(error: unknown): boolean {
 	const message = error instanceof Error ? error.message : String(error);
 	const cause =
@@ -214,37 +272,19 @@ function isNetworkError(error: unknown): boolean {
 	);
 }
 
+export async function fetchBinary(
+	url: string,
+	init: PullFetchInit = {},
+): Promise<FetchBinaryResult> {
+	return loadBinary(url, init, BIN_ACCEPT);
+}
+
 export async function fetchText(
 	url: string,
-	init: RequestInit & { timeoutMs?: number; mobile?: boolean } = {},
+	init: PullFetchInit = {},
 ): Promise<FetchTextResult> {
-	const proxy = await resolveProxy();
-	if (proxy) {
-		try {
-			return await fetchViaHttpProxy(url, proxy, init);
-		} catch (error) {
-			if (!isNetworkError(error)) throw error;
-			// fall through to direct once
-		}
-	}
-
-	try {
-		return await fetchDirect(url, init);
-	} catch (error) {
-		if (!proxy && isNetworkError(error)) {
-			for (const candidate of COMMON_PROXIES) {
-				try {
-					const port = Number(new URL(candidate).port);
-					if (!(await probePort(port))) continue;
-					cachedProxy = candidate;
-					return await fetchViaHttpProxy(url, candidate, init);
-				} catch {
-					/* try next */
-				}
-			}
-		}
-		throw error;
-	}
+	const got = await loadBinary(url, init, HTML_ACCEPT);
+	return { url: got.url, text: got.body.toString("utf8"), status: got.status };
 }
 
 export async function fetchJson<T>(

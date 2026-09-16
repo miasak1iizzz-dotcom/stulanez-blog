@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { BROWSER_UA } from "@/utils/pull/types";
+import { fetchBinary } from "@/utils/pull/http";
 import { hostAllowed, isPrivateHost, isSafeHttpsUrl } from "@/utils/pull/hosts";
 
 export const prerender = false;
@@ -39,24 +39,19 @@ export const GET: APIRoute = async ({ url }) => {
 		REFERER_BY_HOST.find((row) => row.test.test(parsed.hostname))?.referer ||
 		`${parsed.origin}/`;
 
-	const ctrl = new AbortController();
-	const timer = setTimeout(() => ctrl.abort(), 20000);
 	try {
-		const upstream = await fetch(target, {
-			redirect: "follow",
-			signal: ctrl.signal,
+		const upstream = await fetchBinary(target, {
+			timeoutMs: 25000,
 			headers: {
-				"User-Agent": BROWSER_UA,
 				Accept: "image/avif,image/webp,image/*,*/*;q=0.8",
 				Referer: referer,
 			},
 		});
-		if (!upstream.ok || !upstream.body) {
+		if (upstream.status < 200 || upstream.status >= 300 || !upstream.body.length) {
 			return bad("原图拿不到。", 502);
 		}
-		const length = Number(upstream.headers.get("content-length") || "0");
-		if (length > MAX_BYTES) return bad("图太大了。", 413);
-		const type = upstream.headers.get("content-type") || "image/jpeg";
+		if (upstream.body.length > MAX_BYTES) return bad("图太大了。", 413);
+		const type = upstream.contentType || "image/jpeg";
 		if (type.startsWith("text/html")) return bad("渠道拦住了原图。", 502);
 
 		const headers = new Headers();
@@ -66,10 +61,8 @@ export const GET: APIRoute = async ({ url }) => {
 			"content-disposition",
 			`${download ? "attachment" : "inline"}; filename="${filename}"`,
 		);
-		return new Response(upstream.body, { status: 200, headers });
+		return new Response(new Uint8Array(upstream.body), { status: 200, headers });
 	} catch {
 		return bad("原图超时。", 504);
-	} finally {
-		clearTimeout(timer);
 	}
 };
