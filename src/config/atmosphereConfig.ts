@@ -40,7 +40,7 @@ export const atmosphereConfig: AtmosphereConfig = {
 		locationTimeoutMs: 2000,
 	},
 	cursor: {
-		enable: true,
+		enable: false,
 	},
 	splash: {
 		enable: true,
