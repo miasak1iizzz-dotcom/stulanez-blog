@@ -2,12 +2,7 @@
 	import { onMount, tick } from "svelte";
 	import LocalArtwork from "./LocalArtwork.svelte";
 	import { artOptions, artworkFile, describeArtwork, filterArtworks, isArtworkPath, readArtDirectory, type Artwork, type LocalDirectoryHandle } from "@/utils/art-library";
-	const samples: Artwork[] = [
-		["kpop-arch.jpg", "光影之间", "kpop"], ["anime-fairy.jpg", "幻想切片", "二次元"],
-		["lol-zoe.jpg", "星光漫游", "LOL"], ["kpop-flowers.jpg", "花与日常", "kpop"],
-		["lol-seraphine.jpg", "声色流动", "LOL"], ["kpop-totoro.jpg", "偶遇片刻", "kpop"],
-	].map(([file, name, category]) => ({ ...describeArtwork(file), name, category, source: "站内示例", preview: `/assets/images/agent-board/${file}` }));
-	let entries = $state<Artwork[]>(samples);
+	let entries = $state<Artwork[]>([]);
 	let connected = $state(false);
 	let folder = $state("");
 	let scanning = $state(false);
@@ -110,7 +105,7 @@
 	</header>
 	<div class="intro">
 		<p>{connected ? `${folder} · 本机浏览` : "从一个画面，走进一个世界。"}</p>
-		<span>{connected ? "分类来自原有文件夹" : "选择电脑中的图片文件夹，原图留在本机。当前展示站内示例。"}</span>
+		<span>{connected ? "分类来自原有文件夹" : "选择电脑中的图片文件夹，原图留在本机。旧站内示例已清空。"}</span>
 	</div>
 	<div class="searchbox"><span aria-hidden="true">⌕</span><input type="search" bind:value={query} placeholder="搜索成员、画风、文件名…" aria-label="搜索图库" /><kbd>探索</kbd></div>
 	<nav class="categories" aria-label="艺术馆展厅">
@@ -119,6 +114,7 @@
 	</nav>
 	{#if scanning}<div class="notice" role="status">正在整理目录，已找到 {scanned.toLocaleString()} 张图片… <button onclick={() => { controller?.abort(); message = "已停止读取，原来的图墙仍保留。"; }}>停止</button></div>{/if}
 	{#if message}<p class="notice" role="status">{message}</p>{/if}
+	{#if connected}
 	<div class="filters">
 		<label>团体<select bind:value={group} onchange={() => member = ""}><option value="">全部团体</option>{#each groups as value}<option {value}>{value}</option>{/each}</select></label>
 		<label>成员<select bind:value={member}><option value="">全部成员</option>{#each members as value}<option {value}>{value}</option>{/each}</select></label>
@@ -126,7 +122,8 @@
 		<label>来源<select bind:value={source}><option value="">全部来源</option>{#each sources as value}<option {value}>{value}</option>{/each}</select></label>
 		<button class="reset" onclick={reset}>重置筛选</button>
 	</div>
-	<div id="art-results" class="results-heading"><div><span class="eyebrow">{connected ? "YOUR COLLECTION" : "PREVIEW EXHIBITION"}</span><h2>{title}</h2></div><span>{filtered.length.toLocaleString()} 张{!connected ? " · 示例" : ""}</span></div>
+	{/if}
+	<div id="art-results" class="results-heading"><div><span class="eyebrow">{connected ? "YOUR COLLECTION" : "WAITING"}</span><h2>{connected ? title : "还没有展品"}</h2></div><span>{connected ? `${filtered.length.toLocaleString()} 张` : "连接本机目录后开始"}</span></div>
 	{#if visible.length}
 		<div class="art-grid">
 			{#each visible as item, index (item.id)}
@@ -137,7 +134,7 @@
 			{/each}
 		</div>
 		{#if filtered.length > batchSize}<nav class="pagination" aria-label="图墙翻页"><button disabled={page === 0} onclick={() => changePage(-1)}>← 前一批</button><span>{page + 1} / {Math.ceil(filtered.length / batchSize)}</span><button disabled={(page + 1) * batchSize >= filtered.length} onclick={() => changePage(1)}>继续逛 →</button></nav>{/if}
-	{:else}<div class="empty"><h3>{entries.length ? "这次还没有找到" : "这里还没有展品"}</h3><p>{entries.length ? "换个关键词，或放宽筛选条件。" : "选一个含 JPG、PNG、WebP 等图片的文件夹。"}</p><button onclick={entries.length ? reset : chooseDirectory}>{entries.length ? "查看全部图片" : "选择图库"}</button></div>{/if}
+	{:else}<div class="empty"><h3>{entries.length ? "这次还没有找到" : "这里还没有展品"}</h3><p>{entries.length ? "换个关键词，或放宽筛选条件。" : "资源库旧示例已撤下。选一个含 JPG、PNG、WebP 的文件夹，或等新的数字资源库就绪。"}</p><button onclick={entries.length ? reset : chooseDirectory}>{entries.length ? "查看全部图片" : "选择图库"}</button></div>{/if}
 	<footer>艺术馆 · 私藏的另一种打开方式 <span>{connected ? "仅在当前浏览器读取；刷新后需重新选择目录。" : "相册与私人收藏，留给另一段故事。"}</span></footer>
 </section>
 
