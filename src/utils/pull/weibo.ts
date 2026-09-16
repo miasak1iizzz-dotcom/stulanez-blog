@@ -21,13 +21,21 @@ function weiboId(url: string): string | null {
 	return null;
 }
 
+type WeiboPicInfo = {
+	largest?: { url?: string };
+	large?: { url?: string };
+	original?: { url?: string };
+	mw2000?: { url?: string };
+};
+
 type WeiboShow = {
 	ok?: number;
 	data?: {
 		text?: string;
 		user?: { screen_name?: string };
-		pics?: Array<{ large?: { url?: string }; url?: string }>;
-		pic_infos?: Record<string, { largest?: { url?: string }; large?: { url?: string } }>;
+		pic_ids?: string[];
+		pics?: Array<{ pid?: string; large?: { url?: string }; url?: string }>;
+		pic_infos?: Record<string, WeiboPicInfo>;
 		page_info?: { pics?: { large?: { url?: string } } };
 	};
 	msg?: string;
@@ -40,6 +48,60 @@ function upgradeSina(url: string): string {
 		.replace(/\/thumb\d+\//, "/large/")
 		.replace(/\/bmiddle\//, "/large/")
 		.replace(/\/small\//, "/large/");
+}
+
+function sinaMediaKey(url: string): string {
+	try {
+		const path = new URL(url).pathname;
+		const base = path.split("/").pop() || path;
+		return base.replace(/\.(jpe?g|png|gif|webp)$/i, "").toLowerCase();
+	} catch {
+		return url;
+	}
+}
+
+function pickInfoUrl(info: WeiboPicInfo): string | undefined {
+	return (
+		info.original?.url ||
+		info.largest?.url ||
+		info.large?.url ||
+		info.mw2000?.url
+	);
+}
+
+function collectWeiboPics(blog: NonNullable<WeiboShow["data"]>): string[] {
+	const out: string[] = [];
+	const seen = new Set<string>();
+	const push = (raw?: string) => {
+		if (!raw) return;
+		const url = upgradeSina(raw);
+		if (/avatar|orj480|thumbnail|crop\.|\/50\//i.test(url)) return;
+		const key = sinaMediaKey(url);
+		if (!key || seen.has(key)) return;
+		seen.add(key);
+		out.push(url);
+	};
+
+	// Prefer pic_infos (has largest) ordered by pic_ids. Do NOT also merge pics —
+	// same photo often appears again on another wx CDN host and inflates the count.
+	if (blog.pic_infos && Object.keys(blog.pic_infos).length) {
+		const order =
+			Array.isArray(blog.pic_ids) && blog.pic_ids.length
+				? blog.pic_ids
+				: Object.keys(blog.pic_infos);
+		for (const id of order) {
+			const info = blog.pic_infos[id];
+			if (info) push(pickInfoUrl(info));
+		}
+		return out;
+	}
+
+	if (blog.pics?.length) {
+		for (const pic of blog.pics) {
+			push(pic.large?.url || pic.url);
+		}
+	}
+	return out;
 }
 
 export async function extractWeibo(input: string): Promise<PullResult> {
@@ -73,20 +135,8 @@ export async function extractWeibo(input: string): Promise<PullResult> {
 		};
 	}
 
-	const pics: string[] = [];
 	const blog = data?.data;
-	if (blog?.pics) {
-		for (const pic of blog.pics) {
-			if (pic.large?.url) pics.push(pic.large.url);
-			else if (pic.url) pics.push(pic.url);
-		}
-	}
-	if (blog?.pic_infos) {
-		for (const info of Object.values(blog.pic_infos)) {
-			const u = info.largest?.url || info.large?.url;
-			if (u) pics.push(u);
-		}
-	}
+	let pics = blog ? collectWeiboPics(blog) : [];
 
 	if (!pics.length) {
 		const html = await fetchText(`https://m.weibo.cn/detail/${id}`, {
@@ -97,19 +147,32 @@ export async function extractWeibo(input: string): Promise<PullResult> {
 		if (render?.[1]) {
 			try {
 				const parsed: unknown = JSON.parse(render[1]);
-				pics.push(...walkImageUrls(parsed));
+				const walked = walkImageUrls(parsed)
+					.filter((u) => /sinaimg\.cn/i.test(u))
+					.map(upgradeSina);
+				const seen = new Set<string>();
+				for (const url of walked) {
+					const key = sinaMediaKey(url);
+					if (seen.has(key)) continue;
+					seen.add(key);
+					pics.push(url);
+				}
 			} catch {
 				/* ignore */
 			}
 		}
 		const og = metaContent(html.text, "og:image");
-		if (og) pics.push(og);
+		if (og && /sinaimg\.cn/i.test(og)) {
+			const url = upgradeSina(og);
+			const key = sinaMediaKey(url);
+			if (!pics.some((p) => sinaMediaKey(p) === key)) pics.push(url);
+		}
 		if (!pics.length && (status >= 400 || html.status >= 400)) {
 			return { ok: false, error: "微博没有把图给我。可能要登录，或这条不是公开帖。" };
 		}
 	}
 
-	const images = filenamesFor("weibo", uniqueUrls(pics.map(upgradeSina)));
+	const images = filenamesFor("weibo", uniqueUrls(pics));
 	if (!images.length) {
 		return { ok: false, error: "这条微博里没有抽出图片。" };
 	}
