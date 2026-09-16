@@ -25,7 +25,6 @@ let orderMode = $state<OrderMode>("seq");
 let axis = $state<Axis>("marquee");
 let range = $state<Range>("page");
 let pack = $state<Pack>("each");
-let marqueePaused = $state(false);
 let grabbing = $state(false);
 let page = $state(1);
 let deck = $state<PullImage[]>([]);
@@ -38,7 +37,6 @@ let marqueeEl = $state<HTMLDivElement | undefined>(undefined);
 let trackEl = $state<HTMLDivElement | undefined>(undefined);
 let skipClick = false;
 let dragActive = false;
-let hoverMarquee = false;
 let offsetX = 0;
 let velocity = 0;
 let loopWidth = 0;
@@ -172,7 +170,6 @@ function onMarqueeDown(event: PointerEvent): void {
 	}
 	dragActive = true;
 	grabbing = true;
-	marqueePaused = true;
 	velocity = 0;
 	movedPx = 0;
 	skipClick = false;
@@ -211,7 +208,6 @@ function onMarqueeUp(event: PointerEvent): void {
 	} catch {
 		/* already released */
 	}
-	if (!hoverMarquee) marqueePaused = false;
 }
 
 $effect(() => {
@@ -238,7 +234,7 @@ $effect(() => {
 				velocity *= 0.955 ** (dt / 16);
 				if (Math.abs(velocity) < 0.02) velocity = 0;
 				paintTrack();
-			} else if (!marqueePaused && !reduced && loopWidth > 0) {
+			} else if (!reduced && loopWidth > 0) {
 				const seconds = Math.max(28, pageImages.length * 5.2);
 				offsetX = wrapOffset(offsetX - (loopWidth / (seconds * 1000)) * dt);
 				paintTrack();
@@ -536,18 +532,9 @@ async function runDownload(): Promise<void> {
 		<div
 			bind:this={marqueeEl}
 			class="marquee is-grab"
-			class:paused={marqueePaused}
 			class:is-grabbing={grabbing}
 			role="region"
 			aria-label="左右跑马灯预览"
-			onpointerenter={() => {
-				hoverMarquee = true;
-				marqueePaused = true;
-			}}
-			onpointerleave={() => {
-				hoverMarquee = false;
-				if (!dragActive) marqueePaused = false;
-			}}
 			onpointerdown={onMarqueeDown}
 			onpointermove={onMarqueeMove}
 			onpointerup={onMarqueeUp}
