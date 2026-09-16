@@ -59,10 +59,16 @@ export async function extractPull(
 			return { ok: false, error: "渠道响应太慢，过一会儿再试。" };
 		}
 		if (/timeout|fetch failed|ECONN|ENOTFOUND|UND_ERR|Connect Timeout|socket|proxy/i.test(`${message} ${cause}`)) {
+			if (detected === "instagram") {
+				return {
+					ok: false,
+					error:
+						"本机连不上 Instagram（通常要外网）。请先打开本机代理（常见端口 7897 / 7890 / 10809），或设置环境变量 PULL_PROXY / HTTPS_PROXY 后再抽。",
+				};
+			}
 			return {
 				ok: false,
-				error:
-					"连不上这个渠道。Instagram 往往要本机代理；确认代理开着，或设置 HTTPS_PROXY 后再抽。",
+				error: "连不上这个渠道。检查本机网络；国外站点往往要开代理。",
 			};
 		}
 		return { ok: false, error: "提取失败。链接失效、要登录，或渠道改了页面。" };

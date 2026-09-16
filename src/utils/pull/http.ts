@@ -272,6 +272,14 @@ function isNetworkError(error: unknown): boolean {
 	);
 }
 
+export async function getPullProxy(): Promise<string | null> {
+	return resolveProxy();
+}
+
+export function isPullNetworkError(error: unknown): boolean {
+	return isNetworkError(error);
+}
+
 export async function fetchBinary(
 	url: string,
 	init: PullFetchInit = {},

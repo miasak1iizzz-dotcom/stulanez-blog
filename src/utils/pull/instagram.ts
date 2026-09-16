@@ -1,4 +1,4 @@
-import { fetchText } from "./http";
+import { fetchText, getPullProxy, isPullNetworkError } from "./http";
 import {
 	collectHttpUrls,
 	decodeHtml,
@@ -10,6 +10,22 @@ import {
 } from "./parse";
 import type { PullResult } from "./types";
 import { IPHONE_UA } from "./types";
+
+async function igNetworkFail(): Promise<PullResult> {
+	const proxy = await getPullProxy();
+	if (!proxy) {
+		return {
+			ok: false,
+			error:
+				"本机连不上 Instagram（通常要外网）。请先打开本机代理（常见端口 7897 / 7890 / 10809），或设置环境变量 PULL_PROXY / HTTPS_PROXY 后再抽。",
+		};
+	}
+	return {
+		ok: false,
+		error:
+			"代理已开，但仍连不上 Instagram。检查代理能不能访问外网，或换一条节点后再抽。",
+	};
+}
 
 function shortcode(url: string): string | null {
 	const m =
@@ -98,80 +114,88 @@ function extractCandidateUrls(html: string): string[] {
 }
 
 export async function extractInstagram(input: string): Promise<PullResult> {
-	const sourceUrl = needUrl(input);
-	let working = sourceUrl;
-	if (/instagram\.com\/share\/|l\.instagram\.com/i.test(working)) {
-		const bounced = await fetchText(working, {
+	try {
+		const sourceUrl = needUrl(input);
+		let working = sourceUrl;
+		if (/instagram\.com\/share\/|l\.instagram\.com/i.test(working)) {
+			const bounced = await fetchText(working, {
+				mobile: true,
+				headers: {
+					"User-Agent": IPHONE_UA,
+					Referer: "https://www.instagram.com/",
+				},
+			});
+			working = bounced.url || working;
+		}
+		const code = shortcode(working);
+		if (!code) {
+			return {
+				ok: false,
+				error: "这不像 Instagram 帖。请贴 App 分享链接，或 /p/、/reel/ 网页地址。",
+			};
+		}
+
+		const pageUrl = `https://www.instagram.com/p/${code}/`;
+		const html = await fetchText(pageUrl, {
 			mobile: true,
 			headers: {
 				"User-Agent": IPHONE_UA,
 				Referer: "https://www.instagram.com/",
+				Accept: "text/html",
 			},
 		});
-		working = bounced.url || working;
-	}
-	const code = shortcode(working);
-	if (!code) {
+
+		const pics = extractCandidateUrls(html.text);
+
+		if (!pics.length) {
+			const embed = await fetchText(
+				`https://www.instagram.com/p/${code}/embed/captioned/`,
+				{
+					mobile: true,
+					headers: {
+						"User-Agent": IPHONE_UA,
+						Referer: "https://www.instagram.com/",
+					},
+				},
+			);
+			pics.push(...extractCandidateUrls(embed.text));
+		}
+
+		const images = filenamesFor("instagram", pickBestPerMedia(uniqueUrls(pics)));
+		if (!images.length) {
+			return {
+				ok: false,
+				error: "Instagram 没有把图给我。登录墙或私密帖会这样。公开帖再试一次。",
+			};
+		}
+
+		const title =
+			metaContent(html.text, "og:title") ||
+			metaContent(html.text, "og:description") ||
+			`Instagram ${code}`;
+		const authorM =
+			/instagram\.com\/([A-Za-z0-9._]+)\/(?:p|reel)\//i.exec(html.url) ||
+			/"username":"([A-Za-z0-9._]+)"/.exec(html.text);
+
+		let warning: string | undefined;
+		if (images.length === 1) {
+			warning = "多图帖有时只能先拿到封面。";
+		}
+
 		return {
-			ok: false,
-			error: "这不像 Instagram 帖。请贴 App 分享链接，或 /p/、/reel/ 网页地址。",
+			ok: true,
+			channel: "instagram",
+			sourceUrl: html.url || sourceUrl,
+			title: decodeHtml(title)
+				.replace(/\s+on Instagram.*$/i, "")
+				.replace(/\s+的 Instagram.*$/u, "")
+				.slice(0, 80),
+			author: authorM?.[1],
+			images,
+			warning,
 		};
+	} catch (error) {
+		if (isPullNetworkError(error)) return igNetworkFail();
+		throw error;
 	}
-
-	const pageUrl = `https://www.instagram.com/p/${code}/`;
-	const html = await fetchText(pageUrl, {
-		mobile: true,
-		headers: {
-			"User-Agent": IPHONE_UA,
-			Referer: "https://www.instagram.com/",
-			Accept: "text/html",
-		},
-	});
-
-	const pics = extractCandidateUrls(html.text);
-
-	if (!pics.length) {
-		const embed = await fetchText(`https://www.instagram.com/p/${code}/embed/captioned/`, {
-			mobile: true,
-			headers: {
-				"User-Agent": IPHONE_UA,
-				Referer: "https://www.instagram.com/",
-			},
-		});
-		pics.push(...extractCandidateUrls(embed.text));
-	}
-
-	const images = filenamesFor("instagram", pickBestPerMedia(uniqueUrls(pics)));
-	if (!images.length) {
-		return {
-			ok: false,
-			error: "Instagram 没有把图给我。登录墙或私密帖会这样。公开帖再试一次。",
-		};
-	}
-
-	const title =
-		metaContent(html.text, "og:title") ||
-		metaContent(html.text, "og:description") ||
-		`Instagram ${code}`;
-	const authorM =
-		/instagram\.com\/([A-Za-z0-9._]+)\/(?:p|reel)\//i.exec(html.url) ||
-		/"username":"([A-Za-z0-9._]+)"/.exec(html.text);
-
-	let warning: string | undefined;
-	if (images.length === 1) {
-		warning = "多图帖有时只能先拿到封面。";
-	}
-
-	return {
-		ok: true,
-		channel: "instagram",
-		sourceUrl: html.url || sourceUrl,
-		title: decodeHtml(title)
-			.replace(/\s+on Instagram.*$/i, "")
-			.replace(/\s+的 Instagram.*$/u, "")
-			.slice(0, 80),
-		author: authorM?.[1],
-		images,
-		warning,
-	};
 }
