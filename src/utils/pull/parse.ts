@@ -15,8 +15,9 @@ export function decodeMaybeUri(value: string): string {
 
 export function unescapeJsonString(value: string): string {
 	return value
-		.replace(/\\u0026/g, "&")
-		.replace(/\\u003d/g, "=")
+		.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex: string) =>
+			String.fromCharCode(Number.parseInt(hex, 16)),
+		)
 		.replace(/\\\//g, "/")
 		.replace(/\\"/g, '"');
 }
@@ -77,6 +78,12 @@ export function metaContent(html: string, key: string): string | undefined {
 
 export function decodeHtml(value: string): string {
 	return value
+		.replace(/&#x([0-9a-fA-F]+);/gi, (_, hex: string) =>
+			String.fromCharCode(Number.parseInt(hex, 16)),
+		)
+		.replace(/&#(\d+);/g, (_, num: string) =>
+			String.fromCharCode(Number(num)),
+		)
 		.replace(/&amp;/g, "&")
 		.replace(/&quot;/g, '"')
 		.replace(/&#39;/g, "'")

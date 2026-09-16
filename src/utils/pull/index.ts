@@ -51,8 +51,19 @@ export async function extractPull(
 		return await EXTRACTORS[detected](url);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
+		const cause =
+			error instanceof Error && "cause" in error
+				? String((error as { cause?: { code?: string; message?: string } }).cause?.code ?? "")
+				: "";
 		if (/abort/i.test(message)) {
 			return { ok: false, error: "渠道响应太慢，过一会儿再试。" };
+		}
+		if (/timeout|fetch failed|ECONN|ENOTFOUND|UND_ERR|Connect Timeout|socket|proxy/i.test(`${message} ${cause}`)) {
+			return {
+				ok: false,
+				error:
+					"连不上这个渠道。Instagram 往往要本机代理；确认代理开着，或设置 HTTPS_PROXY 后再抽。",
+			};
 		}
 		return { ok: false, error: "提取失败。链接失效、要登录，或渠道改了页面。" };
 	}
