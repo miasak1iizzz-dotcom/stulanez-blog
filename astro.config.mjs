@@ -153,7 +153,9 @@ export default defineConfig({
 					p === "/art" ||
 					p.startsWith("/art/") ||
 					p === "/tft" ||
-					p.startsWith("/tft/");
+					p.startsWith("/tft/") ||
+					p === "/library" ||
+					p.startsWith("/library/");
 				const toTool = isTool(path);
 				const fromTool =
 					typeof document !== "undefined" &&

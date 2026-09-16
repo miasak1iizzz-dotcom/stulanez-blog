@@ -17,7 +17,9 @@ export function resolvePageShell(pathname: string): PageShell {
 		path === "/art" ||
 		path.startsWith("/art/") ||
 		path === "/tft" ||
-		path.startsWith("/tft/")
+		path.startsWith("/tft/") ||
+		path === "/library" ||
+		path.startsWith("/library/")
 	) {
 		return "tool";
 	}

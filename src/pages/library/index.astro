@@ -1,0 +1,46 @@
+---
+import AssetLibraryBrowser from "@/components/assets/AssetLibraryBrowser.svelte";
+import { assetLibraryConfig } from "@/config/assetLibraryConfig";
+import Layout from "@/layouts/Layout.astro";
+import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
+import { siteConfig } from "@/config";
+import { listLibraryAssets } from "@/utils/asset-library";
+
+const assets = listLibraryAssets();
+const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
+---
+
+{
+	assetLibraryConfig.enable ? (
+		<Layout title={assetLibraryConfig.title} description={assetLibraryConfig.description}>
+			<HeaderTopRow stickyNavbar={true} {navbarWidthFull} />
+			<div id="banner-overlay-container" hidden />
+			<div id="banner-dim-container" hidden />
+			<div id="left-sidebar-dynamic" hidden />
+			<div id="right-sidebar-dynamic" hidden />
+			<div id="floating-toc-wrapper" hidden />
+			<main class="library-tool-main">
+				<AssetLibraryBrowser client:load assets={assets} />
+			</main>
+		</Layout>
+	) : (
+		<Layout title="数字资源库" description="暂未开放">
+			<main class="library-tool-main"><p>数字资源库暂未开放。</p></main>
+		</Layout>
+	)
+}
+
+<style is:global>
+	body:has(.library-tool-main) {
+		background: var(--page-bg);
+	}
+	.library-tool-main {
+		min-height: 100vh;
+		padding: 5.5rem 1rem 2.5rem;
+	}
+	@media (max-width: 640px) {
+		.library-tool-main {
+			padding: 5rem 0.55rem 1.8rem;
+		}
+	}
+</style>
