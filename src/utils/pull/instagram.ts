@@ -22,6 +22,12 @@ function shortcode(url: string): string | null {
 
 function keepIg(url: string): boolean {
 	if (/static\.cdninstagram\.com|\/rsrc\.php\//i.test(url)) return false;
+	try {
+		const path = new URL(url).pathname;
+		if (!/\.(jpe?g|png|webp|heic|gif)$/i.test(path)) return false;
+	} catch {
+		return false;
+	}
 	if (/scontent[^/]*\.cdninstagram\.com/i.test(url)) return true;
 	if (/fbcdn\.net/i.test(url) && /\/t\d+\./i.test(url)) return true;
 	return /instagram\.com\/.*\.(jpg|jpeg|png|webp)/i.test(url);
