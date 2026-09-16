@@ -1,6 +1,5 @@
 ---
 import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
-import PullNavDock from "@/components/pull/PullNavDock.svelte";
 import { siteConfig } from "@/config";
 import Layout from "@/layouts/Layout.astro";
 
@@ -15,7 +14,6 @@ const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 
 <Layout {title} {description}>
 	<HeaderTopRow stickyNavbar={true} {navbarWidthFull} />
-	<PullNavDock client:load />
 	<div id="banner-overlay-container" hidden></div>
 	<div id="banner-dim-container" hidden></div>
 	<div id="left-sidebar-dynamic" hidden></div>
@@ -33,26 +31,6 @@ const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 		color-scheme: light;
 	}
 
-	body:has(.pull-tool-main) #top-row {
-		height: 4.5rem !important;
-		will-change: transform, opacity;
-		transform: translate3d(0, calc(-100% - 14px), 0);
-		opacity: 0;
-		transition:
-			transform 0.58s cubic-bezier(0.22, 1, 0.36, 1),
-			opacity 0.32s ease !important;
-	}
-
-	body:has(.pull-tool-main).pull-nav-open #top-row,
-	body:has(.pull-tool-main).pull-nav-pinned #top-row {
-		transform: translate3d(0, 0, 0);
-		opacity: 1;
-	}
-
-	body:has(.pull-tool-main):not(.pull-nav-open):not(.pull-nav-pinned) #navbar-wrapper {
-		pointer-events: none !important;
-	}
-
 	.pull-tool-main {
 		min-height: 100vh;
 		padding: 0.7rem 0.55rem 4.6rem;
@@ -63,6 +41,8 @@ const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 		transition: padding-top 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 	}
 
+	body:has(.pull-tool-main).site-nav-pinned .pull-tool-main,
+	body:has(.pull-tool-main).site-nav-at-top.site-nav-open .pull-tool-main,
 	body:has(.pull-tool-main).pull-nav-pinned .pull-tool-main,
 	body:has(.pull-tool-main).pull-nav-at-top.pull-nav-open .pull-tool-main {
 		padding-top: 5.6rem;

@@ -1,5 +1,6 @@
 ---
 import Navbar from "@components/layout/Navbar.astro";
+import NavDock from "@/components/layout/NavDock.svelte";
 
 interface Props {
 	stickyNavbar: boolean;
@@ -28,3 +29,4 @@ const { stickyNavbar, navbarWidthFull } = Astro.props;
         <Navbar></Navbar>
     </div>
 </div>
+<NavDock client:load />

@@ -1,7 +1,8 @@
 <script lang="ts">
 import { untrack } from "svelte";
 
-const PIN_KEY = "pull-nav-pinned";
+const PIN_KEY = "site-nav-pinned";
+const LEGACY_PIN_KEY = "pull-nav-pinned";
 
 let pinned = $state(false);
 let open = $state(false);
@@ -16,6 +17,10 @@ function atTop(): boolean {
 }
 
 function apply(): void {
+	document.body.classList.add("site-nav-ready");
+	document.body.classList.toggle("site-nav-pinned", pinned);
+	document.body.classList.toggle("site-nav-open", open || pinned);
+	document.body.classList.toggle("site-nav-at-top", atTop());
 	document.body.classList.toggle("pull-nav-pinned", pinned);
 	document.body.classList.toggle("pull-nav-open", open || pinned);
 	document.body.classList.toggle("pull-nav-at-top", atTop());
@@ -99,9 +104,79 @@ function placeDock(): void {
 	dockEl.style.top = `${bar.bottom - 13}px`;
 }
 
+function readPinned(): boolean {
+	try {
+		const next = localStorage.getItem(PIN_KEY);
+		if (next === "1" || next === "0") return next === "1";
+		return localStorage.getItem(LEGACY_PIN_KEY) === "1";
+	} catch {
+		return false;
+	}
+}
+
+function onScroll(): void {
+	if (ticking) return;
+	ticking = true;
+	requestAnimationFrame(() => {
+		ticking = false;
+		const y = window.scrollY;
+		const goingDown = y > lastY + 4;
+		lastY = y;
+		if (pinned) {
+			apply();
+			return;
+		}
+		if (goingDown && y > 12) {
+			suppressed = false;
+			cancelClose();
+			setOpen(false);
+			return;
+		}
+		if (atTop() && !suppressed) setOpen(true);
+		else apply();
+	});
+}
+
+function bindSwup(): (() => void) | undefined {
+	let alive = true;
+	const onView = (): void => {
+		if (!alive) return;
+		requestAnimationFrame(() => {
+			if (!alive) return;
+			if (atTop() && !suppressed && !pinned) open = true;
+			apply();
+		});
+	};
+	if (window.swup?.hooks) {
+		window.swup.hooks.on("page:view", onView);
+		return () => {
+			alive = false;
+			try {
+				window.swup?.hooks?.off?.("page:view", onView);
+			} catch {
+				/* ignore */
+			}
+		};
+	}
+	const onEnable = (): void => {
+		if (!alive) return;
+		window.swup?.hooks?.on("page:view", onView);
+	};
+	document.addEventListener("swup:enable", onEnable);
+	return () => {
+		alive = false;
+		document.removeEventListener("swup:enable", onEnable);
+		try {
+			window.swup?.hooks?.off?.("page:view", onView);
+		} catch {
+			/* ignore */
+		}
+	};
+}
+
 $effect(() => {
 	if (typeof window === "undefined") return;
-	const stored = localStorage.getItem(PIN_KEY) === "1";
+	const stored = readPinned();
 	untrack(() => {
 		pinned = stored;
 		open = stored || atTop();
@@ -110,29 +185,6 @@ $effect(() => {
 	lastY = window.scrollY;
 
 	const top = document.getElementById("top-row");
-	const onScroll = (): void => {
-		if (ticking) return;
-		ticking = true;
-		requestAnimationFrame(() => {
-			ticking = false;
-			const y = window.scrollY;
-			const goingDown = y > lastY + 4;
-			lastY = y;
-			if (pinned) {
-				apply();
-				return;
-			}
-			if (goingDown && y > 12) {
-				suppressed = false;
-				cancelClose();
-				setOpen(false);
-				return;
-			}
-			if (atTop() && !suppressed) setOpen(true);
-			else apply();
-		});
-	};
-
 	const onResize = (): void => placeDock();
 	window.addEventListener("scroll", onScroll, { passive: true });
 	window.addEventListener("resize", onResize);
@@ -140,6 +192,7 @@ $effect(() => {
 	top?.addEventListener("mouseleave", scheduleClose);
 	top?.addEventListener("transitionend", placeDock);
 	requestAnimationFrame(placeDock);
+	const unbindSwup = bindSwup();
 
 	return () => {
 		window.removeEventListener("scroll", onScroll);
@@ -148,7 +201,12 @@ $effect(() => {
 		top?.removeEventListener("mouseleave", scheduleClose);
 		top?.removeEventListener("transitionend", placeDock);
 		window.clearTimeout(leaveTimer);
+		unbindSwup?.();
 		document.body.classList.remove(
+			"site-nav-ready",
+			"site-nav-open",
+			"site-nav-pinned",
+			"site-nav-at-top",
 			"pull-nav-open",
 			"pull-nav-pinned",
 			"pull-nav-at-top",
@@ -158,7 +216,7 @@ $effect(() => {
 </script>
 
 <div
-	id="pull-nav-hotspot"
+	id="site-nav-hotspot"
 	role="presentation"
 	onmouseenter={reveal}
 	onclick={reveal}
@@ -167,7 +225,7 @@ $effect(() => {
 {#if !open && !pinned}
 	<button
 		type="button"
-		class="pull-tab"
+		class="site-nav-tab"
 		aria-label="展开顶栏"
 		title="展开顶栏"
 		onclick={reveal}
@@ -185,7 +243,7 @@ $effect(() => {
 {/if}
 
 <div
-	id="pull-nav-dock"
+	id="site-nav-dock"
 	class="dock"
 	class:away={!open && !pinned}
 	bind:this={dockEl}
@@ -227,7 +285,7 @@ $effect(() => {
 </div>
 
 <style>
-	#pull-nav-hotspot {
+	#site-nav-hotspot {
 		position: fixed;
 		top: 0;
 		left: 0;
@@ -237,12 +295,11 @@ $effect(() => {
 		pointer-events: none;
 	}
 
-	:global(body:has(.pull-tool-main):not(.pull-nav-open):not(.pull-nav-pinned))
-		#pull-nav-hotspot {
+	:global(body:not(.site-nav-open):not(.site-nav-pinned)) #site-nav-hotspot {
 		pointer-events: auto;
 	}
 
-	.pull-tab {
+	.site-nav-tab {
 		position: fixed;
 		top: 0;
 		left: 50%;
@@ -260,7 +317,7 @@ $effect(() => {
 	.cord {
 		width: 1.5px;
 		height: 9px;
-		background: rgba(107, 55, 67, 0.38);
+		background: color-mix(in oklch, var(--btn-content) 42%, transparent);
 	}
 
 	.dock {
@@ -282,11 +339,11 @@ $effect(() => {
 		width: 1.55rem;
 		height: 1.55rem;
 		padding: 0;
-		border: 1px solid rgba(200, 185, 170, 0.55);
+		border: 1px solid color-mix(in oklch, var(--btn-content) 28%, transparent);
 		border-radius: 999px;
-		background: rgba(255, 248, 246, 0.94);
-		color: #6b3743;
-		box-shadow: 0 4px 12px rgba(107, 55, 67, 0.12);
+		background: color-mix(in oklch, var(--card-bg) 92%, transparent);
+		color: var(--btn-content);
+		box-shadow: 0 4px 12px color-mix(in oklch, var(--btn-content) 14%, transparent);
 		cursor: pointer;
 		transition:
 			transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
@@ -295,15 +352,15 @@ $effect(() => {
 	}
 
 	.dock-btn:hover,
-	.pull-tab:hover .dock-btn {
+	.site-nav-tab:hover .dock-btn {
 		transform: translateY(-1px);
-		background: #fff;
+		background: var(--card-bg);
 	}
 
 	.dock-btn.on {
-		background: #241b1a;
-		border-color: #241b1a;
-		color: #f6ecea;
+		background: var(--btn-content);
+		border-color: var(--btn-content);
+		color: var(--card-bg);
 	}
 
 	.dock-btn svg {
