@@ -1,0 +1,240 @@
+{
+	"updated": "2026-09-07",
+	"entries": [
+		{
+			"id": "E-024",
+			"domain": "抓取",
+			"title": "国内图源目标是自主找图，不是单链接下载",
+			"scenario": "老板要打通 B站/抖音/小红书/微博作为资产库渠道",
+			"method": "对齐最初数字资产库玩法：泛任务 → AI 自己上网检索发现 → 批量下载 → 内容去重+可追溯。单条公开页打样只算连通性探针，不算渠道打通。",
+			"pitfall": "把「已知链接能下」误报成渠道成熟；用「丢链接补货」替代自主发现会偏离老板意图。",
+			"evidence": "老板 2026-09-07 当面纠正 Cursor：要像 DeepSeek/GLM 建库时自己找图；T-014 目标已改写。",
+			"date": "2026-09-07"
+		},
+		{
+			"id": "E-023",
+			"domain": "抓取",
+			"title": "抖音公开图文先试网页，不预设必须登录",
+			"scenario": "用户给 /user/self?modal_id=作品号 的图文样例",
+			"method": "提取 modal_id；本次 /video/作品号 被站点跳转到 /note/作品号，网页显示未登录仍加载 45 张图。按页面图片地址去重，导出 43 张并从页面已观察地址补齐 2 张；全部解码和内容指纹校验后打包。",
+			"pitfall": "本机 yt-dlp 2026.7.4 走视频详情路径，gallery-dl 1.32.9 无 Douyin 提取器，均不能直接证明图文可采。Cookie 部分完整字段请求得到 HTTP 200/status_code 0 但无详情，不等于凭证有效。网页图片链接有时效，后续应重新从页面取；WebP 不称相机原片。",
+			"evidence": "7666324619125407482：一期ASA壁纸，45 张，14,054,306 字节，宽 1639–1850、高 3623–4096，ZIP 校验通过。",
+			"date": "2026-09-07"
+		},
+		{
+			"id": "E-022",
+			"domain": "协作",
+			"title": "索取登录凭证要给具体步骤，先验证单条",
+			"scenario": "新图源需要浏览器登录态，老板不清楚要什么",
+			"method": "解释 Cookie 是临时登录通行证；说明本站请求 Cookie 的获取位置、完整一行的格式、仓库外本地保存路径。只接收文件路径与公开样例链接，不把实际凭证写入聊天、看板或仓库。",
+			"pitfall": "只说『复制 Cookies 表给我』会让人无从下手；截图可能截断值。其他平台成功不代表新平台已通，拿到 Cookie 也不能承诺固定时间开通三线。",
+			"evidence": "N-004 老板要求具体说明并提供抖音截图；本轮补齐说明，T-014 仍待文件与样例，未冒报开通。",
+			"date": "2026-09-07"
+		},
+		{
+			"id": "E-001",
+			"domain": "抓取",
+			"title": "B站 412 软风控正确姿势",
+			"scenario": "搜索/正文接口批量拉取",
+			"method": "间隔≥2.5s + 412退避6/12/18s+随机抖动 + 失败关键词30min后补跑 + 绝不并行双管线",
+			"pitfall": "连发必412；412后立即下一个请求=进惩罚窗口越撞越死",
+			"evidence": "kpop 592 + 二次元 227 双线实证",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-002",
+			"domain": "抓取",
+			"title": "kpopping 软限流是 404/500 不是 429",
+			"scenario": "团页/成员页批量抓取",
+			"method": "404/500退避即可；硬CF挑战(chlray)换出口IP——用户代理7897实测满血复活",
+			"pitfall": "把软限流404当成没数据就全漏了",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-003",
+			"domain": "通用",
+			"title": "去重三层",
+			"scenario": "任何批量下载",
+			"method": "媒体ID archive（gallery-dl --download-archive）> 内容sha256 > URL辅助",
+			"pitfall": "只用URL层=同图不同URL去不掉；双实例并行期虚增6,836张的根因",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-004",
+			"domain": "抓取",
+			"title": "bing 图片抓取是降级假结果",
+			"scenario": "无JS抓bing图搜",
+			"method": "弃用。换真源/API",
+			"pitfall": "返回风控假页：kpop关键词返回三菱汽车图——抓取渠道必须抽样目检",
+			"date": "2026-08-27"
+		},
+		{
+			"id": "E-005",
+			"domain": "抓取",
+			"title": "IG 镜像站全灭",
+			"scenario": "imginn/imgsed/pixwox/picuki",
+			"method": "弃。官方cookie线或fastdl浏览器管线",
+			"pitfall": "CF盾+picuki已转型TikTok站；镜像站时效性月抛",
+			"date": "2026-08-27"
+		},
+		{
+			"id": "E-006",
+			"domain": "抓取",
+			"title": "B站专栏双坑",
+			"scenario": "专栏正文抓取",
+			"method": "封面图在搜索结果 image_urls 永远可用，拿它兜底；正文仅旧式专栏有",
+			"pitfall": "新版opus专栏 article/view 返回空 content",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-007",
+			"domain": "TFT",
+			"title": "production hydration 变量未定义即白屏",
+			"scenario": "Svelte 组件事件处理器",
+			"method": "所有模板引用的函数必须定义（如 moveTooltip）",
+			"pitfall": "本地 dev 不报错，生产 hydration ReferenceError→页面空白",
+			"date": "2026-08-27"
+		},
+		{
+			"id": "E-008",
+			"domain": "构建",
+			"title": "图标名不存在→整站构建失败",
+			"scenario": "astro icon 使用",
+			"method": "pnpm build 必跑（如 material-symbols:signpost-rounded 才有效）",
+			"pitfall": "check 不报错但 build 挂",
+			"date": "2026-08-27"
+		},
+		{
+			"id": "E-009",
+			"domain": "环境",
+			"title": "node-undici TLS 指纹被 Pixiv WAF 403",
+			"scenario": "pixiv ajax 接口",
+			"method": "curl/PowerShell 稳；node 必须带 cookie 兜底",
+			"pitfall": "误判为需要登录；交叉验证（curl/PS/node 三通道对照）定位真因",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-010",
+			"domain": "协作",
+			"title": "后台长跑三件套",
+			"scenario": "批量下载队列",
+			"method": "断点标记(_done) + 全局防重档案 + 看护进程(日志心跳+自动重启)",
+			"pitfall": "缺一就事故：无声暴毙/重复虚增/与Serpent导入冲突",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-011",
+			"domain": "协作",
+			"title": "杀后台脚本按 PID 确认死亡",
+			"scenario": "TaskStop 后的孤儿进程",
+			"method": "taskkill 后复查进程表；看护复活会拉起深挖队列与 Serpent 导入正面冲突",
+			"pitfall": "TaskStop 显示 killed 但 bash 孤儿存活",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-012",
+			"domain": "抓取",
+			"title": " cookies.txt 第5列是 UNIX 时间戳",
+			"scenario": "gallery-dl --cookies",
+			"method": ".domain\tTRUE\t/\tTRUE\t1900000000\tname\tvalue",
+			"pitfall": "写成1→sessionid expired at 1970 静默失效",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-013",
+			"domain": "通用",
+			"title": "大整理前退出 Serpent",
+			"scenario": "库目录大规模文件操作",
+			"method": "先退出 Serpent → 操作 → 重开重扫",
+			"pitfall": "几万次文件搬移期间实时索引→WAL膨胀225MB→worker假死→卡爆",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-014",
+			"domain": "通用",
+			"title": "kpopping slug 反斜杠",
+			"scenario": "从 /groups 页正则提取 slug",
+			"method": "捕获组用 [^\"\\\\\\\\]+ 且 decodeURIComponent 后 strip 尾部反斜杠",
+			"pitfall": "JSON 转义 \\ 混进捕获组→URL 带 %5C 全 404",
+			"date": "2026-08-28"
+		},
+		{
+			"id": "E-015",
+			"domain": "SEO/安全",
+			"title": "内部面板要同时 noindex 与排除 sitemap",
+			"scenario": "静态生成的内部协作页仍部署在公开域名",
+			"method": "路由级输出 robots=noindex,nofollow,noarchive，并在 @astrojs/sitemap filter 中排除整段路径",
+			"pitfall": "文档写着“内部面板”不会自动阻止索引；只改 robots.txt 还可能让爬虫看不到页面级 noindex",
+			"evidence": "/lab/agent-board/** 生成页元数据 + sitemap 构建产物",
+			"date": "2026-08-29"
+		},
+		{
+			"id": "E-016",
+			"domain": "通用",
+			"title": "任务简报的假设要用数据验证",
+			"scenario": "去重/整理类任务开工前",
+			"method": "先 dry-run 全量内容 hash 扫描再动手。T-010 简报称「同名遗留副本141」，实测全池零重复——141 里 97 张是内容 hash 与分类集吻合的滞留正身（当年命名错误），44 张是非插画素材",
+			"pitfall": "照简报直接删「副本」会误删 97 张唯一图",
+			"date": "2026-08-29"
+		},
+		{
+			"id": "E-017",
+			"domain": "通用",
+			"title": "批量移动用 basename 当目标会静默覆盖同名文件",
+			"scenario": "文件分流/隔离搬运",
+			"method": "移动目标保留相对路径结构，或落位前查重改名；结束后数字对账（源数=落位数）",
+			"pitfall": "两个不同子目录的同名文件挤进同一目标名→后者覆盖前者，源头已 rename 走=净丢 2 张；账对不上才发现",
+			"date": "2026-08-29"
+		},
+		{
+			"id": "E-018",
+			"domain": "前端回归",
+			"title": "响应式回归要看实际内容容器宽度",
+			"scenario": "带左右栏布局的 Bento/卡片网格断点测试",
+			"method": "同时记录 viewport、主内容容器和卡片实测宽度，并在断点两侧截图核验；T-017 中 768px 视口的门户容器实际仅 425px，三列卡片约 134px",
+			"pitfall": "只看 viewport 断点会误以为 768px 足够宽，忽略侧栏挤压后的文字换行与触控密度",
+			"evidence": "T-017 375/414/768 + 1280 桌面亮暗主题回归",
+			"date": "2026-09-01"
+		},
+		{
+			"id": "E-019",
+			"domain": "通用",
+			"title": "联络表管线跨会话续跑要先修已判集与快照失配",
+			"scenario": "triage-generate 类批量目检续跑",
+			"method": "已判集从 chunk-*.json 全量 rels + baseline 清单构建（verdict 顶层 key 不是 rels）；队列按磁盘存在性过滤——扫描快照早于移动轮，缺文件=已在别处处置，跳过",
+			"pitfall": "v1 用 verdict 顶层 key 当已判集（永远为空）→ 直接续跑会把 575 张已判图重新出表、379 张保留图重复判；缺文件输入还会让整张 ffmpeg 联络表失败、25 张永远在队头打转",
+			"evidence": "2026-09-01 SEVENTEEN 批2：修补后 600 张零重复零缺文件，134 张淘汰落位对账 0 差异",
+			"date": "2026-09-01"
+		},
+		{
+			"id": "E-020",
+			"domain": "协作",
+			"title": "按团汇报进度前必须按成员夹聚合核对 chunk 实际覆盖",
+			"scenario": "联络表目检轮的批次汇报/状态更新",
+			"method": "汇报「某团判完」前，把该团全部 chunk-*.json 的 rels 按成员文件夹聚合计数，对照磁盘文件夹全量；批次命名只写覆盖事实（如「DK+Dino 批」）不写团名",
+			"pitfall": "批次按扫描序切 600 张就冠团名「SEVENTEEN 批1/2」→ 实际只覆盖字母序前两个成员夹（Dino 645 全 + DK 518/1500），汇报成「SEVENTEEN 判完」被老板当场纠正，信任受损",
+			"evidence": "2026-09-07 老板回复指出 SVT 没判完只判了 DK 和 Dino；按 chunk 聚合核实全团 8,190 张实判 1,175（14%）",
+			"date": "2026-09-07"
+		},
+		{
+			"id": "E-021",
+			"domain": "通用",
+			"title": "目检判图前先验证会话的图像视觉通道，不可用别生成批次",
+			"scenario": "需要看图的工作（联络表目检、截图验收、封面挑选）",
+			"method": "开工先 Read 一张已存在的联络表 jpg：返回 CDN URL 而非视觉内容 = 本会话无视觉，目检类任务只能做记录/对账/删批收尾，判图留给有视觉的会话；浏览器截图、computer-use、子代理同测同结论",
+			"pitfall": "先跑 triage-generate 生成 600 张批次才发现看不见图——chunk-*.json 会被下轮生成器当已判集，无 verdict 的批次必须立刻删掉 chunk 文件和对应表，否则 600 张被静默跳过",
+			"evidence": "2026-09-07 四条视觉通道全测：Read 477B 小图也只回 URL；general-purpose 子代理同样只回 URL；已清理本批 chunk 和 24 张表（t383130~t410758）",
+			"date": "2026-09-07"
+		},
+		{
+			"id": "E-022",
+			"domain": "本地推理",
+			"title": "VLM 判图必须先缩图;GPU 探测失败要查驱动安装完整性",
+			"scenario": "Ollama 本地视觉模型批量判图",
+			"method": "图片先 ffmpeg 缩到 512px 再 base64 发模型(原图 1440px 在 4060 CPU 上 192s/张,缩图后 53s);llama-server --list-devices 直接跑可以看后端是否认卡;GPU 枚举为空但 nvidia-smi 正常 = 驱动精简安装缺 CUDA/Vulkan 用户态组件",
+			"pitfall": "直接发原图给 Qwen2.5-VL,vision token 爆炸,速度慢 3 倍;以为装了显卡驱动就有 CUDA(本机 610.88 精简安装,图形正常计算缺失);Git Bash PATH 污染也会干扰 DLL 加载,测试要用干净 PATH",
+			"evidence": "2026-09-07 本机 RTX 4060: cuda_v12/v13/vulkan 全部枚举为空,nvidia-smi/NVML 正常;qwen2.5vl:7b CPU 53-67s/张,待驱动重装",
+			"date": "2026-09-07"
+		}
+	]
+}
