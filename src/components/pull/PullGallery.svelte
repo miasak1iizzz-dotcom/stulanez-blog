@@ -20,7 +20,7 @@ const PAGE_KEY = "pull-gallery-page-size";
 const ORDER_KEY = "pull-gallery-order";
 const AXIS_KEY = "pull-gallery-axis";
 
-let pageSize = $state<PageSize>(20);
+let pageSize = $state<PageSize>(10);
 let orderMode = $state<OrderMode>("seq");
 let axis = $state<Axis>("marquee");
 let range = $state<Range>("page");
@@ -547,7 +547,7 @@ async function runDownload(): Promise<void> {
 			</div>
 		</div>
 	{:else}
-		<div class="grid">
+		<div class="photo-grid">
 			{#each pageImages as image, i (image.url)}
 				{@render frame(image, pageStart + i, false)}
 			{/each}
@@ -727,11 +727,11 @@ async function runDownload(): Promise<void> {
 		font-size: 0.78rem;
 	}
 
-	.grid {
+	.photo-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-		gap: 1rem;
-		padding: 0 1.2rem 0.4rem;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: 0.55rem;
+		padding: 0 0.55rem 0.5rem;
 	}
 
 	.card {
@@ -898,7 +898,7 @@ async function runDownload(): Promise<void> {
 			margin-left: 0;
 		}
 
-		.grid {
+		.photo-grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 
