@@ -19,6 +19,7 @@ import { initIconLoader } from "@/utils/icon-loader";
 import { initImageLoadFadeIn } from "@/utils/lqip-utils";
 import { initScroll } from "@/utils/scroll-utils";
 import { initThemeListener, initWallpaperMode } from "@/utils/setting-utils";
+import { setupShellNav } from "@/utils/shell-nav";
 import { setupSwupTransitions } from "@/utils/swup-transitions";
 import { initTouchCodeCopyReveal } from "@/utils/touch-copy-utils";
 
@@ -28,6 +29,9 @@ export function initLayout(): void {
 	// 切页后的页面状态刷新由下方 swup 钩子与一次性注册的 document 监听器负责）
 	if (window.__fireflyLayoutInit) return;
 	window.__fireflyLayoutInit = true;
+
+	// 跨壳硬跳遮罩须尽早挂上（含工具页→主页），抢在 Swup 监听之前
+	setupShellNav();
 
 	initializeFloatingPanels();
 

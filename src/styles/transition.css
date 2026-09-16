@@ -116,3 +116,50 @@ html.is-animating .transition-swup-fade {
     /* 提升到合成层：切页期间主线程忙碌时进度条仍由合成线程平滑推进 */
     will-change: transform;
 }
+
+/* --------------------------------------------------------------------------
+   5. Cross-shell hard navigation veil (tool pages ↔ MainGrid)
+   -------------------------------------------------------------------------- */
+
+html.is-shell-leaving body {
+    opacity: 0;
+    transition: opacity 150ms ease;
+    pointer-events: none;
+}
+
+/* 首帧：head 内联脚本挂上 is-shell-veiling，避免整页硬跳露出半成品壳 */
+html.is-shell-veiling {
+    background: var(--page-bg, #121018);
+}
+
+html.is-shell-veiling body {
+    opacity: 0 !important;
+}
+
+html.is-shell-revealing body {
+    animation: shell-nav-reveal 220ms ease forwards;
+}
+
+html.is-shell-revealing .onload-animation {
+    animation: none !important;
+    opacity: 1 !important;
+}
+
+@keyframes shell-nav-reveal {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.is-shell-leaving body,
+    html.is-shell-veiling body,
+    html.is-shell-revealing body {
+        opacity: 1 !important;
+        transition: none !important;
+        animation: none !important;
+    }
+}
