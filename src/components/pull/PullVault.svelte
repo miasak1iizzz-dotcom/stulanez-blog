@@ -324,89 +324,87 @@ $effect(() => {
 			{/if}
 		</section>
 
-		{#if !result}
-			<div class="side">
-				<section class="shelf" aria-label="我的图集">
-					<p class="split-kicker">我的图集</p>
-					<h2>{channelId ? `${current?.name ?? ""}图集` : "我的图集"}</h2>
-					{#if albums.length}
-						<ul class="album-list">
-							{#each albums as album (album.id)}
-								<li class="album-card">
-									{#if editingId === album.id}
-										<form
-											class="rename-row"
-											onsubmit={(event) => {
-												event.preventDefault();
-												commitRename();
-											}}
-										>
-											<input
-												type="text"
-												bind:value={editName}
-												maxlength="48"
-												aria-label="重命名图集"
-											/>
-											<button type="submit">保存</button>
-											<button type="button" class="ghost" onclick={cancelRename}>取消</button>
-										</form>
-									{:else}
-										<button type="button" class="album-open" onclick={() => openAlbum(album)}>
-											<span class="album-name">{album.name}</span>
-											<span class="album-meta">
-												{channelLabel(album.channel)}
-												{#if typeof album.hintCount === "number"}
-													· 约 {album.hintCount} 张
-												{/if}
-											</span>
-											{#if album.hintTitle}
-												<span class="album-hint">{album.hintTitle}</span>
+		<div class="side">
+			<section class="shelf" aria-label="我的图集">
+				<p class="split-kicker">我的图集</p>
+				<h2>{channelId ? `${current?.name ?? ""}图集` : "我的图集"}</h2>
+				{#if albums.length}
+					<ul class="album-list">
+						{#each albums as album (album.id)}
+							<li class="album-card">
+								{#if editingId === album.id}
+									<form
+										class="rename-row"
+										onsubmit={(event) => {
+											event.preventDefault();
+											commitRename();
+										}}
+									>
+										<input
+											type="text"
+											bind:value={editName}
+											maxlength="48"
+											aria-label="重命名图集"
+										/>
+										<button type="submit">保存</button>
+										<button type="button" class="ghost" onclick={cancelRename}>取消</button>
+									</form>
+								{:else}
+									<button type="button" class="album-open" onclick={() => openAlbum(album)}>
+										<span class="album-name">{album.name}</span>
+										<span class="album-meta">
+											{channelLabel(album.channel)}
+											{#if typeof album.hintCount === "number"}
+												· 约 {album.hintCount} 张
 											{/if}
+										</span>
+										{#if album.hintTitle}
+											<span class="album-hint">{album.hintTitle}</span>
+										{/if}
+									</button>
+									<div class="album-actions">
+										<button type="button" class="ghost" onclick={() => startRename(album)}>改名</button>
+										<button
+											type="button"
+											class="ghost danger"
+											onclick={() => deleteAlbum(album.id)}
+										>
+											忘掉
 										</button>
-										<div class="album-actions">
-											<button type="button" class="ghost" onclick={() => startRename(album)}>改名</button>
-											<button
-												type="button"
-												class="ghost danger"
-												onclick={() => deleteAlbum(album.id)}
-											>
-												忘掉
-											</button>
-										</div>
-									{/if}
-								</li>
-							{/each}
-						</ul>
-					{:else}
-						<div class="shelf-empty">
-							<p>还没有图集</p>
-						</div>
-					{/if}
-				</section>
-
-				{#if !current}
-					<section class="tiles" aria-label="渠道入口">
-						<p class="split-kicker">四个入口</p>
-						<h2>选一条渠道，或把链接丢到左边。</h2>
-						<div class="tile-grid">
-							{#each PULL_CHANNELS as ch (ch.id)}
-								<a
-									class="tile"
-									href={`/pull/${ch.id}/`}
-									style={`--tile:${ch.accent}`}
-									data-no-swup
-								>
-									<p class="tile-kicker">{ch.kicker}</p>
-									<h3>{ch.name}</h3>
-									<p>{ch.blurb}</p>
-									<span>进入取图</span>
-								</a>
-							{/each}
-						</div>
-					</section>
+									</div>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<div class="shelf-empty">
+						<p>还没有图集</p>
+					</div>
 				{/if}
-			</div>
-		{/if}
+			</section>
+
+			{#if !result && !current}
+				<section class="tiles" aria-label="渠道入口">
+					<p class="split-kicker">四个入口</p>
+					<h2>选一条渠道，或把链接丢到左边。</h2>
+					<div class="tile-grid">
+						{#each PULL_CHANNELS as ch (ch.id)}
+							<a
+								class="tile"
+								href={`/pull/${ch.id}/`}
+								style={`--tile:${ch.accent}`}
+								data-no-swup
+							>
+								<p class="tile-kicker">{ch.kicker}</p>
+								<h3>{ch.name}</h3>
+								<p>{ch.blurb}</p>
+								<span>进入取图</span>
+							</a>
+						{/each}
+					</div>
+				</section>
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -564,7 +562,7 @@ $effect(() => {
 	}
 
 	.desk.is-live .bench {
-		grid-template-columns: 1fr;
+		grid-template-columns: minmax(0, 1fr) minmax(240px, 0.55fr);
 		margin-top: 0.35rem;
 		min-width: 0;
 		max-width: 100%;
