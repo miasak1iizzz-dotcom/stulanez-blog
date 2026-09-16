@@ -144,6 +144,22 @@ export default defineConfig({
 			updateHead: true,
 			updateBodyClass: false,
 			globalInstance: true,
+			// 取图/艺术馆/TFT 无完整 MainGrid 容器；跨壳走整页加载，避免 Swup 半截拆样式闪裸文字
+			ignore: (url) => {
+				const path = String(url || "").split(/[?#]/)[0] || "/";
+				const isTool = (p) =>
+					p === "/pull" ||
+					p.startsWith("/pull/") ||
+					p === "/art" ||
+					p.startsWith("/art/") ||
+					p === "/tft" ||
+					p.startsWith("/tft/");
+				const toTool = isTool(path);
+				const fromTool =
+					typeof document !== "undefined" &&
+					document.documentElement?.dataset?.pageShell === "tool";
+				return Boolean(fromTool || toTool);
+			},
 			// 滚动相关配置优化
 			resolveUrl: (url) => url,
 			animateHistoryBrowsing: false,

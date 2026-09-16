@@ -1,14 +1,13 @@
 /**
  * 工具页（取图 / 艺术馆 / TFT）与主页 MainGrid 壳之间不能走 Swup：
- * 工具页没有完整 `#swup-container` 网格，Swup 半截替换会闪「怪帧」或把壳嵌错。
- * 跨壳点击改为整页跳转，并用遮罩淡出/淡入盖住白屏与未就绪布局。
+ * 工具页没有完整 `#swup-container` 网格，Swup 半截替换会先拆掉 scoped CSS，
+ * 闪出一列「裸文字」。跨壳一律整页跳转；遮罩须在 assign 前盖死，不能延迟。
  */
 
 export type PageShell = "tool" | "grid";
 
 const VEIL_KEY = "stulanez.shell-veil";
-const LEAVE_MS = 150;
-const REVEAL_MS = 220;
+const REVEAL_MS = 200;
 
 export function resolvePageShell(pathname: string): PageShell {
 	const path = pathname.split(/[?#]/)[0] || "/";
@@ -47,17 +46,11 @@ function reduceMotion(): boolean {
 	return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/** 立刻盖不透明层，再整页跳转——绝不能先淡出空窗给 Swup 拆样式 */
 function hardNavigate(href: string): void {
 	setVeilFlag();
-	const root = document.documentElement;
-	if (reduceMotion()) {
-		window.location.assign(href);
-		return;
-	}
-	root.classList.add("is-shell-leaving");
-	window.setTimeout(() => {
-		window.location.assign(href);
-	}, LEAVE_MS);
+	document.documentElement.classList.add("is-shell-leaving");
+	window.location.assign(href);
 }
 
 function shouldIgnoreClick(
@@ -86,7 +79,6 @@ function resolveInternalUrl(anchor: HTMLAnchorElement): URL | null {
 		return null;
 	}
 	if (/^[a-z][a-z0-9+.-]*:/i.test(raw) && !raw.startsWith("http")) {
-		// stulanez-deck:// 等自定义协议
 		return null;
 	}
 	try {
@@ -140,7 +132,10 @@ function revealAfterVeil(): void {
 	}, REVEAL_MS);
 }
 
-/** 首帧遮罩由 Layout head 内联脚本根据 session 旗标挂上；此处负责揭开与点击拦截 */
+/**
+ * 首帧遮罩由 Layout head 内联脚本挂上。
+ * 点击拦截也在 head 内联一份（抢在 Swup 前）；此处再挂模块版兜底，并负责揭开遮罩。
+ */
 export function setupShellNav(): void {
 	if (window.__fireflyShellNav) return;
 	window.__fireflyShellNav = true;
@@ -152,13 +147,38 @@ export function setupShellNav(): void {
 		consumeVeilFlag() ||
 		document.documentElement.classList.contains("is-shell-veiling")
 	) {
-		// 等一帧让首屏样式就位，再淡入，避免露出半成品布局
 		requestAnimationFrame(() => {
 			requestAnimationFrame(revealAfterVeil);
 		});
 	}
 
 	document.addEventListener("click", onClick, true);
+
+	// Swup 若仍被程序触发 navigate，凡涉及工具页立即中止并改硬跳
+	const abortCrossShell = (visit: {
+		to: { url: string };
+		abort: () => void;
+	}): void => {
+		const toPath = (() => {
+			try {
+				return new URL(visit.to.url, window.location.href).pathname;
+			} catch {
+				return visit.to.url;
+			}
+		})();
+		const from = resolvePageShell(window.location.pathname);
+		const to = resolvePageShell(toPath);
+		if (from === "grid" && to === "grid") return;
+		visit.abort();
+		hardNavigate(visit.to.url);
+	};
+
+	const bindSwupAbort = (): void => {
+		if (!window.swup?.hooks) return;
+		window.swup.hooks.on("visit:start", abortCrossShell);
+	};
+	if (window.swup?.hooks) bindSwupAbort();
+	else document.addEventListener("swup:enable", bindSwupAbort);
 
 	window.addEventListener("pageshow", (event) => {
 		if (event.persisted) {
