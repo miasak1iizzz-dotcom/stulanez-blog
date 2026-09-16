@@ -262,8 +262,8 @@ export default defineConfig({
 				const pathname = url.pathname;
 				// 内部实验室面板不进入公开站点地图。
 				if (
-					pathname.startsWith("/lab/agent-board/") ||
-					pathname.startsWith("/lab/douyin-roster")
+					pathname.startsWith("/lab/douyin-roster") ||
+					pathname.startsWith("/lab/cleanup-monitor")
 				) {
 					return false;
 				}
