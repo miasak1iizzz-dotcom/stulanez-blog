@@ -1,0 +1,41 @@
+---
+import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
+import { siteConfig } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
+---
+
+<Layout {title} {description}>
+	<HeaderTopRow stickyNavbar={true} {navbarWidthFull} />
+	<main class="art-tool-main">
+		<slot />
+	</main>
+</Layout>
+
+<style is:global>
+	body:has(.art-tool-main) {
+		background: var(--page-bg);
+	}
+
+	body:has(.art-tool-main) #top-row {
+		height: 4.5rem !important;
+	}
+
+	.art-tool-main {
+		min-height: 100vh;
+		padding: 5.5rem 1rem 2.5rem;
+	}
+
+	@media (max-width: 640px) {
+		.art-tool-main {
+			padding: 5rem 0.55rem 1.8rem;
+		}
+	}
+</style>

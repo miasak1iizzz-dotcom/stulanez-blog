@@ -224,9 +224,15 @@ $effect(() => {
 					: "把 Instagram、抖音、小红书、微博的网页链接或 App 分享口令贴进来。公开帖最稳。"}
 			</p>
 			<nav class="chips" aria-label="渠道">
-				<a class={!current ? "is-on" : ""} href="/pull/">全部</a>
+				<a class={!current ? "is-on" : ""} href="/pull/" data-no-swup>
+					全部
+				</a>
 				{#each PULL_CHANNELS as ch (ch.id)}
-					<a class={channelId === ch.id ? "is-on" : ""} href={`/pull/${ch.id}/`}>{ch.short}</a>
+					<a
+						class={channelId === ch.id ? "is-on" : ""}
+						href={`/pull/${ch.id}/`}
+						data-no-swup>{ch.short}</a
+					>
 				{/each}
 			</nav>
 		</div>
@@ -384,7 +390,12 @@ $effect(() => {
 						<h2>选一条渠道，或把链接丢到左边。</h2>
 						<div class="tile-grid">
 							{#each PULL_CHANNELS as ch (ch.id)}
-								<a class="tile" href={`/pull/${ch.id}/`} style={`--tile:${ch.accent}`}>
+								<a
+									class="tile"
+									href={`/pull/${ch.id}/`}
+									style={`--tile:${ch.accent}`}
+									data-no-swup
+								>
 									<p class="tile-kicker">{ch.kicker}</p>
 									<h3>{ch.name}</h3>
 									<p>{ch.blurb}</p>
