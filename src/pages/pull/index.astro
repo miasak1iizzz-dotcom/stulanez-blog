@@ -1,0 +1,11 @@
+---
+import PullVault from "@/components/pull/PullVault.svelte";
+import PullLayout from "@/layouts/PullLayout.astro";
+
+const title = "渠道取图";
+const description = "把 Instagram、抖音、小红书、微博的帖子链接贴进来，抽出图片再下载。";
+---
+
+<PullLayout {title} {description}>
+	<PullVault client:load />
+</PullLayout>
