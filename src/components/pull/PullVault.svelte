@@ -47,6 +47,7 @@ let albumName = $state("");
 let editingId = $state<string | null>(null);
 let editName = $state("");
 let activeAlbumId = $state<string | null>(null);
+let pendingDeleteId = $state<string | null>(null);
 let albumNote = $state("");
 let importInput: HTMLInputElement | null = $state(null);
 
@@ -201,12 +202,25 @@ function cancelRename(): void {
 	editName = "";
 }
 
-function deleteAlbum(id: string): void {
+function askDeleteAlbum(id: string): void {
+	pendingDeleteId = id;
+	editingId = null;
+}
+
+function cancelDeleteAlbum(): void {
+	pendingDeleteId = null;
+}
+
+function confirmDeleteAlbum(): void {
+	if (!pendingDeleteId) return;
+	const id = pendingDeleteId;
 	removePullAlbum(id);
 	if (activeAlbumId === id) {
 		activeAlbumId = null;
 	}
+	pendingDeleteId = null;
 	refreshAlbums();
+	albumNote = "已删除图集";
 }
 
 function channelLabel(id: PullChannelId): string {
@@ -420,28 +434,49 @@ $effect(() => {
 										<button type="submit">保存</button>
 										<button type="button" class="ghost" onclick={cancelRename}>取消</button>
 									</form>
+								{:else if pendingDeleteId === album.id}
+									<div class="album-confirm" role="alertdialog" aria-label="确认删除图集">
+										<p>删除「{album.name}」？</p>
+										<div class="album-confirm-actions">
+											<button type="button" class="confirm-yes" onclick={confirmDeleteAlbum}>
+												确认
+											</button>
+											<button type="button" class="ghost" onclick={cancelDeleteAlbum}>
+												取消
+											</button>
+										</div>
+									</div>
 								{:else}
-									<button type="button" class="album-open" onclick={() => openAlbum(album)}>
-										<span class="album-name">{album.name}</span>
-										<span class="album-meta">
-											{channelLabel(album.channel)}
-											{#if typeof album.hintCount === "number"}
-												· 约 {album.hintCount} 张
+									<div class="album-row">
+										<button type="button" class="album-open" onclick={() => openAlbum(album)}>
+											<span class="album-name">{album.name}</span>
+											<span class="album-meta">
+												{channelLabel(album.channel)}
+												{#if typeof album.hintCount === "number"}
+													· 约 {album.hintCount} 张
+												{/if}
+											</span>
+											{#if album.hintTitle}
+												<span class="album-hint">{album.hintTitle}</span>
 											{/if}
-										</span>
-										{#if album.hintTitle}
-											<span class="album-hint">{album.hintTitle}</span>
-										{/if}
-									</button>
-									<div class="album-actions">
-										<button type="button" class="ghost" onclick={() => startRename(album)}>改名</button>
+										</button>
 										<button
 											type="button"
-											class="ghost danger"
-											onclick={() => deleteAlbum(album.id)}
+											class="album-trash"
+											aria-label={`删除图集 ${album.name}`}
+											title="删除"
+											onclick={() => askDeleteAlbum(album.id)}
 										>
-											忘掉
+											<svg viewBox="0 0 24 24" aria-hidden="true">
+												<path
+													fill="currentColor"
+													d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v10h-2V9zm4 0h2v10h-2V9zM7 9h2v10H7V9zm0 12h10a2 2 0 0 0 2-2V7H5v12a2 2 0 0 0 2 2z"
+												/>
+											</svg>
 										</button>
+									</div>
+									<div class="album-actions">
+										<button type="button" class="ghost" onclick={() => startRename(album)}>改名</button>
 									</div>
 								{/if}
 							</li>
@@ -885,16 +920,78 @@ $effect(() => {
 		border: 1px solid rgba(200, 185, 170, 0.55);
 	}
 
+	.album-row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.35rem;
+		align-items: start;
+	}
+
 	.album-open {
 		display: grid;
 		gap: 0.18rem;
 		width: 100%;
+		min-width: 0;
 		padding: 0;
 		border: 0;
 		background: transparent;
 		text-align: left;
 		cursor: pointer;
 		color: inherit;
+	}
+
+	.album-trash {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		margin-top: 0.05rem;
+		border: 0;
+		border-radius: 8px;
+		background: transparent;
+		color: #9a6b72;
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.album-trash:hover,
+	.album-trash:focus-visible {
+		color: #9a3d3d;
+		background: rgba(154, 61, 61, 0.08);
+	}
+
+	.album-trash svg {
+		width: 1.05rem;
+		height: 1.05rem;
+	}
+
+	.album-confirm {
+		display: grid;
+		gap: 0.55rem;
+	}
+
+	.album-confirm p {
+		margin: 0;
+		font-size: 0.88rem;
+		line-height: 1.45;
+		color: #5c4a4e;
+	}
+
+	.album-confirm-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.confirm-yes {
+		border: 1px solid rgba(154, 61, 61, 0.35);
+		border-radius: 999px;
+		padding: 0.28rem 0.85rem;
+		background: #9a3d3d;
+		color: #fff8f6;
+		font-size: 0.75rem;
+		cursor: pointer;
 	}
 
 	.album-name {
@@ -930,10 +1027,6 @@ $effect(() => {
 		color: #6b3743;
 		font-size: 0.75rem;
 		cursor: pointer;
-	}
-
-	.ghost.danger {
-		color: #9a3d3d;
 	}
 
 	.rename-row input {
