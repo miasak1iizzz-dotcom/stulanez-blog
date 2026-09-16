@@ -1,9 +1,10 @@
 ---
 import AssetLibraryBrowser from "@/components/assets/AssetLibraryBrowser.svelte";
-import { assetLibraryConfig } from "@/config/assetLibraryConfig";
-import Layout from "@/layouts/Layout.astro";
 import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
+import PageAtmosphere from "@/components/misc/PageAtmosphere.astro";
+import { assetLibraryConfig } from "@/config/assetLibraryConfig";
 import { siteConfig } from "@/config";
+import Layout from "@/layouts/Layout.astro";
 import { listLibraryAssets } from "@/utils/asset-library";
 
 const assets = listLibraryAssets();
@@ -14,6 +15,7 @@ const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 	assetLibraryConfig.enable ? (
 		<Layout title={assetLibraryConfig.title} description={assetLibraryConfig.description}>
 			<HeaderTopRow stickyNavbar={true} {navbarWidthFull} />
+			<PageAtmosphere />
 			<div id="banner-overlay-container" hidden />
 			<div id="banner-dim-container" hidden />
 			<div id="left-sidebar-dynamic" hidden />
