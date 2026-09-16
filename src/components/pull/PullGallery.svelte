@@ -11,7 +11,7 @@ type Props = {
 type PageSize = 10 | 20 | 50;
 type OrderMode = "seq" | "shuffle";
 type Axis = "vertical" | "marquee";
-type Range = "page" | "selected" | "all";
+type Range = "selected" | "all";
 type Pack = "each" | "zip";
 
 let { result, onClear }: Props = $props();
@@ -23,7 +23,7 @@ const AXIS_KEY = "pull-gallery-axis";
 let pageSize = $state<PageSize>(10);
 let orderMode = $state<OrderMode>("seq");
 let axis = $state<Axis>("marquee");
-let range = $state<Range>("page");
+let range = $state<Range>("all");
 let pack = $state<Pack>("each");
 let grabbing = $state(false);
 let page = $state(1);
@@ -261,8 +261,7 @@ async function saveOne(image: PullImage): Promise<void> {
 
 function targets(): PullImage[] {
 	if (range === "selected") return deck.filter((image) => selected[image.url]);
-	if (range === "all") return deck;
-	return pageImages;
+	return deck;
 }
 
 async function ensureFancybox(): Promise<
@@ -302,7 +301,7 @@ async function zoomAt(index: number): Promise<void> {
 async function runDownload(): Promise<void> {
 	const list = targets();
 	if (!list.length) {
-		note = range === "selected" ? "还没有勾选图片。" : "这一页没有图。";
+		note = range === "selected" ? "还没有勾选图片。" : "这里没有图。";
 		return;
 	}
 	note = "";
@@ -426,9 +425,6 @@ async function runDownload(): Promise<void> {
 	<div class="console pack">
 		<div class="seg">
 			<span>范围</span>
-			<button type="button" class:on={range === "page"} onclick={() => (range = "page")}
-				>本页</button
-			>
 			<button
 				type="button"
 				class:on={range === "selected"}
