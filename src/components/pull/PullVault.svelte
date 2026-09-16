@@ -6,8 +6,11 @@ import {
 	type PullChannel,
 } from "@/config/pullConfig";
 import {
+	countPullAlbums,
 	defaultAlbumName,
+	downloadPullAlbumsBackup,
 	findAlbumByUrl,
+	importPullAlbumsBackup,
 	listPullAlbums,
 	removePullAlbum,
 	renamePullAlbum,
@@ -38,13 +41,44 @@ let loading = $state(false);
 let error = $state("");
 let result = $state<PullSuccess | null>(null);
 let albums = $state<PullAlbum[]>([]);
+let albumTotal = $state(0);
 let albumName = $state("");
 let editingId = $state<string | null>(null);
 let editName = $state("");
 let activeAlbumId = $state<string | null>(null);
+let albumNote = $state("");
+let importInput: HTMLInputElement | null = $state(null);
 
 function refreshAlbums(): void {
 	albums = listPullAlbums(channelId);
+	albumTotal = countPullAlbums();
+}
+
+function exportAlbums(): void {
+	const n = downloadPullAlbumsBackup();
+	albumNote = n ? `已导出 ${n} 个图集到下载文件夹` : "还没有可导出的图集";
+}
+
+function onImportFile(event: Event): void {
+	const input = event.currentTarget as HTMLInputElement;
+	const file = input.files?.[0];
+	input.value = "";
+	if (!file) return;
+	const reader = new FileReader();
+	reader.onload = () => {
+		try {
+			const raw = JSON.parse(String(reader.result || ""));
+			const { added, updated, total } = importPullAlbumsBackup(raw);
+			refreshAlbums();
+			albumNote = `已导入：新增 ${added}，更新 ${updated}，本机共 ${total} 个`;
+		} catch {
+			albumNote = "这个备份文件读不出来";
+		}
+	};
+	reader.onerror = () => {
+		albumNote = "这个备份文件读不出来";
+	};
+	reader.readAsText(file, "utf-8");
 }
 
 function syncAlbumDraft(data: PullSuccess, target: string): void {
@@ -125,6 +159,8 @@ function saveAlbum(): void {
 	activeAlbumId = album.id;
 	albumName = album.name;
 	refreshAlbums();
+	downloadPullAlbumsBackup();
+	albumNote = "已记住，并导出了一份备份到下载文件夹";
 }
 
 function openAlbum(album: PullAlbum): void {
@@ -327,7 +363,37 @@ $effect(() => {
 		<div class="side">
 			<section class="shelf" aria-label="我的图集">
 				<p class="split-kicker">我的图集</p>
-				<h2>{channelId ? `${current?.name ?? ""}图集` : "我的图集"}</h2>
+				<div class="shelf-head">
+					<h2>{channelId ? `${current?.name ?? ""}图集` : "我的图集"}</h2>
+					<div class="shelf-tools">
+						<button type="button" class="ghost" onclick={exportAlbums}>导出</button>
+						<button
+							type="button"
+							class="ghost"
+							onclick={() => importInput?.click()}
+						>
+							导入
+						</button>
+						<input
+							bind:this={importInput}
+							class="sr-only"
+							type="file"
+							accept="application/json,.json"
+							onchange={onImportFile}
+						/>
+					</div>
+				</div>
+				{#if albumTotal > 0}
+					<p class="shelf-count">
+						本机共 {albumTotal} 个
+						{#if channelId && albums.length !== albumTotal}
+							· 此渠道 {albums.length} 个
+						{/if}
+					</p>
+				{/if}
+				{#if albumNote}
+					<p class="shelf-note">{albumNote}</p>
+				{/if}
 				{#if albums.length}
 					<ul class="album-list">
 						{#each albums as album (album.id)}
@@ -577,6 +643,35 @@ $effect(() => {
 		display: grid;
 		gap: 1.1rem;
 		min-width: 0;
+	}
+
+	.shelf-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.6rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.shelf-head h2 {
+		margin: 0;
+	}
+
+	.shelf-tools {
+		display: flex;
+		flex-shrink: 0;
+		gap: 0.25rem;
+	}
+
+	.shelf-count,
+	.shelf-note {
+		margin: 0 0 0.7rem;
+		font-size: 0.78rem;
+		color: #836c70;
+	}
+
+	.shelf-note {
+		color: #6b3743;
 	}
 
 	.work {

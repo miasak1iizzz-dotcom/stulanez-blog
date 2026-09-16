@@ -1,7 +1,9 @@
 import type { PullChannelId } from "@/utils/pull/types";
 
+/** 本机图集书签。禁止 clear / removeItem 此键；删图集只能走 removePullAlbum。 */
 const KEY = "pull-albums-v1";
 const MAX_ALBUMS = 80;
+const BACKUP_VERSION = 1 as const;
 
 export type PullAlbum = {
 	id: string;
@@ -138,4 +140,114 @@ export function defaultAlbumName(opts: {
 		minute: "2-digit",
 	});
 	return `${opts.channelName ?? "图集"} · ${stamp}`;
+}
+
+export function countPullAlbums(): number {
+	return readAll().length;
+}
+
+export type PullAlbumsBackup = {
+	version: typeof BACKUP_VERSION;
+	exportedAt: string;
+	albums: PullAlbum[];
+};
+
+function normalizeAlbum(raw: unknown): PullAlbum | null {
+	if (!raw || typeof raw !== "object") return null;
+	const item = raw as Partial<PullAlbum>;
+	if (
+		typeof item.id !== "string" ||
+		typeof item.name !== "string" ||
+		typeof item.url !== "string" ||
+		typeof item.channel !== "string"
+	) {
+		return null;
+	}
+	const now = new Date().toISOString();
+	return {
+		id: item.id,
+		name: item.name.trim() || "未命名图集",
+		url: item.url.trim(),
+		channel: item.channel as PullChannelId,
+		hintTitle: typeof item.hintTitle === "string" ? item.hintTitle : undefined,
+		hintCount:
+			typeof item.hintCount === "number" ? item.hintCount : undefined,
+		createdAt: typeof item.createdAt === "string" ? item.createdAt : now,
+		updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : now,
+	};
+}
+
+/** 下载当前全部图集为 JSON，方便你自己留底。 */
+export function downloadPullAlbumsBackup(): number {
+	const albums = readAll();
+	const payload: PullAlbumsBackup = {
+		version: BACKUP_VERSION,
+		exportedAt: new Date().toISOString(),
+		albums,
+	};
+	const blob = new Blob([`${JSON.stringify(payload, null, "\t")}\n`], {
+		type: "application/json",
+	});
+	const href = URL.createObjectURL(blob);
+	const stamp = new Date().toISOString().slice(0, 10);
+	const a = document.createElement("a");
+	a.href = href;
+	a.download = `stulanez-pull-albums-${stamp}.json`;
+	a.rel = "noopener";
+	document.body.appendChild(a);
+	a.click();
+	a.remove();
+	URL.revokeObjectURL(href);
+	return albums.length;
+}
+
+/**
+ * 从备份合并进本机：同 url 更新，新 url 追加；不整表清空。
+ * 返回 { added, updated, total }。
+ */
+export function importPullAlbumsBackup(raw: unknown): {
+	added: number;
+	updated: number;
+	total: number;
+} {
+	let list: unknown[] = [];
+	if (Array.isArray(raw)) {
+		list = raw;
+	} else if (raw && typeof raw === "object") {
+		const bag = raw as { albums?: unknown };
+		if (Array.isArray(bag.albums)) list = bag.albums;
+	}
+	const incoming = list
+		.map(normalizeAlbum)
+		.filter((item): item is PullAlbum => Boolean(item));
+
+	const all = readAll();
+	const byUrl = new Map(all.map((a) => [a.url, a]));
+	let added = 0;
+	let updated = 0;
+
+	for (const next of incoming) {
+		const prev = byUrl.get(next.url);
+		if (prev) {
+			prev.name = next.name;
+			prev.channel = next.channel;
+			if (next.hintTitle) prev.hintTitle = next.hintTitle;
+			if (typeof next.hintCount === "number") prev.hintCount = next.hintCount;
+			prev.updatedAt = new Date().toISOString();
+			updated += 1;
+		} else {
+			byUrl.set(next.url, {
+				...next,
+				id: next.id || uid(),
+				updatedAt: new Date().toISOString(),
+			});
+			added += 1;
+		}
+	}
+
+	const merged = [...byUrl.values()].sort((a, b) =>
+		b.updatedAt.localeCompare(a.updatedAt),
+	);
+	writeAll(merged);
+	return { added, updated, total: merged.length };
 }
