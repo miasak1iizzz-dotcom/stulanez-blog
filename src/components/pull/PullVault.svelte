@@ -10,6 +10,7 @@ import {
 	defaultAlbumName,
 	downloadPullAlbumsBackup,
 	findAlbumByUrl,
+	hydratePullAlbums,
 	importPullAlbumsBackup,
 	listPullAlbums,
 	removePullAlbum,
@@ -159,8 +160,7 @@ function saveAlbum(): void {
 	activeAlbumId = album.id;
 	albumName = album.name;
 	refreshAlbums();
-	downloadPullAlbumsBackup();
-	albumNote = "已记住，并导出了一份备份到下载文件夹";
+	albumNote = "已记住";
 }
 
 function openAlbum(album: PullAlbum): void {
@@ -218,7 +218,12 @@ let booted = $state(false);
 $effect(() => {
 	if (booted || typeof window === "undefined") return;
 	booted = true;
-	refreshAlbums();
+	void hydratePullAlbums().then((list) => {
+		refreshAlbums();
+		if (list.length > 0) {
+			albumNote = `已载入本机 ${list.length} 个图集`;
+		}
+	});
 	const passed = new URLSearchParams(window.location.search).get("u");
 	if (passed && !url) {
 		url = passed;
