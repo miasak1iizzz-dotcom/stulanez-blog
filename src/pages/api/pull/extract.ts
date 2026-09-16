@@ -4,6 +4,9 @@ import type { PullChannelId } from "@/utils/pull/types";
 
 export const prerender = false;
 
+/** Hobby default is 10s; Douyin SSR often needs a couple of retries. */
+export const maxDuration = 60;
+
 const CHANNELS = new Set<PullChannelId>([
 	"instagram",
 	"douyin",
