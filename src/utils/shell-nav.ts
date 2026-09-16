@@ -48,6 +48,11 @@ function reduceMotion(): boolean {
 
 /** 立刻盖不透明层，再整页跳转——绝不能先淡出空窗给 Swup 拆样式 */
 function hardNavigate(href: string): void {
+	try {
+		window.__fireflyMusic?.persistForNavigation?.();
+	} catch {
+		/* ignore */
+	}
 	setVeilFlag();
 	document.documentElement.classList.add("is-shell-leaving");
 	window.location.assign(href);

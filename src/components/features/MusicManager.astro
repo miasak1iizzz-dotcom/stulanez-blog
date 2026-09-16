@@ -126,6 +126,8 @@ const managerConfigStr = JSON.stringify({
     else state.playMode = 0;
 
     var LAST_TRACK_KEY = 'stulanez.music.last-track';
+    var PLAYBACK_KEY = 'stulanez.music.playback';
+    var PLAYBACK_TTL_MS = 45000;
 
     function trackUrlBase(url) {
         return String(url || '').split('?')[0];
@@ -174,6 +176,110 @@ const managerConfigStr = JSON.stringify({
             }
         }
         return -1;
+    }
+
+    function savePlaybackSnapshot() {
+        try {
+            var playing = !!(state.isPlaying && audio && !audio.paused && !audio.ended);
+            // 只在「正在播」时留快照；暂停态不自动续播，避免刷新误开声
+            if (!playing && !sessionStorage.getItem(PLAYBACK_KEY)) return;
+            if (!playing) {
+                sessionStorage.removeItem(PLAYBACK_KEY);
+                return;
+            }
+            var track = state.playlist[state.currentIndex] || null;
+            sessionStorage.setItem(PLAYBACK_KEY, JSON.stringify({
+                index: state.currentIndex,
+                time: audio.currentTime || 0,
+                playing: true,
+                playMode: state.playMode,
+                name: track && track.name ? track.name : '',
+                artist: track && track.artist ? track.artist : '',
+                url: track && track.url ? track.url : '',
+                ts: Date.now()
+            }));
+        } catch (e) {}
+    }
+
+    function consumePlaybackSnapshot() {
+        try {
+            var raw = sessionStorage.getItem(PLAYBACK_KEY);
+            if (!raw) return null;
+            sessionStorage.removeItem(PLAYBACK_KEY);
+            var snap = JSON.parse(raw);
+            if (!snap || typeof snap !== 'object') return null;
+            if (!snap.playing) return null;
+            if (typeof snap.ts !== 'number' || Date.now() - snap.ts > PLAYBACK_TTL_MS) {
+                return null;
+            }
+            return snap;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function resolveSnapshotIndex(playlist, snap) {
+        if (!snap || !playlist || !playlist.length) return -1;
+        if (snap.name) {
+            for (var i = 0; i < playlist.length; i++) {
+                if (playlist[i].name === snap.name && playlist[i].artist === snap.artist) {
+                    return i;
+                }
+            }
+        }
+        if (snap.url) {
+            var base = trackUrlBase(snap.url);
+            for (var j = 0; j < playlist.length; j++) {
+                if (trackUrlBase(playlist[j].url) === base) return j;
+            }
+        }
+        if (typeof snap.index === 'number' && snap.index >= 0 && snap.index < playlist.length) {
+            return snap.index;
+        }
+        return -1;
+    }
+
+    function seekWhenReady(seconds) {
+        if (!(seconds > 0)) return;
+        var apply = function () {
+            if (!audio.duration || isNaN(audio.duration)) return;
+            audio.currentTime = Math.min(seconds, Math.max(0, audio.duration - 0.25));
+        };
+        if (audio.readyState >= 1 && audio.duration) {
+            apply();
+            return;
+        }
+        audio.addEventListener('loadedmetadata', function onMeta() {
+            audio.removeEventListener('loadedmetadata', onMeta);
+            apply();
+        });
+    }
+
+    function resumePlayOrWaitGesture(ver) {
+        audio.play().then(function () {
+            if (ver !== loadVersion) return;
+            state.isPlaying = true;
+            state.error = null;
+            emit('fm:play-state', { isPlaying: true });
+        }).catch(function (e) {
+            if (ver !== loadVersion) return;
+            if (e && e.name === 'AbortError') return;
+            // 浏览器拦了自动播放：等用户下一次手势再续上，别当成失败
+            state.isPlaying = false;
+            emit('fm:play-state', { isPlaying: false });
+            var once = function () {
+                document.removeEventListener('pointerdown', once, true);
+                document.removeEventListener('keydown', once, true);
+                if (ver !== loadVersion) return;
+                audio.play().then(function () {
+                    if (ver !== loadVersion) return;
+                    state.isPlaying = true;
+                    emit('fm:play-state', { isPlaying: true });
+                }).catch(function () {});
+            };
+            document.addEventListener('pointerdown', once, true);
+            document.addEventListener('keydown', once, true);
+        });
     }
 
     // ── Event helpers ────────────────────────────────────────
@@ -469,9 +575,14 @@ const managerConfigStr = JSON.stringify({
                 // Apply volume
                 audio.volume = state.volume;
 
+                var snap = consumePlaybackSnapshot();
+                var snapIndex = resolveSnapshotIndex(state.playlist, snap);
                 var savedIndex = findSavedTrackIndex(state.playlist);
                 var startIndex = 0;
-                if (savedIndex >= 0) {
+                var shouldResume = snapIndex >= 0;
+                if (shouldResume) {
+                    startIndex = snapIndex;
+                } else if (savedIndex >= 0) {
                     startIndex = savedIndex;
                 } else if (state.playMode === 2) {
                     startIndex = Math.floor(Math.random() * state.playlist.length);
@@ -487,7 +598,14 @@ const managerConfigStr = JSON.stringify({
                     isMuted: state.isMuted
                 });
 
-                loadTrack(startIndex, false);
+                if (shouldResume) {
+                    // 跨壳硬跳后续播：先定位进度，再尝试自动播放
+                    loadTrack(startIndex, false);
+                    seekWhenReady(snap.time || 0);
+                    resumePlayOrWaitGesture(loadVersion);
+                } else {
+                    loadTrack(startIndex, false);
+                }
             } else {
                 state.initialized = true;
                 emit('fm:init', {
@@ -547,7 +665,24 @@ const managerConfigStr = JSON.stringify({
         seek: seek,
         seekToTime: seekToTime,
         playTrackByIndex: playTrackByIndex,
-        loadTrack: loadTrack
+        loadTrack: loadTrack,
+        /** 硬跳前调用：把播放中快照写入 sessionStorage，新页续播 */
+        persistForNavigation: savePlaybackSnapshot
     };
+
+    // 整页离开（含跨壳硬跳）前落盘；节流写入，避免 timeupdate 刷爆
+    var persistTimer = 0;
+    audio.addEventListener('timeupdate', function () {
+        if (audio.paused) return;
+        if (persistTimer) return;
+        persistTimer = window.setTimeout(function () {
+            persistTimer = 0;
+            savePlaybackSnapshot();
+        }, 2000);
+    });
+    window.addEventListener('pagehide', savePlaybackSnapshot);
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') savePlaybackSnapshot();
+    });
 })();
 </script>
