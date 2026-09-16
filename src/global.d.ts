@@ -68,6 +68,8 @@ declare global {
 			seekToTime: (time: number) => void;
 			playTrackByIndex: (index: number) => void;
 			loadTrack: (index: number, autoPlay: boolean) => void;
+			/** 硬跳前把播放中状态写入 sessionStorage，供新页续播 */
+			persistForNavigation?: () => void;
 		};
 		/** 樱花特效管理器,Worker 模式与主线程回退模式均实现该接口 */
 		sakuraManager?: SakuraManagerLike;
