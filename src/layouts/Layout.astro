@@ -641,3 +641,9 @@ const siteLogo = await getSiteLogo();
   import { initLayout } from "@/utils/layout-init";
   initLayout();
 </script>
+
+<!-- 站长设备识别（含 /art/ 等无侧栏页面），认领规程见 AGENTS.md -->
+<script>
+  import { watchOwnerDevice } from "@/utils/owner";
+  watchOwnerDevice();
+</script>

@@ -46,6 +46,7 @@ const className = Astro.props.class;
       </span>
       {profileConfig.badge && (
         <span
+          data-owner-only
           class="text-xs leading-none font-bold text-white bg-(--primary) rounded-full px-2 py-1 transition select-none"
         >
           {profileConfig.badge}
@@ -101,3 +102,8 @@ const className = Astro.props.class;
         </div>
   </div>
 </div>
+
+<style is:global>
+	/* 站长专属元素：非站长设备一律隐藏（协议「站长与游客」），认领见 src/utils/owner.ts */
+	html:not(.is-owner) [data-owner-only] { display: none !important; }
+</style>
