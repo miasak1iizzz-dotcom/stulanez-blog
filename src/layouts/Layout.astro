@@ -132,6 +132,25 @@ const siteLogo = await getSiteLogo();
 <html lang={siteLang} class="bg-(--page-bg) text-[14px] md:text-[16px]" data-wallpaper-mode={backgroundWallpaper.mode} data-has-wallpaper={hasWallpaper ? "" : undefined} data-tag-style={siteConfig.tagStyle ?? "pill"} data-category-style={siteConfig.categoryStyle ?? "rectangle"} data-page-shell={pageShell}>
   <head>
     <meta charset="UTF-8" />
+    <!-- 站长认领：本机 localhost 自动算站长；线上一次 #saki-owner。须在岛屿 hydrate 前跑。 -->
+    <script is:inline>
+      (function () {
+        var KEY = "stulanez:owner-device";
+        var host = location.hostname;
+        var local =
+          host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+        try {
+          if (location.hash === "#saki-owner-off") {
+            if (!local) localStorage.removeItem(KEY);
+          } else if (location.hash === "#saki-owner" || local) {
+            localStorage.setItem(KEY, "1");
+          }
+          if (localStorage.getItem(KEY) === "1") {
+            document.documentElement.classList.add("is-owner");
+          }
+        } catch (e) {}
+      })();
+    </script>
     <style is:inline>
 			@layer properties, theme, base, components, utilities;
 		</style>
