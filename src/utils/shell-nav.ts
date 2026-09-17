@@ -27,6 +27,7 @@ const HTML_SHELL_ATTRS = [
 ] as const;
 
 type SwupVisit = {
+	from?: { url?: string };
 	to: { url: string; document?: Document };
 	abort: () => void;
 	containers?: string[];
@@ -89,6 +90,25 @@ function visitPath(visit: { to: { url: string } }): string {
 	} catch {
 		return visit.to.url;
 	}
+}
+
+function visitFromPath(visit: SwupVisit): string {
+	const raw = visit.from?.url;
+	if (!raw) return window.location.pathname;
+	try {
+		return new URL(raw, window.location.href).pathname;
+	} catch {
+		return raw;
+	}
+}
+
+export function visitNeedsPageShell(visit: SwupVisit): boolean {
+	const toPath = visitPath(visit);
+	const fromPath = visitFromPath(visit);
+	if (shouldSwapPageShell(fromPath, toPath)) return true;
+	const htmlShell = document.documentElement.dataset.pageShell;
+	const toShell = resolvePageShell(toPath);
+	return Boolean(htmlShell) && htmlShell !== toShell;
 }
 
 /** 浏览器整页跳（刷新、显式 data-no-swup、Swup 还没就绪）：把进度交给下一页续上 */
@@ -225,7 +245,7 @@ export function setupShellNav(): void {
 
 	const prepareShellVisit = (visit: SwupVisit): void => {
 		const toPath = visitPath(visit);
-		if (!shouldSwapPageShell(window.location.pathname, toPath)) {
+		if (!visitNeedsPageShell(visit)) {
 			shellSwapActive = false;
 			visit.containers = GRID_CONTAINERS;
 			return;

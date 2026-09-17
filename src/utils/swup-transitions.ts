@@ -1,6 +1,7 @@
 import { expressiveCodeConfig, siteConfig } from "@/config";
 import { BANNER_HEIGHT_HOME } from "@/constants/constants";
 import type { WALLPAPER_MODE } from "@/types/config";
+import { restoreBannerAfterSwup } from "@/utils/banner-materialize";
 import { isBannerMode } from "@/utils/banner-utils";
 import { scheduleContentOverflowEnhancements } from "@/utils/content-overflow-utils";
 import { initializeFloatingPanels } from "@/utils/floating-panel-utils";
@@ -18,7 +19,7 @@ import {
 	syncBannerHomeTextVisibility,
 	updateNavbarTransparency,
 } from "@/utils/setting-utils";
-import { shouldSwapPageShell } from "@/utils/shell-nav";
+import { visitNeedsPageShell } from "@/utils/shell-nav";
 import { pathsEqual, url } from "@/utils/url-utils";
 
 const stickyNavbar = siteConfig.navbar.stickyNavbar ?? false;
@@ -106,6 +107,7 @@ function registerSwupHooks(): void {
 		},
 	);
 	window.swup.hooks.on("content:replace", () => {
+		restoreBannerAfterSwup();
 		initializeFloatingPanels();
 
 		// 侧边栏组件可见性由 page:view 统一更新（含 refreshSidebarStickyState 的
@@ -152,101 +154,103 @@ function registerSwupHooks(): void {
 			}
 		}
 	});
-	window.swup.hooks.on("visit:start", (visit: { to: { url: string } }) => {
-		// Start progress bar（WAAPI 合成线程动画，不强制回流）
-		startProgressBar();
+	window.swup.hooks.on(
+		"visit:start",
+		(visit: { from?: { url?: string }; to: { url: string } }) => {
+			// Start progress bar（WAAPI 合成线程动画，不强制回流）
+			startProgressBar();
 
-		const toPath = (() => {
-			try {
-				return new URL(visit.to.url, window.location.href).pathname;
-			} catch {
-				return visit.to.url;
+			const swappingShell = visitNeedsPageShell(visit);
+
+			// 更新首页状态（body.is-home 驱动 CSS --content-top 等）
+			const bodyElement = document.querySelector("body") as HTMLElement;
+			const isHomePage = pathsEqual(visit.to.url, url("/"));
+			const wasHome = bodyElement.classList.contains("is-home");
+			const contentPanel = document.querySelector(
+				".content-panel",
+			) as HTMLElement | null;
+			// 跨壳会拆掉 .content-panel，FLIP 没有意义。同壳只在 is-home 变化时做。
+			if (!swappingShell && isHomePage !== wasHome && contentPanel) {
+				const oldTop = contentPanel.getBoundingClientRect().top; // 类切换前读
+				bodyElement.classList.toggle("is-home", isHomePage);
+				const newTop = contentPanel.getBoundingClientRect().top; // 类切换后读
+				const delta = oldTop - newTop;
+				// 超大位移（>75% 视口，如全屏首页→非首页）不做 FLIP：新页内容重排叠加会抖动，直接到位由 swup 淡入掩盖
+				if (delta !== 0 && Math.abs(delta) <= window.innerHeight * 0.75) {
+					// 标准 FLIP：禁用过渡→设 invert transform→回流提交→启用过渡→移除 transform（触发合成动画）
+					contentPanel.style.willChange = "transform";
+					contentPanel.style.transition = "none";
+					contentPanel.style.transform = `translateY(${delta}px)`;
+					void contentPanel.offsetWidth;
+					contentPanel.style.transition = "";
+					contentPanel.style.transform = "";
+					window.setTimeout(
+						() => contentPanel.style.removeProperty("will-change"),
+						260,
+					);
+				}
+			} else {
+				bodyElement.classList.toggle("is-home", isHomePage);
 			}
-		})();
-		const swappingShell = shouldSwapPageShell(window.location.pathname, toPath);
 
-		// 更新首页状态（body.is-home 驱动 CSS --content-top 等）
-		const bodyElement = document.querySelector("body") as HTMLElement;
-		const isHomePage = pathsEqual(visit.to.url, url("/"));
-		const wasHome = bodyElement.classList.contains("is-home");
-		const contentPanel = document.querySelector(
-			".content-panel",
-		) as HTMLElement | null;
-		// 跨壳会拆掉 .content-panel，FLIP 没有意义。同壳只在 is-home 变化时做。
-		if (!swappingShell && isHomePage !== wasHome && contentPanel) {
-			const oldTop = contentPanel.getBoundingClientRect().top; // 类切换前读
-			bodyElement.classList.toggle("is-home", isHomePage);
-			const newTop = contentPanel.getBoundingClientRect().top; // 类切换后读
-			const delta = oldTop - newTop;
-			// 超大位移（>75% 视口，如全屏首页→非首页）不做 FLIP：新页内容重排叠加会抖动，直接到位由 swup 淡入掩盖
-			if (delta !== 0 && Math.abs(delta) <= window.innerHeight * 0.75) {
-				// 标准 FLIP：禁用过渡→设 invert transform→回流提交→启用过渡→移除 transform（触发合成动画）
-				contentPanel.style.willChange = "transform";
-				contentPanel.style.transition = "none";
-				contentPanel.style.transform = `translateY(${delta}px)`;
-				void contentPanel.offsetWidth;
-				contentPanel.style.transition = "";
-				contentPanel.style.transform = "";
-				window.setTimeout(
-					() => contentPanel.style.removeProperty("will-change"),
-					260,
+			// Control navbar transparency based on page
+			const navbar = document.getElementById("navbar");
+			if (navbar) {
+				navbar.setAttribute("data-is-home", isHomePage.toString());
+
+				// 重新初始化semifull模式的滚动检测
+				// （全屏模式跳过：导航栏状态由 updateNavbarTransparency 统一管理，
+				//   避免切换页面时 initSemifullScrollDetection 重置 scrolled 导致背景闪烁）
+				const transparentMode = navbar.getAttribute("data-transparent-mode");
+				const navWallpaperMode = document.documentElement.getAttribute(
+					"data-wallpaper-mode",
 				);
-			}
-		} else {
-			bodyElement.classList.toggle("is-home", isHomePage);
-		}
-
-		// Control navbar transparency based on page
-		const navbar = document.getElementById("navbar");
-		if (navbar) {
-			navbar.setAttribute("data-is-home", isHomePage.toString());
-
-			// 重新初始化semifull模式的滚动检测
-			// （全屏模式跳过：导航栏状态由 updateNavbarTransparency 统一管理，
-			//   避免切换页面时 initSemifullScrollDetection 重置 scrolled 导致背景闪烁）
-			const transparentMode = navbar.getAttribute("data-transparent-mode");
-			const navWallpaperMode = document.documentElement.getAttribute(
-				"data-wallpaper-mode",
-			);
-			if (transparentMode === "semifull" && navWallpaperMode !== "fullscreen") {
-				// 重新调用初始化函数来重新绑定滚动事件
-				if (typeof window.initSemifullScrollDetection === "function") {
-					window.initSemifullScrollDetection();
+				if (
+					transparentMode === "semifull" &&
+					navWallpaperMode !== "fullscreen"
+				) {
+					// 重新调用初始化函数来重新绑定滚动事件
+					if (typeof window.initSemifullScrollDetection === "function") {
+						window.initSemifullScrollDetection();
+					}
 				}
 			}
-		}
 
-		// 在移动端禁用文章列表容器的过渡动画，防止与主内容区位置变化冲突
-		if (window.innerWidth < 1024) {
-			const postListContainer = document.getElementById("post-list-container");
-			if (postListContainer) {
-				postListContainer.style.transition = "none";
+			// 在移动端禁用文章列表容器的过渡动画，防止与主内容区位置变化冲突
+			if (window.innerWidth < 1024) {
+				const postListContainer = document.getElementById(
+					"post-list-container",
+				);
+				if (postListContainer) {
+					postListContainer.style.transition = "none";
+				}
 			}
-		}
 
-		// increase the page height during page transition to prevent the scrolling animation from jumping
-		const heightExtend = document.getElementById("page-height-extend");
-		if (heightExtend) {
-			heightExtend.classList.remove("hidden");
-		}
+			// increase the page height during page transition to prevent the scrolling animation from jumping
+			const heightExtend = document.getElementById("page-height-extend");
+			if (heightExtend) {
+				heightExtend.classList.remove("hidden");
+			}
 
-		// Hide the TOC while scrolling back to top
-		const toc = document.getElementById("toc-wrapper");
-		if (toc) {
-			toc.classList.add("toc-not-ready");
-		}
+			// Hide the TOC while scrolling back to top
+			const toc = document.getElementById("toc-wrapper");
+			if (toc) {
+				toc.classList.add("toc-not-ready");
+			}
 
-		// 确保页面滚动到顶部，切页期间使用即时回顶，移动端不使用，避免出现闪烁
-		// （非首页全屏模式与 overlay 一致、内容在最上面，回顶即内容顶部）
-		const shouldUseSmoothScroll = window.innerWidth >= 768;
-		if (shouldUseSmoothScroll) {
-			window.scrollTo({
-				top: 0,
-				behavior: "auto",
-			});
-		}
-	});
+			// 确保页面滚动到顶部，切页期间使用即时回顶，移动端不使用，避免出现闪烁
+			// （非首页全屏模式与 overlay 一致、内容在最上面，回顶即内容顶部）
+			const shouldUseSmoothScroll = window.innerWidth >= 768;
+			if (shouldUseSmoothScroll) {
+				window.scrollTo({
+					top: 0,
+					behavior: "auto",
+				});
+			}
+		},
+	);
 	window.swup.hooks.on("page:view", () => {
+		restoreBannerAfterSwup();
 		// 更新网格列数和侧边栏组件可见性
 		updateMainGridCols();
 		updateSidebarComponentsVisibility();

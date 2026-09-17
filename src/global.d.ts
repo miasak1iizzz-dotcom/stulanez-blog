@@ -82,6 +82,8 @@ declare global {
 		/** 布局初始化守卫,确保 Swup 切页重跑模块脚本时只执行一次 */
 		__fireflyLayoutInit?: boolean;
 		__fireflyShellNav?: boolean;
+		/** 壁纸轮播内联脚本的监听器，跨壳重跑前 abort */
+		__bannerWallpaperAbort?: AbortController;
 		/** 播放器控件脚本只注册一次切页重绑 */
 		__fireflyMusicView?: boolean;
 		/** 打字机特效监听器守卫,确保只注册一次 */
