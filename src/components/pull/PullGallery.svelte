@@ -381,6 +381,7 @@ async function runDownload(): Promise<void> {
 			{#if selectedCount}
 				<span>{selectedCount} 已选</span>
 			{/if}
+			<button type="button" class="back-overview" onclick={onClear}>回到总览</button>
 		</div>
 	</div>
 
@@ -443,7 +444,7 @@ async function runDownload(): Promise<void> {
 				>ZIP 卡包</button
 			>
 		</div>
-		<button type="button" class="wipe" onclick={onClear}>清空浏览</button>
+		<button type="button" class="wipe" onclick={onClear}>回到总览</button>
 		<button type="button" class="go" disabled={Boolean(busy)} onclick={() => void runDownload()}>
 			{busy || (pack === "zip" ? "下载卡包" : "下载到文件夹")}
 		</button>
@@ -615,7 +616,8 @@ async function runDownload(): Promise<void> {
 	}
 
 	.hud-stats span,
-	.wipe {
+	.wipe,
+	.back-overview {
 		padding: 0.28rem 0.7rem;
 		border-radius: 999px;
 		border: 1px solid rgba(255, 255, 255, 0.1);
@@ -623,9 +625,21 @@ async function runDownload(): Promise<void> {
 		background: rgba(255, 255, 255, 0.04);
 	}
 
-	.wipe {
+	.wipe,
+	.back-overview {
 		color: #f6ecea;
 		cursor: pointer;
+	}
+
+	.back-overview {
+		border-color: rgba(255, 255, 255, 0.28);
+		background: rgba(255, 255, 255, 0.08);
+	}
+
+	.back-overview:hover,
+	.wipe:hover {
+		border-color: #c67b55;
+		color: #fff;
 	}
 
 	.console {
