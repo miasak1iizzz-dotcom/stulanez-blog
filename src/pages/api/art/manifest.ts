@@ -61,7 +61,7 @@ export const GET: APIRoute = async () => {
 		if (!item.thumbs) continue;
 		const proxied: Record<string, string> = {};
 		for (const [width, key] of Object.entries(item.thumbs)) {
-			proxied[width] = `/api/art/img/${String(key)}`;
+			proxied[width] = `/api/art/img/?key=${encodeURIComponent(String(key))}`;
 		}
 		item.thumbs = proxied;
 	}
