@@ -84,7 +84,11 @@ async function worker(): Promise<void> {
 		if (!item) break;
 		try {
 			const body = fs.readFileSync(item.file);
-			const response = await fetch(presign("PUT", item.key, WRITE_EXPIRES, credentials), { method: "PUT", body });
+			const response = await fetch(presign("PUT", item.key, WRITE_EXPIRES, credentials), {
+				method: "PUT",
+				body,
+				headers: { "content-type": item.key.endsWith(".webp") ? "image/webp" : "application/octet-stream" },
+			});
 			if (!response.ok) {
 				failed++;
 				console.error(`  ✗ ${item.key} → ${response.status}`);
@@ -108,6 +112,7 @@ if (failed) {
 const manifestResponse = await fetch(presign("PUT", "art/manifest.json", WRITE_EXPIRES, credentials), {
 	method: "PUT",
 	body: fs.readFileSync(manifestPath),
+	headers: { "content-type": "application/json" },
 });
 if (!manifestResponse.ok) {
 	console.error(`\n✗ 清单上传失败：${manifestResponse.status} ${(await manifestResponse.text()).slice(0, 200)}`);
