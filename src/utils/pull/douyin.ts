@@ -51,7 +51,7 @@ function picScore(url: string): number {
 }
 
 const SKIP_DOUYIN_PIC_KEY =
-	/avatar|icon|logo|emoji|sticker|badge|watermark_dot|owner_watermark|user_watermark|^display_image$|^download_url_list$|^thumbnail$/i;
+	/avatar|icon|logo|emoji|sticker|badge|watermark_dot|owner_watermark|user_watermark/i;
 
 function walkDouyinPics(
 	value: unknown,
@@ -242,17 +242,15 @@ async function resolveShare(
 
 function collectFromHtml(html: string): string[] {
 	const pics: string[] = [];
+	pics.push(...picsFromLd(html));
 	const render =
 		scriptJson(html, "RENDER_DATA") ||
 		scriptJson(html, "RENDER-DATA") ||
 		extractJsonObject(html, "_ROUTER_DATA");
 	if (render) pics.push(...walkDouyinPics(render));
-	if (!pics.length) {
-		pics.push(...picsFromLd(html));
-		pics.push(...collectHttpUrls(html).filter(keepDouyinPic));
-		const og = metaContent(html, "og:image");
-		if (og) pics.push(og);
-	}
+	pics.push(...collectHttpUrls(html).filter(keepDouyinPic));
+	const og = metaContent(html, "og:image");
+	if (og) pics.push(og);
 	return pics;
 }
 
