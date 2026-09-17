@@ -2,8 +2,10 @@
 	import { onMount, tick } from "svelte";
 	import LocalArtwork from "./LocalArtwork.svelte";
 	import { artOptions, artworkFile, describeArtwork, filterArtworks, isArtworkPath, readArtDirectory, type Artwork, type LocalDirectoryHandle } from "@/utils/art-library";
+	import { isOwnerDevice } from "@/utils/owner";
 	let entries = $state<Artwork[]>([]);
 	let connected = $state(false);
+	let owner = $state(false);
 	let folder = $state("");
 	let scanning = $state(false);
 	let scanned = $state(0);
@@ -31,7 +33,10 @@
 	const sources = $derived(artOptions(entries, "source"));
 	const title = $derived(member ? `${member} · 专属图墙` : group ? `${group} · 专属图墙` : category ? `${category} 展厅` : "所有展品");
 	$effect(() => { query; category; group; member; style; source; page = 0; });
-	onMount(() => () => controller?.abort());
+	onMount(() => {
+		owner = isOwnerDevice();
+		return () => controller?.abort();
+	});
 	function reset() { query = ""; category = ""; group = ""; member = ""; style = ""; source = ""; page = 0; }
 	function install(items: Artwork[], name: string) {
 		entries = items; folder = name; connected = true; reset();
@@ -100,12 +105,14 @@
 <section class="art-museum" aria-label="艺术馆">
 	<header class="masthead">
 		<div><span class="eyebrow">STULANEZ / ART MUSEUM</span><h1>艺术馆<span>让喜欢的画面，重新被看见。</span></h1></div>
-		<button class="connect" onclick={chooseDirectory} disabled={scanning}>{connected ? "更换图库" : "打开我的图库"}<span aria-hidden="true"> ↗</span></button>
-		<input class="file-input" bind:this={input} type="file" multiple webkitdirectory onchange={chooseFiles} aria-label="选择图片文件夹" />
+		{#if owner}
+			<button class="connect" onclick={chooseDirectory} disabled={scanning}>{connected ? "更换图库" : "打开我的图库"}<span aria-hidden="true"> ↗</span></button>
+			<input class="file-input" bind:this={input} type="file" multiple webkitdirectory onchange={chooseFiles} aria-label="选择图片文件夹" />
+		{/if}
 	</header>
 	<div class="intro">
 		<p>{connected ? `${folder} · 本机浏览` : "从一个画面，走进一个世界。"}</p>
-		<span>{connected ? "分类来自原有文件夹" : "选择电脑中的图片文件夹，原图留在本机。旧站内示例已清空。"}</span>
+		<span>{connected ? "分类来自原有文件夹" : owner ? "选择电脑中的图片文件夹，原图留在本机。旧站内示例已清空。" : "这里是最初的展厅，新的展览正在布置。"}</span>
 	</div>
 	<div class="searchbox"><span aria-hidden="true">⌕</span><input type="search" bind:value={query} placeholder="搜索成员、画风、文件名…" aria-label="搜索图库" /><kbd>探索</kbd></div>
 	<nav class="categories" aria-label="艺术馆展厅">
@@ -123,7 +130,7 @@
 		<button class="reset" onclick={reset}>重置筛选</button>
 	</div>
 	{/if}
-	<div id="art-results" class="results-heading"><div><span class="eyebrow">{connected ? "YOUR COLLECTION" : "WAITING"}</span><h2>{connected ? title : "还没有展品"}</h2></div><span>{connected ? `${filtered.length.toLocaleString()} 张` : "连接本机目录后开始"}</span></div>
+	<div id="art-results" class="results-heading"><div><span class="eyebrow">{connected ? "YOUR COLLECTION" : "WAITING"}</span><h2>{connected ? title : owner ? "还没有展品" : "新展筹备中"}</h2></div><span>{connected ? `${filtered.length.toLocaleString()} 张` : owner ? "连接本机目录后开始" : "敬请期待"}</span></div>
 	{#if visible.length}
 		<div class="art-grid">
 			{#each visible as item, index (item.id)}
@@ -134,7 +141,7 @@
 			{/each}
 		</div>
 		{#if filtered.length > batchSize}<nav class="pagination" aria-label="图墙翻页"><button disabled={page === 0} onclick={() => changePage(-1)}>← 前一批</button><span>{page + 1} / {Math.ceil(filtered.length / batchSize)}</span><button disabled={(page + 1) * batchSize >= filtered.length} onclick={() => changePage(1)}>继续逛 →</button></nav>{/if}
-	{:else}<div class="empty"><h3>{entries.length ? "这次还没有找到" : "这里还没有展品"}</h3><p>{entries.length ? "换个关键词，或放宽筛选条件。" : "资源库旧示例已撤下。选一个含 JPG、PNG、WebP 的文件夹，或等新的数字资源库就绪。"}</p><button onclick={entries.length ? reset : chooseDirectory}>{entries.length ? "查看全部图片" : "选择图库"}</button></div>{/if}
+	{:else}<div class="empty"><h3>{entries.length ? "这次还没有找到" : owner ? "这里还没有展品" : "新展筹备中"}</h3><p>{entries.length ? "换个关键词，或放宽筛选条件。" : owner ? "资源库旧示例已撤下。选一个含 JPG、PNG、WebP 的文件夹，或等新的数字资源库就绪。" : "这里今后会展出馆长挑选的图集，敬请期待。"}</p>{#if entries.length || owner}<button onclick={entries.length ? reset : chooseDirectory}>{entries.length ? "查看全部图片" : "选择图库"}</button>{/if}</div>{/if}
 	<footer>艺术馆 · 私藏的另一种打开方式 <span>{connected ? "仅在当前浏览器读取；刷新后需重新选择目录。" : "相册与私人收藏，留给另一段故事。"}</span></footer>
 </section>
 
