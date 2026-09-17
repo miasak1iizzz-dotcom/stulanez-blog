@@ -40,10 +40,17 @@ const className = Astro.props.class;
     />
   </a>
   <div class="px-2">
-    <div
-      class="font-bold text-xl text-center mb-1 dark:text-neutral-50 transition"
-    >
-      {profileConfig.name}
+    <div class="flex items-center justify-center gap-1.5 mb-1">
+      <span class="font-bold text-xl dark:text-neutral-50 transition">
+        {profileConfig.name}
+      </span>
+      {profileConfig.badge && (
+        <span
+          class="text-xs leading-none font-bold text-white bg-(--primary) rounded-full px-2 py-1 transition select-none"
+        >
+          {profileConfig.badge}
+        </span>
+      )}
     </div>
     <div
       class="h-1 w-5 bg-(--primary) mx-auto rounded-full mb-2 transition"
