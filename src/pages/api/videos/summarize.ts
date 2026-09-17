@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { bvidOf, fetchVideoMeta, peelBilibili } from "@/utils/videos/bilibili";
+import { cachedDigest } from "@/utils/videos/cache";
 import {
 	createEngineTask,
 	engineConfigured,
@@ -38,6 +39,17 @@ export const POST: APIRoute = async ({ request }) => {
 	const owner = rec.owner === true;
 	if (!url.trim())
 		return json({ ok: false, error: "请先贴一条 B 站链接。" }, 400);
+
+	const cached = cachedDigest(url);
+	if (cached) {
+		return json({
+			ok: true,
+			bvid: cached.meta.bvid,
+			status: "completed",
+			message: "做好了",
+			result: cached,
+		});
+	}
 
 	const limited = rateLimit(clientIp(request), owner);
 	if (limited) return json({ ok: false, error: limited }, 429);
