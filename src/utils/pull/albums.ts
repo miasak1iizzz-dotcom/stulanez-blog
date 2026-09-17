@@ -1,3 +1,4 @@
+import { isOwnerDevice } from "@/utils/owner";
 import type { PullChannelId } from "@/utils/pull/types";
 
 /** 本机图集书签。禁止 clear / removeItem 此键；删图集只能走 removePullAlbum。 */
@@ -6,6 +7,8 @@ const IDB_NAME = "stulanez-pull";
 const IDB_STORE = "kv";
 const IDB_ALBUMS = "albums-v1";
 const MAX_ALBUMS = 80;
+/** 曾误打进前端包、种进所有访客本机的找回图集 */
+const SEEDED_ALBUM_PREFIX = "recover-";
 
 export type PullAlbum = {
 	id: string;
@@ -20,25 +23,6 @@ export type PullAlbum = {
 	updatedAt: string;
 };
 
-/** 从本机 Chrome LevelDB 找回的图集（UI 曾藏列表导致以为丢失） */
-const RECOVERED_ALBUMS: Omit<PullAlbum, "createdAt" | "updatedAt">[] = [
-	{
-		id: "recover-ig-eunchae-dqp1",
-		name: "HONG EUNCHAE",
-		url: "https://www.instagram.com/p/DQp1jmakv0T/",
-		channel: "instagram",
-		hintTitle: "用户 HONG EUNCHAE",
-	},
-	{
-		id: "recover-dy-sakura-100",
-		name: "宫脇咲良100张自拍",
-		url: "https://www.douyin.com/note/7614427905598500209",
-		channel: "douyin",
-		hintTitle: "宫脇咲良100张自拍",
-		hintCount: 99,
-	},
-];
-
 function albumFingerprint(url: string): string {
 	const raw = url.trim().toLowerCase();
 	const ig = /instagram\.com\/(?:p|reel|reels)\/([a-z0-9_-]+)/i.exec(raw);
@@ -47,9 +31,6 @@ function albumFingerprint(url: string): string {
 	if (dyNote?.[1]) return `dy:${dyNote[1]}`;
 	const dyShort = /v\.douyin\.com\/([a-z0-9_-]+)/i.exec(raw);
 	if (dyShort?.[1]) return `dys:${dyShort[1].toLowerCase()}`;
-	if (/7izos?tu1y3g/i.test(raw)) return "dys:7izos";
-	if (/dqp1jmakv0t/i.test(raw)) return "ig:dqp1jmakv0t";
-	if (/7614427905598500209/.test(raw)) return "dy:7614427905598500209";
 	return `url:${raw.replace(/[?#].*$/, "")}`;
 }
 
@@ -190,21 +171,18 @@ function uid(): string {
 }
 
 /**
- * 启动时：localStorage + IndexedDB 合并，并写回找回的两本图集。
- * 返回本机最终列表。
+ * 启动时：localStorage + IndexedDB 合并。
+ * 游客丢掉曾从网站包里种进来的找回图集；站长本机自己存的原样保留。
  */
 export async function hydratePullAlbums(): Promise<PullAlbum[]> {
 	const local = readLocal();
 	const idb = await readIdb();
-	const recovered = RECOVERED_ALBUMS.map((item) => {
-		const now = new Date().toISOString();
-		return {
-			...item,
-			createdAt: now,
-			updatedAt: now,
-		} satisfies PullAlbum;
-	});
-	const merged = mergeByFingerprint([local, idb, recovered]);
+	let merged = mergeByFingerprint([local, idb]);
+	if (!isOwnerDevice()) {
+		merged = merged.filter(
+			(album) => !album.id.startsWith(SEEDED_ALBUM_PREFIX),
+		);
+	}
 	writeAll(merged);
 	return merged;
 }
