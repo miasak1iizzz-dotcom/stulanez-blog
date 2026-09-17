@@ -23,10 +23,13 @@ function awemeId(url: string): string | null {
 }
 
 function keepDouyinPic(url: string): boolean {
-	return (
-		/douyinpic\.com/i.test(url) &&
-		!/avatar|aweme-avatar|emoji|forum|pwa/i.test(url)
-	);
+	if (!/douyinpic\.com/i.test(url)) return false;
+	if (/avatar|aweme-avatar|emoji|forum|pwa/i.test(url)) return false;
+	// Comment / related-card thumbs leak in via page HTML (biz_tag=aweme_comment).
+	if (/biz_tag=aweme_comment/i.test(url)) return false;
+	if (/[?&]sc=thumb(?:&|$)/i.test(url)) return false;
+	if (/tplv-p14lwwcsbr/i.test(url)) return false;
+	return true;
 }
 
 function picObjectId(url: string): string {
@@ -51,7 +54,7 @@ function picScore(url: string): number {
 }
 
 const SKIP_DOUYIN_PIC_KEY =
-	/avatar|icon|logo|emoji|sticker|badge|watermark_dot|owner_watermark|user_watermark/i;
+	/avatar|icon|logo|emoji|sticker|badge|watermark_dot|owner_watermark|user_watermark|comment|related|recommend|aweme_list|hot_list/i;
 
 function walkDouyinPics(
 	value: unknown,
@@ -240,17 +243,54 @@ async function resolveShare(
 	return { url: current, id: awemeId(current), dumpedHome };
 }
 
-function collectFromHtml(html: string): string[] {
+function awemeIdOf(value: Record<string, unknown>): string | null {
+	const raw = value.aweme_id ?? value.awemeId ?? value.itemId ?? value.item_id;
+	return typeof raw === "string" || typeof raw === "number" ? String(raw) : null;
+}
+
+function findAweme(
+	value: unknown,
+	id: string,
+	depth = 0,
+): AwemeDetail | null {
+	if (depth > 14 || value == null) return null;
+	if (Array.isArray(value)) {
+		for (const item of value) {
+			const hit = findAweme(item, id, depth + 1);
+			if (hit) return hit;
+		}
+		return null;
+	}
+	if (typeof value === "object") {
+		const rec = value as Record<string, unknown>;
+		if (awemeIdOf(rec) === id && (rec.images || rec.image_post_info)) {
+			return rec as AwemeDetail;
+		}
+		for (const child of Object.values(rec)) {
+			const hit = findAweme(child, id, depth + 1);
+			if (hit) return hit;
+		}
+	}
+	return null;
+}
+
+function collectFromHtml(html: string, id?: string | null): string[] {
 	const pics: string[] = [];
-	pics.push(...picsFromLd(html));
 	const render =
 		scriptJson(html, "RENDER_DATA") ||
 		scriptJson(html, "RENDER-DATA") ||
 		extractJsonObject(html, "_ROUTER_DATA");
-	if (render) pics.push(...walkDouyinPics(render));
-	pics.push(...collectHttpUrls(html).filter(keepDouyinPic));
-	const og = metaContent(html, "og:image");
-	if (og) pics.push(og);
+	if (id && render) {
+		const aweme = findAweme(render, id);
+		if (aweme) pics.push(...picsFromAwemeDetail(aweme));
+	}
+	if (!pics.length && render) pics.push(...walkDouyinPics(render));
+	if (!pics.length) {
+		pics.push(...picsFromLd(html));
+		pics.push(...collectHttpUrls(html).filter(keepDouyinPic));
+		const og = metaContent(html, "og:image");
+		if (og) pics.push(og);
+	}
 	return pics;
 }
 
@@ -263,6 +303,7 @@ function sleep(ms: number): Promise<void> {
 
 async function readOneNotePage(
 	pageUrl: string,
+	id?: string | null,
 ): Promise<{ pics: string[]; title: string; author?: string } | null> {
 	try {
 		const html = await fetchText(pageUrl, {
@@ -273,7 +314,9 @@ async function readOneNotePage(
 				Referer: "https://www.douyin.com/",
 			},
 		});
-		const pics = uniqueNotePics(collectFromHtml(html.text));
+		const pics = uniqueNotePics(
+			collectFromHtml(html.text, id || awemeId(pageUrl)),
+		);
 		const rich =
 			/RENDER_DATA|RENDER-DATA|_ROUTER_DATA/i.test(html.text) ||
 			pics.length > 1;
@@ -296,12 +339,12 @@ async function readNotePage(
 	];
 	// Douyin SSR from overseas IPs flaps; retry the note URL before falling through.
 	for (let attempt = 0; attempt < 3; attempt++) {
-		const hit = await readOneNotePage(pages[0]!);
+		const hit = await readOneNotePage(pages[0]!, id);
 		if (hit && hit.pics.length > 1) return hit;
 		if (attempt < 2) await sleep(400 * (attempt + 1));
 	}
 	for (const pageUrl of pages.slice(1)) {
-		const hit = await readOneNotePage(pageUrl);
+		const hit = await readOneNotePage(pageUrl, id);
 		if (hit && hit.pics.length > 1) return hit;
 	}
 	return { pics: [], title: "" };
@@ -417,8 +460,12 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 			title = title || detail.desc || "";
 			author = author || detail.author?.nickname;
 			const fromDetail = picsFromAwemeDetail(detail);
-			if (fromDetail.length) {
-				pics = uniqueNotePics([...pics, ...fromDetail]);
+			if (fromDetail.length >= 2) {
+				// API album is the post itself; HTML also has comment thumbs.
+				pics = fromDetail;
+				warning = undefined;
+			} else if (fromDetail.length) {
+				pics = uniqueNotePics([...fromDetail, ...pics]);
 				warning = undefined;
 			} else if (!pics.length) {
 				const cover =
@@ -481,7 +528,7 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 							Referer: "https://www.douyin.com/",
 						},
 					});
-					const more = uniqueNotePics(collectFromHtml(html.text));
+					const more = uniqueNotePics(collectFromHtml(html.text, id));
 					if (more.length > pics.length) {
 						pics = more;
 						warning = undefined;
