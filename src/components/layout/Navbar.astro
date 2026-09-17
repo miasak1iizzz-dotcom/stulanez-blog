@@ -98,6 +98,14 @@ if (!links.some((link) => link.url === "/art/")) {
 		icon: "material-symbols:photo-library",
 	});
 }
+if (!links.some((link) => link.url === "/videos/")) {
+	const artAt = links.findIndex((link) => link.url === "/art/");
+	links.splice(artAt >= 0 ? artAt + 1 : 1, 0, {
+		name: "视频总结",
+		url: "/videos/",
+		icon: "material-symbols:movie-outline",
+	});
+}
 
 // 处理导航栏 Logo 图片，image / url 类型支持亮暗色分别设置
 const logoConfig = siteConfig.navbar.logo;

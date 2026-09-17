@@ -1,0 +1,59 @@
+---
+/*
+ * 视频总结板块专用布局：与 PullLayout（书桌）、ArtLayout（纸面展厅）并列的
+ * 第三种整页氛围——恒定暗色「放映厅」。顶部导航逻辑与原站完全一致（Layout 提供）。
+ * 站长元素的全局隐藏规则在此重复声明：本布局无侧栏，不会加载 Profile 组件里的那份。
+ */
+import HeaderTopRow from "@/components/layout/HeaderTopRow.astro";
+import PageAtmosphere from "@/components/misc/PageAtmosphere.astro";
+import { siteConfig } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
+---
+
+<Layout {title} {description}>
+	<HeaderTopRow stickyNavbar={true} {navbarWidthFull} />
+	<PageAtmosphere />
+	<div id="banner-overlay-container" hidden></div>
+	<div id="banner-dim-container" hidden></div>
+	<div id="left-sidebar-dynamic" hidden></div>
+	<div id="right-sidebar-dynamic" hidden></div>
+	<div id="floating-toc-wrapper" hidden></div>
+	<main id="swup-container" class="vd-main">
+		<slot />
+	</main>
+</Layout>
+
+<style is:global>
+	body:has(.vd-main) {
+		background: #0d0d13 !important;
+		color: #eceaf2;
+		color-scheme: dark;
+	}
+
+	.vd-main {
+		min-height: 100vh;
+		padding: 0.7rem 0.55rem 4.6rem;
+		color: #eceaf2;
+		background:
+			radial-gradient(1000px 520px at 15% -6%, rgba(225, 138, 210, 0.1), transparent 60%),
+			radial-gradient(860px 460px at 85% -4%, rgba(167, 139, 250, 0.08), transparent 60%),
+			#0d0d13;
+		transition: padding-top 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	body:has(.vd-main).site-nav-pinned .vd-main,
+	body:has(.vd-main).site-nav-at-top.site-nav-open .vd-main {
+		padding-top: 5.6rem;
+	}
+
+	/* 站长专属元素：非站长设备一律隐藏（协议「站长与游客」），与 Profile.astro 中规则一致 */
+	html:not(.is-owner) [data-owner-only] { display: none !important; }
+</style>

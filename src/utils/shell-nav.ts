@@ -41,6 +41,8 @@ export function resolvePageShell(pathname: string): PageShell {
 		path.startsWith("/pull/") ||
 		path === "/art" ||
 		path.startsWith("/art/") ||
+		path === "/videos" ||
+		path.startsWith("/videos/") ||
 		path === "/tft" ||
 		path.startsWith("/tft/") ||
 		path === "/library" ||
