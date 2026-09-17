@@ -8,7 +8,7 @@
  * 失败时返回 503/502，展厅会自动退回站内清单，不会白屏。
  */
 import type { APIRoute } from "astro";
-import { getObjectText, presign, READ_EXPIRES, resolveCredentials } from "@/utils/s3-sign";
+import { getObjectText, resolveCredentials } from "@/utils/s3-sign";
 
 export const prerender = false;
 
@@ -54,15 +54,17 @@ export const GET: APIRoute = async () => {
 	}
 
 	const items = Array.isArray(manifest.items) ? manifest.items : [];
+	// 图片改成走站内代理（URL 稳定、可被 CDN 长期缓存）。
+	// 早先直接给对象存储的签名链接，结果每次签名都不同 → 浏览器与 CDN 都缓存不了，
+	// 每个访客每张图都得跨洋回源一次（实测每张约 2 秒）。
 	for (const item of items) {
 		if (!item.thumbs) continue;
-		const signed: Record<string, string> = {};
+		const proxied: Record<string, string> = {};
 		for (const [width, key] of Object.entries(item.thumbs)) {
-			signed[width] = presign("GET", String(key), READ_EXPIRES, credentials);
+			proxied[width] = `/api/art/img/${String(key)}`;
 		}
-		item.thumbs = signed;
+		item.thumbs = proxied;
 	}
 
-	// 边缘缓存 60 秒：绝大多数访客直接命中缓存，省掉一次跨洋往返
-	return json({ ...manifest, expiresIn: READ_EXPIRES }, 200, 60);
+	return json(manifest, 200, 60);
 };
