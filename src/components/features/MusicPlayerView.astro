@@ -756,6 +756,12 @@ const viewConfigStr = JSON.stringify({
     }
 
     initAll();
+
+    if (!window.__fireflyMusicView) {
+        window.__fireflyMusicView = true;
+        document.addEventListener('swup:contentReplaced', initAll);
+        document.addEventListener('astro:page-load', initAll);
+    }
 })();
 </script>
 

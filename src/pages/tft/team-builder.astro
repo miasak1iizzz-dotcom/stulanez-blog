@@ -13,7 +13,12 @@ const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 
 <Layout {title} {description}>
 	<HeaderTopRow stickyNavbar={true} {navbarWidthFull} />
-	<main class="tft-tool-main">
+	<div id="banner-overlay-container" hidden></div>
+	<div id="banner-dim-container" hidden></div>
+	<div id="left-sidebar-dynamic" hidden></div>
+	<div id="right-sidebar-dynamic" hidden></div>
+	<div id="floating-toc-wrapper" hidden></div>
+	<main id="swup-container" class="tft-tool-main">
 		<div class="tft-page">
 		<nav class="tft-breadcrumb" aria-label="面包屑">
 			<a href="/">首页</a>

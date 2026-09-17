@@ -21,13 +21,13 @@ const navbarWidthFull = siteConfig.navbar.widthFull ?? false;
 			<div id="left-sidebar-dynamic" hidden />
 			<div id="right-sidebar-dynamic" hidden />
 			<div id="floating-toc-wrapper" hidden />
-			<main class="library-tool-main">
+			<main id="swup-container" class="library-tool-main">
 				<AssetLibraryBrowser client:load assets={assets} />
 			</main>
 		</Layout>
 	) : (
 		<Layout title="数字资源库" description="暂未开放">
-			<main class="library-tool-main"><p>数字资源库暂未开放。</p></main>
+			<main id="swup-container" class="library-tool-main"><p>数字资源库暂未开放。</p></main>
 		</Layout>
 	)
 }

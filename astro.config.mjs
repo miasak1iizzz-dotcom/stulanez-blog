@@ -1,10 +1,10 @@
 import { setMaxListeners } from "node:events";
 import cloudflare from "@astrojs/cloudflare";
-import vercel from "@astrojs/vercel";
 import { unified } from "@astrojs/markdown-remark";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
+import vercel from "@astrojs/vercel";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import swup from "@swup/astro";
@@ -66,7 +66,14 @@ const adapter = process.env.CF_WORKERS
 		})
 	: vercel({
 			// 本地临时区不应打进 serverless 函数；它们在 Vercel 干净环境本就不存在，排除可避免本地构建误扫
-			excludeFiles: [".ai-work/**", "_blog_scan/**", "_site_scan/**", "_design/**", "_kpop_tmp/**", ".wrangler/**"],
+			excludeFiles: [
+				".ai-work/**",
+				"_blog_scan/**",
+				"_site_scan/**",
+				"_design/**",
+				"_kpop_tmp/**",
+				".wrangler/**",
+			],
 		});
 
 // https://astro.build/config
@@ -144,23 +151,12 @@ export default defineConfig({
 			updateHead: true,
 			updateBodyClass: false,
 			globalInstance: true,
-			// 取图/艺术馆/TFT 无完整 MainGrid 容器；跨壳走整页加载，避免 Swup 半截拆样式闪裸文字
+			// 评论 iframe 不是整站壳；跨壳（取图/艺术馆等）由 shell-nav 改换 #page-shell，不在这里忽略
 			ignore: (url) => {
 				const path = String(url || "").split(/[?#]/)[0] || "/";
-				const isTool = (p) =>
-					p === "/pull" ||
-					p.startsWith("/pull/") ||
-					p === "/art" ||
-					p.startsWith("/art/") ||
-					p === "/tft" ||
-					p.startsWith("/tft/") ||
-					p === "/library" ||
-					p.startsWith("/library/");
-				const toTool = isTool(path);
-				const fromTool =
-					typeof document !== "undefined" &&
-					document.documentElement?.dataset?.pageShell === "tool";
-				return Boolean(fromTool || toTool);
+				return (
+					path === "/dynamic/comments" || path.startsWith("/dynamic/comments/")
+				);
 			},
 			// 滚动相关配置优化
 			resolveUrl: (url) => url,

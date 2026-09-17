@@ -11,11 +11,11 @@ import {
 	findAlbumByUrl,
 	hydratePullAlbums,
 	listPullAlbums,
+	type PullAlbum,
 	removePullAlbum,
 	renamePullAlbum,
 	touchPullAlbum,
 	upsertPullAlbum,
-	type PullAlbum,
 } from "@/utils/pull/albums";
 import { peelUrl } from "@/utils/pull/peel";
 import {
@@ -106,13 +106,21 @@ function onSubmit(event: Event): void {
 	void extract();
 }
 
+function softNavigate(href: string): void {
+	if (window.swup?.navigate) {
+		window.swup.navigate(href);
+		return;
+	}
+	window.location.assign(href);
+}
+
 function clearBrowse(): void {
 	clearPullSession();
 	result = null;
 	url = "";
 	error = "";
 	activeAlbumId = null;
-	window.location.assign("/pull/");
+	softNavigate("/pull/");
 }
 
 function saveAlbum(): void {
@@ -146,7 +154,7 @@ function openAlbum(album: PullAlbum): void {
 		void extract(album.url);
 		return;
 	}
-	window.location.assign(`${path}?u=${encodeURIComponent(album.url)}`);
+	softNavigate(`${path}?u=${encodeURIComponent(album.url)}`);
 }
 
 function startRename(album: PullAlbum): void {
@@ -256,14 +264,13 @@ $effect(() => {
 					: "把 Instagram、抖音、小红书、微博的网页链接或 App 分享口令贴进来。公开帖最稳。"}
 			</p>
 			<nav class="chips" aria-label="渠道">
-				<a class={!current ? "is-on" : ""} href="/pull/" data-no-swup>
+				<a class={!current ? "is-on" : ""} href="/pull/">
 					全部
 				</a>
 				{#each PULL_CHANNELS as ch (ch.id)}
 					<a
 						class={channelId === ch.id ? "is-on" : ""}
-						href={`/pull/${ch.id}/`}
-						data-no-swup>{ch.short}</a
+						href={`/pull/${ch.id}/`}>{ch.short}</a
 					>
 				{/each}
 			</nav>
@@ -457,7 +464,6 @@ $effect(() => {
 								class="tile"
 								href={`/pull/${ch.id}/`}
 								style={`--tile:${ch.accent}`}
-								data-no-swup
 							>
 								<p class="tile-kicker">{ch.kicker}</p>
 								<h3>{ch.name}</h3>

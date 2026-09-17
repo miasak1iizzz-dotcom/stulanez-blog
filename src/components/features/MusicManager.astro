@@ -94,13 +94,18 @@ const managerConfigStr = JSON.stringify({
         return result.sort(function (a, b) { return a.time - b.time; });
     }
 
-    // ── Audio element (persistent, attached to body) ────────
-    var audio = document.createElement('audio');
-    audio.crossOrigin = 'anonymous';
-    audio.style.display = 'none';
-    audio.preload = 'none'; // 阻止浏览器预加载和自动恢复播放
-    document.body.appendChild(audio);
-    audio.pause(); // 确保不自动播放
+    // ── Audio element（挂在 body 上、#page-shell 外面，切页换壳也不卸） ────────
+    var audio = document.getElementById('firefly-audio');
+    if (!audio) {
+        audio = document.createElement('audio');
+        audio.id = 'firefly-audio';
+        audio.setAttribute('aria-hidden', 'true');
+        audio.crossOrigin = 'anonymous';
+        audio.style.display = 'none';
+        audio.preload = 'none'; // 阻止浏览器预加载和自动恢复播放
+        document.body.appendChild(audio);
+        audio.pause(); // 确保不自动播放
+    }
 
     // ── State ────────────────────────────────────────────────
     var loadVersion = 0; // incremented on each loadTrack to discard stale play() results
@@ -447,8 +452,19 @@ const managerConfigStr = JSON.stringify({
     // ── Track loading ────────────────────────────────────────
     function loadTrack(index, autoPlay, opts) {
         if (index < 0 || index >= state.playlist.length) return;
-        state.currentIndex = index;
         var track = state.playlist[index];
+        var sameSrc = trackUrlBase(audio.currentSrc || audio.src) === trackUrlBase(track.url);
+        // 已经在播同一首：切页重绑 UI 时别重置 src，否则会卡一下
+        if (sameSrc && audio.readyState > 0 && !(opts && opts.forceReload)) {
+            state.currentIndex = index;
+            saveLastTrack(track);
+            emit('fm:track', { index: index, track: track, autoPlay: !!autoPlay });
+            if (autoPlay && audio.paused) {
+                resumePlayOrWaitGesture(loadVersion);
+            }
+            return;
+        }
+        state.currentIndex = index;
         saveLastTrack(track);
         var ver = ++loadVersion;
 

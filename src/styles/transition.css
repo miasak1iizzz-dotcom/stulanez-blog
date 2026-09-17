@@ -118,10 +118,10 @@ html.is-animating .transition-swup-fade {
 }
 
 /* --------------------------------------------------------------------------
-   5. Cross-shell hard navigation veil (tool pages ↔ MainGrid)
+   5. Cross-shell navigation veil (tool pages ↔ MainGrid)
    -------------------------------------------------------------------------- */
 
-/* 不透明遮罩盖住整页，避免 Swup 半截拆样式后露出裸文字 */
+/* 换 #page-shell 期间盖住整页，避免新旧壳叠一帧。音频在遮罩下面继续播。 */
 html.is-shell-leaving::after,
 html.is-shell-veiling::after {
     content: "";

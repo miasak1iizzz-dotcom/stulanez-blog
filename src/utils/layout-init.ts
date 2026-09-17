@@ -30,7 +30,7 @@ export function initLayout(): void {
 	if (window.__fireflyLayoutInit) return;
 	window.__fireflyLayoutInit = true;
 
-	// 跨壳硬跳遮罩须尽早挂上（含工具页→主页），抢在 Swup 监听之前
+	// 跨壳遮罩须尽早挂上（含工具页→主页），抢在 Swup 监听之前
 	setupShellNav();
 
 	initializeFloatingPanels();
