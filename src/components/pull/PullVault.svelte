@@ -94,6 +94,7 @@ async function extract(pastedOverride?: string): Promise<void> {
 		syncAlbumDraft(data, target);
 		if (activeAlbumId) touchPullAlbum(activeAlbumId);
 		refreshAlbums();
+		enterGalleryHistory(target);
 	} catch {
 		error = "网络断了一下。再试一次。";
 	} finally {
@@ -106,21 +107,87 @@ function onSubmit(event: Event): void {
 	void extract();
 }
 
-function softNavigate(href: string): void {
-	if (window.swup?.navigate) {
-		window.swup.navigate(href);
-		return;
-	}
-	window.location.assign(href);
+type PullHist = { pull?: "desk" | "gallery" };
+
+function pullState(): PullHist {
+	return (
+		history.state && typeof history.state === "object" ? history.state : {}
+	) as PullHist;
 }
 
-function clearBrowse(): void {
+function stampPull(kind: "desk" | "gallery"): PullHist {
+	const prev =
+		history.state && typeof history.state === "object" ? history.state : {};
+	return { ...prev, pull: kind };
+}
+
+function deskPath(): string {
+	const path = window.location.pathname;
+	return path.endsWith("/") ? path : `${path}/`;
+}
+
+function galleryPath(target: string): string {
+	return `${deskPath()}?u=${encodeURIComponent(target)}`;
+}
+
+function enterGalleryHistory(target: string): void {
+	const href = galleryPath(target);
+	const currentU = new URLSearchParams(window.location.search).get("u");
+	if (currentU === target || pullState().pull === "gallery" || currentU) {
+		history.replaceState(stampPull("gallery"), "", href);
+		return;
+	}
+	history.pushState(stampPull("gallery"), "", href);
+}
+
+function showDesk(): void {
 	clearPullSession();
 	result = null;
 	url = "";
 	error = "";
 	activeAlbumId = null;
-	softNavigate("/pull/");
+}
+
+function onPullPopState(): void {
+	const passed = new URLSearchParams(window.location.search).get("u");
+	if (passed) {
+		const stored = loadPullSession();
+		const storedUrl = stored ? peelUrl(stored.url) || stored.url : "";
+		const want = peelUrl(passed) || passed;
+		if (stored && storedUrl === want) {
+			url = stored.url;
+			result = stored.result;
+			syncAlbumDraft(stored.result, stored.url);
+			return;
+		}
+		url = passed;
+		void extract(passed);
+		return;
+	}
+	showDesk();
+}
+
+function softNavigate(href: string, replace = false): void {
+	if (window.swup?.navigate) {
+		window.swup.navigate(href, replace ? { history: false } : undefined);
+		return;
+	}
+	if (replace) window.location.replace(href);
+	else window.location.assign(href);
+}
+
+function clearBrowse(): void {
+	showDesk();
+	if (pullState().pull === "gallery") {
+		history.back();
+		return;
+	}
+	const here = deskPath();
+	if (here === "/pull/") {
+		history.replaceState(stampPull("desk"), "", "/pull/");
+		return;
+	}
+	softNavigate("/pull/", true);
 }
 
 function saveAlbum(): void {
@@ -203,7 +270,13 @@ function channelLabel(id: PullChannelId): string {
 	return getPullChannel(id)?.short ?? id;
 }
 
-let booted = $state(false);
+let booted = false;
+
+$effect(() => {
+	if (typeof window === "undefined") return;
+	window.addEventListener("popstate", onPullPopState, true);
+	return () => window.removeEventListener("popstate", onPullPopState, true);
+});
 
 $effect(() => {
 	if (booted || typeof window === "undefined") return;
@@ -212,7 +285,9 @@ $effect(() => {
 		refreshAlbums();
 	});
 	const passed = new URLSearchParams(window.location.search).get("u");
-	if (passed && !url) {
+	if (passed) {
+		history.replaceState(stampPull("desk"), "", deskPath());
+		history.pushState(stampPull("gallery"), "", galleryPath(passed));
 		url = passed;
 		const known = findAlbumByUrl(peelUrl(passed) || passed);
 		if (known) {
@@ -222,24 +297,7 @@ $effect(() => {
 		void extract(passed);
 		return;
 	}
-	const stored = loadPullSession();
-	if (stored) {
-		const known = findAlbumByUrl(stored.url);
-		const staleThin =
-			Boolean(known?.hintCount && known.hintCount > 5) &&
-			stored.result.images.length <= 1;
-		if (staleThin) {
-			clearPullSession();
-			url = stored.url;
-			activeAlbumId = known?.id ?? null;
-			albumName = known?.name ?? "";
-			void extract(stored.url);
-			return;
-		}
-		url = stored.url;
-		result = stored.result;
-		syncAlbumDraft(stored.result, stored.url);
-	}
+	history.replaceState(stampPull("desk"), "", window.location.href);
 });
 </script>
 
