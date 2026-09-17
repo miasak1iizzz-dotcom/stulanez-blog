@@ -27,6 +27,13 @@
 	let outputName = $state("");
 	let writeStage = $state("");
 
+	// 发布到展厅：口令存这台浏览器，图片直传对象存储，字节不经过本站服务器
+	const TOKEN_KEY = "stulanez:art-publish-token";
+	let publishToken = $state("");
+	let tokenDraft = $state("");
+	let publishing = $state(false);
+	let publishNote = $state("");
+
 	onMount(async () => {
 		const source = await loadDirectoryHandle(HANDLE_KEYS.source);
 		if (source) lastSource = { handle: source.handle, name: source.name };
@@ -34,6 +41,11 @@
 		if (output) {
 			savedOutput = output.handle;
 			outputName = output.name;
+		}
+		try {
+			publishToken = localStorage.getItem(TOKEN_KEY) ?? "";
+		} catch {
+			publishToken = "";
 		}
 	});
 
@@ -296,6 +308,101 @@
 		}
 	}
 
+	function saveToken() {
+		const value = tokenDraft.trim();
+		if (!value) return;
+		publishToken = value;
+		tokenDraft = "";
+		try {
+			localStorage.setItem(TOKEN_KEY, value);
+		} catch {
+			// 存不进去也没关系，这次会话里仍可用
+		}
+		publishNote = "口令记住了，存在这台浏览器里，下次不用再填。";
+	}
+
+	function clearToken() {
+		publishToken = "";
+		tokenDraft = "";
+		try {
+			localStorage.removeItem(TOKEN_KEY);
+		} catch {
+			// 忽略
+		}
+		publishNote = "";
+	}
+
+	/**
+	 * 发布到展厅：缩略图全部直传对象存储，最后才更新清单。
+	 * 顺序很重要——清单一旦更新，展厅就按它渲染，所以必须等图片全部就位。
+	 */
+	async function publish() {
+		if (!items.length || publishing) return;
+		publishing = true;
+		publishNote = "";
+		try {
+			const files: { key: string; blob: Blob }[] = [];
+			for (const item of items) {
+				for (const [width, blob] of Object.entries(item.thumbs)) {
+					files.push({ key: `art/thumb/${item.id.slice(0, 2)}/${item.id}-${width}.webp`, blob });
+				}
+			}
+			const manifestKey = "art/manifest.json";
+			const manifest = buildManifest();
+			const manifestBlob = new Blob([`${JSON.stringify(manifest, null, 2)}\n`], { type: "application/json" });
+
+			publishNote = `正在申请上传许可（${files.length + 1} 个文件）…`;
+			const signResponse = await fetch("/api/art/sign", {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ token: publishToken, keys: [...files.map(f => f.key), manifestKey] }),
+			});
+			const signed = (await signResponse.json()) as { error?: string; urls?: Record<string, string> };
+			if (!signResponse.ok || !signed.urls) throw new Error(signed.error ?? `签名失败（${signResponse.status}）`);
+
+			const failed: string[] = [];
+			let done = 0;
+			const queue = [...files];
+			async function worker(): Promise<void> {
+				while (queue.length) {
+					const file = queue.shift();
+					if (!file) break;
+					const url = signed.urls?.[file.key];
+					if (!url) {
+						failed.push(file.key);
+						continue;
+					}
+					try {
+						const put = await fetch(url, { method: "PUT", body: file.blob });
+						if (!put.ok) failed.push(`${file.key}（${put.status}）`);
+					} catch {
+						failed.push(file.key);
+					}
+					done++;
+					publishNote = `正在上传 ${done} / ${files.length}…`;
+				}
+			}
+			await Promise.all(Array.from({ length: 6 }, worker));
+
+			if (failed.length) {
+				publishNote = `有 ${failed.length} 个文件没传成功，清单没有更新（展厅保持原样）。首个失败：${failed[0]}`;
+				return;
+			}
+
+			publishNote = "图片已就位，正在更新展厅清单…";
+			const manifestUrl = signed.urls[manifestKey];
+			if (!manifestUrl) throw new Error("清单没拿到上传许可");
+			const manifestPut = await fetch(manifestUrl, { method: "PUT", body: manifestBlob });
+			if (!manifestPut.ok) throw new Error(`清单上传失败（${manifestPut.status}）`);
+
+			publishNote = `发布完成：${manifest.items.length} 件展品已上线。刷新 https://stulanez.com/art/ 就能看到。`;
+		} catch (error) {
+			publishNote = `发布失败：${(error as Error).message}`;
+		} finally {
+			publishing = false;
+		}
+	}
+
 	function downloadManifest() {
 		const manifest = buildManifest();
 		const blob = new Blob([`${JSON.stringify(manifest, null, 2)}\n`], { type: "application/json" });
@@ -398,22 +505,47 @@
 		</div>
 
 		<footer class="export">
-			<div class="dest">
-				<span class="eyebrow">展品目录</span>
-				<strong>{outputName || "还没选过（第一次要手选一次，之后记住）"}</strong>
-				<button class="ghost" onclick={changeOutput}>更换</button>
+			<div class="publish-block">
+				<span class="eyebrow">发布到展厅</span>
+				{#if publishToken}
+					<strong>口令已记住</strong>
+					<button class="ghost" onclick={clearToken}>换口令</button>
+				{:else}
+					<input class="token" type="password" bind:value={tokenDraft} placeholder="站长口令" aria-label="站长口令" />
+					<button class="ghost" onclick={saveToken} disabled={!tokenDraft.trim()}>记住口令</button>
+				{/if}
 			</div>
 			<div>
-				<button class="primary" onclick={exportTo} disabled={exporting}>
-					{exporting ? "正在写入…" : outputName ? `写回「${outputName}」` : "选择并写回展品目录"}
+				<button class="primary" onclick={publish} disabled={publishing || !publishToken || !items.length}>
+					{publishing ? "正在发布…" : "发布到展厅"}
 				</button>
-				<button class="ghost" onclick={downloadManifest}>只下载清单</button>
 			</div>
-			{#if exporting && writeStage}
-				<p class="writing" role="status"><span class="spinner" aria-hidden="true"></span>{writeStage}</p>
+			{#if publishing && publishNote}
+				<p class="writing" role="status"><span class="spinner" aria-hidden="true"></span>{publishNote}</p>
+			{:else if publishNote}
+				<p class="notice" role="status">{publishNote}</p>
 			{/if}
-			{#if exportNote}<p class="notice" role="status">{exportNote}</p>{/if}
-			<p class="hint">浏览器不允许网页直接指定路径，所以第一次要手选一次目录——选完就记住了，以后直接写。建议选仓库的 <code>public/art</code>：缩略图进 <code>thumb/</code>，清单覆盖 <code>manifest.json</code>。标的「上站」决定清单里收哪些；一件都没标时按全部导出。</p>
+
+			<details class="local">
+				<summary>本地写回（开发兜底用）</summary>
+				<div class="dest">
+					<span class="eyebrow">展品目录</span>
+					<strong>{outputName || "还没选过"}</strong>
+					<button class="ghost" onclick={changeOutput}>更换</button>
+				</div>
+				<div class="row">
+					<button class="ghost" onclick={exportTo} disabled={exporting}>
+						{exporting ? "正在写入…" : outputName ? `写回「${outputName}」` : "选择并写回目录"}
+					</button>
+					<button class="ghost" onclick={downloadManifest}>只下载清单</button>
+				</div>
+				{#if exporting && writeStage}
+					<p class="writing" role="status"><span class="spinner" aria-hidden="true"></span>{writeStage}</p>
+				{/if}
+				{#if exportNote}<p class="notice" role="status">{exportNote}</p>{/if}
+			</details>
+
+			<p class="hint">「发布到展厅」把图片直传云端，几秒后线上就换了展——不需要 git、不需要等部署。下面「本地写回」只是开发调试时的备用通道。</p>
 		</footer>
 	{/if}
 </section>
@@ -728,11 +860,46 @@
 	.hint code {
 		font-size: 10px;
 	}
+	.publish-block {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+	.publish-block strong {
+		font-size: 13px;
+		font-weight: 500;
+	}
+	.token {
+		padding: 10px 12px;
+		border: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+		background: var(--paper);
+		color: var(--ink);
+		border-radius: 6px;
+		font-size: 13px;
+		width: 190px;
+	}
+	.local {
+		border-top: 1px dashed color-mix(in srgb, var(--ink) 14%, transparent);
+		padding-top: 12px;
+	}
+	.local summary {
+		cursor: pointer;
+		font-size: 12px;
+		color: var(--muted);
+	}
+	.local .row {
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+		margin-top: 10px;
+	}
 	.dest {
 		display: flex;
 		gap: 10px;
 		align-items: center;
 		flex-wrap: wrap;
+		margin-top: 10px;
 	}
 	.dest strong {
 		font-size: 13px;
