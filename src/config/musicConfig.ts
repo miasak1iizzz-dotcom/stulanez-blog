@@ -55,7 +55,7 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 			{ name: "하루하루 (一天一天)", artist: "BIGBANG", url: "/assets/music/kpop/bigbang-haru-haru.mp3?v=2", cover: "/assets/music/cover/bigbang-haru-haru.jpg?v=2" },
 			{ name: "BYOB (bring your own best friend)", artist: "Billlie", url: "/assets/music/kpop/billlie-byob.mp3?v=2", cover: "/assets/music/cover/billlie-byob.jpg?v=2" },
 			{ name: "Boom Boom Bass", artist: "RIIZE", url: "/assets/music/kpop/riize-boom-boom-bass.mp3?v=2", cover: "/assets/music/cover/riize-boom-boom-bass.jpg?v=2" },
-			{ name: "One More Night", artist: "BTS", url: "/assets/music/bts-one-more-night.mp3?v=2", cover: "/assets/music/cover/bts-one-more-night.jpg?v=2" },
+			{ name: "One More Night", artist: "BTS", url: "/assets/music/bts-one-more-night.mp3?v=2", cover: "/assets/music/cover/bts-one-more-night.jpg?v=3" },
 			{ name: "Home", artist: "ENHYPEN", url: "/assets/music/kpop/enhypen-home.mp3?v=2", cover: "/assets/music/cover/enhypen-home.jpg?v=2" },
 			{ name: "FAMOUS", artist: "ALLDAY PROJECT", url: "/assets/music/kpop/allday-famous.mp3?v=2", cover: "/assets/music/cover/allday-famous.jpg?v=2" },
 			{ name: "Darling", artist: "Girl's Day", url: "/assets/music/kpop/girlsday-darling.mp3?v=2", cover: "/assets/music/cover/girlsday-darling.jpg?v=2" },
