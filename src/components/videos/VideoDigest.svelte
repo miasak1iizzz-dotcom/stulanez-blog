@@ -1,6 +1,12 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import { isOwnerDevice } from "@/utils/owner";
+import {
+	createLocalEngineTask,
+	localEngineAlive,
+	publicApiBlocked,
+	readLocalEngineTask,
+} from "@/utils/videos/local-engine";
 import type { VideoDigestResult, VideoJob } from "@/utils/videos/types";
 
 const SAMPLE = "https://www.bilibili.com/video/BV14Utf6QEnB/";
@@ -42,6 +48,11 @@ async function run(pasted: string) {
 			})
 		).json()) as VideoJob;
 		if (!created.ok) {
+			if (publicApiBlocked(created.error) && (await localEngineAlive())) {
+				message = "公网被拦，改走本机引擎…";
+				await runLocal(pasted);
+				return;
+			}
 			error = created.error || "没做成。";
 			busy = false;
 			message = "";
@@ -60,10 +71,49 @@ async function run(pasted: string) {
 		}
 		await poll(created.id, created.bvid || "");
 	} catch (err) {
+		if (await localEngineAlive()) {
+			message = "公网没通，改走本机引擎…";
+			await runLocal(pasted);
+			return;
+		}
 		error = err instanceof Error ? err.message : "请求失败。";
 		busy = false;
 		message = "";
 	}
+}
+
+async function runLocal(pasted: string) {
+	try {
+		const id = await createLocalEngineTask(pasted);
+		await pollLocal(id, pasted);
+	} catch (err) {
+		error = err instanceof Error ? err.message : "本机引擎没接上。";
+		busy = false;
+		message = "";
+	}
+}
+
+async function pollLocal(id: string, pasted: string) {
+	for (let i = 0; i < 180; i++) {
+		const job = await readLocalEngineTask(id, pasted);
+		if (job.error && job.status !== "running" && job.status !== "queued") {
+			error = job.error;
+			busy = false;
+			message = "";
+			return;
+		}
+		message =
+			job.message || (job.status === "queued" ? "排队中" : "本机正在拆…");
+		if (job.result) {
+			result = job.result;
+			busy = false;
+			message = "做好了";
+			return;
+		}
+		await new Promise((resolve) => setTimeout(resolve, 1500));
+	}
+	error = "等得太久了。引擎可能还在转写，过一会儿再贴一次。";
+	busy = false;
 }
 
 function submit(event: Event) {

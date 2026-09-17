@@ -54,11 +54,34 @@ export const POST: APIRoute = async ({ request }) => {
 	const limited = rateLimit(clientIp(request), owner);
 	if (limited) return json({ ok: false, error: limited }, 429);
 
+	const peeled = peelBilibili(url);
+	const knownBvid = bvidOf(peeled);
 	let meta: Awaited<ReturnType<typeof fetchVideoMeta>>;
 	try {
 		meta = await fetchVideoMeta(url);
 	} catch (error) {
-		return json({ ok: false, error: (error as Error).message }, 422);
+		const message = (error as Error).message;
+		if (engineConfigured() && knownBvid) {
+			meta = {
+				bvid: knownBvid,
+				title: knownBvid,
+				up: "",
+				duration: 0,
+				url: `https://www.bilibili.com/video/${knownBvid}/`,
+			};
+		} else if (message.includes("412")) {
+			return json(
+				{
+					ok: false,
+					bvid: knownBvid || undefined,
+					error:
+						"B 站把这台公网机器拦住了。不是按钮没点上。本机开着拆解引擎时，页面会改走你电脑。",
+				},
+				422,
+			);
+		} else {
+			return json({ ok: false, error: message }, 422);
+		}
 	}
 
 	const bvid = meta.bvid || bvidOf(peelBilibili(url));
@@ -98,7 +121,7 @@ export const POST: APIRoute = async ({ request }) => {
 				{
 					ok: false,
 					error:
-						"这条没有公开字幕。公网这台机器跑不了转写；本机开着 BiliSum 时可以拆。",
+						"这条没有公开字幕，公网也跑不了转写。本机开着拆解引擎时，页面会改走你电脑。",
 				},
 				422,
 			);
