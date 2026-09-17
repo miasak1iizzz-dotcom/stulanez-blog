@@ -18,6 +18,7 @@ import {
 	syncBannerHomeTextVisibility,
 	updateNavbarTransparency,
 } from "@/utils/setting-utils";
+import { shouldSwapPageShell } from "@/utils/shell-nav";
 import { pathsEqual, url } from "@/utils/url-utils";
 
 const stickyNavbar = siteConfig.navbar.stickyNavbar ?? false;
@@ -155,6 +156,15 @@ function registerSwupHooks(): void {
 		// Start progress bar（WAAPI 合成线程动画，不强制回流）
 		startProgressBar();
 
+		const toPath = (() => {
+			try {
+				return new URL(visit.to.url, window.location.href).pathname;
+			} catch {
+				return visit.to.url;
+			}
+		})();
+		const swappingShell = shouldSwapPageShell(window.location.pathname, toPath);
+
 		// 更新首页状态（body.is-home 驱动 CSS --content-top 等）
 		const bodyElement = document.querySelector("body") as HTMLElement;
 		const isHomePage = pathsEqual(visit.to.url, url("/"));
@@ -162,9 +172,8 @@ function registerSwupHooks(): void {
 		const contentPanel = document.querySelector(
 			".content-panel",
 		) as HTMLElement | null;
-		// FLIP 只在 is-home 状态变化（首页↔非首页）时才有意义；文章↔文章、首页↔首页
-		// 类未变 → delta 必为 0，直接短路，避免常见切页白付两次强制布局读取
-		if (isHomePage !== wasHome && contentPanel) {
+		// 跨壳会拆掉 .content-panel，FLIP 没有意义。同壳只在 is-home 变化时做。
+		if (!swappingShell && isHomePage !== wasHome && contentPanel) {
 			const oldTop = contentPanel.getBoundingClientRect().top; // 类切换前读
 			bodyElement.classList.toggle("is-home", isHomePage);
 			const newTop = contentPanel.getBoundingClientRect().top; // 类切换后读
@@ -183,6 +192,8 @@ function registerSwupHooks(): void {
 					260,
 				);
 			}
+		} else {
+			bodyElement.classList.toggle("is-home", isHomePage);
 		}
 
 		// Control navbar transparency based on page

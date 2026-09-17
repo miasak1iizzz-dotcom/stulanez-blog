@@ -135,7 +135,7 @@ const siteLogo = await getSiteLogo();
     <style is:inline>
 			@layer properties, theme, base, components, utilities;
 		</style>
-    <!-- 跨壳硬跳：首帧前挂遮罩；并尽早拦截点击，抢在 Swup 之前 -->
+    <!-- 跨壳：首帧遮罩。工具页改换 #page-shell，音频接着播 -->
     <script is:inline>
       (function () {
         var VEIL_KEY = "stulanez.shell-veil";
@@ -154,12 +154,31 @@ const siteLogo = await getSiteLogo();
             path === "/tft" ||
             path.indexOf("/tft/") === 0 ||
             path === "/library" ||
-            path.indexOf("/library/") === 0
+            path.indexOf("/library/") === 0 ||
+            path === "/lab" ||
+            path.indexOf("/lab/") === 0
           );
         }
 
         function shellOf(path) {
           return isToolPath(path) ? "tool" : "grid";
+        }
+
+        function persistMusic() {
+          try {
+            if (window.__fireflyMusic && window.__fireflyMusic.persistForNavigation) {
+              window.__fireflyMusic.persistForNavigation();
+            }
+          } catch (e) {}
+        }
+
+        function hardAssign(href) {
+          persistMusic();
+          try {
+            sessionStorage.setItem(VEIL_KEY, "1");
+          } catch (e) {}
+          document.documentElement.classList.add("is-shell-leaving");
+          location.assign(href);
         }
 
         document.addEventListener(
@@ -189,23 +208,17 @@ const siteLogo = await getSiteLogo();
                 location.pathname.replace(/\/$/, "") &&
               url.search === location.search;
             if (same) return;
-            var cross =
-              a.hasAttribute("data-no-swup") ||
-              shellOf(location.pathname) !== shellOf(url.pathname);
+            var href = url.pathname + url.search + url.hash;
+            var cross = shellOf(location.pathname) !== shellOf(url.pathname);
+            // 跨壳留给 Swup 换 #page-shell；data-no-swup 不再整页跳（否则音乐必断）
             if (!cross) return;
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-            try {
-              if (window.__fireflyMusic && window.__fireflyMusic.persistForNavigation) {
-                window.__fireflyMusic.persistForNavigation();
-              }
-            } catch (e) {}
-            try {
-              sessionStorage.setItem(VEIL_KEY, "1");
-            } catch (e) {}
             document.documentElement.classList.add("is-shell-leaving");
-            location.assign(url.pathname + url.search + url.hash);
+            if (!window.swup) {
+              event.preventDefault();
+              event.stopPropagation();
+              event.stopImmediatePropagation();
+              hardAssign(href);
+            }
           },
           true,
         );
@@ -551,7 +564,6 @@ const siteLogo = await getSiteLogo();
         "sticky-navbar": siteConfig.navbar.stickyNavbar ?? false,
       },
     ]}
-    data-no-swup={pageShell === "tool" ? "" : undefined}
   >
     <!-- 首帧前按运行时壁纸模式翻转卡片透明类（布局已由 data-wallpaper-mode 属性规则接管） -->
     <script is:inline>
@@ -589,14 +601,18 @@ const siteLogo = await getSiteLogo();
     <!-- 页面顶部渐变高光效果 - 只在full和semifull模式下显示 -->
     {shouldShowTopHighlight && <div class="top-gradient-highlight" />}
     <ConfigCarrier />
+    <!-- 音频节点挂在 #page-shell 外，跨壳替换页面时播放器进程不跟着卸掉 -->
     <MusicManager />
+    <div id="page-shell">
     <slot />
 
     <!-- 播放器视图脚本：必须在 <slot /> 之后（解析到它时所有 widget 的 DOM 要已存在），
-         且在 MusicManager 之后（swup 重跑按文档顺序，window.__fireflyMusic 得先就位） -->
+         且在 MusicManager 之后（swup 重跑按文档顺序，window.__fireflyMusic 得先就位）。
+         放进 #page-shell：跨壳整壳替换后新页的控件才能再绑到还在播的音频上。 -->
     {(musicPlayerConfig.showInNavbar || musicPlayerConfig.showInSidebar !== false) && (
       <MusicPlayerView />
     )}
+    </div>
 
 
     <!-- Sakura Effect -->
