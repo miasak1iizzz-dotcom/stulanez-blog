@@ -8,6 +8,7 @@ import {
 import {
 	countPullAlbums,
 	defaultAlbumName,
+	findAlbumById,
 	findAlbumByUrl,
 	hydratePullAlbums,
 	listPullAlbums,
@@ -37,6 +38,7 @@ const current: PullChannel | null = channelId
 
 let url = $state("");
 let loading = $state(false);
+let quietLoading = $state(false);
 let error = $state("");
 let result = $state<PullSuccess | null>(null);
 let albums = $state<PullAlbum[]>([]);
@@ -46,6 +48,9 @@ let editingId = $state<string | null>(null);
 let editName = $state("");
 let activeAlbumId = $state<string | null>(null);
 let pendingDeleteId = $state<string | null>(null);
+let extractSeq = 0;
+
+const QUIET_OPEN_KEY = "stulanez:pull-quiet-open";
 
 function refreshAlbums(): void {
 	albums = listPullAlbums(channelId);
@@ -63,15 +68,21 @@ function syncAlbumDraft(data: PullSuccess, target: string): void {
 		});
 }
 
-async function extract(pastedOverride?: string): Promise<void> {
+async function extract(
+	pastedOverride?: string,
+	opts?: { quiet?: boolean },
+): Promise<void> {
 	error = "";
+	const quiet = Boolean(opts?.quiet);
+	const seq = ++extractSeq;
 	const pasted = pastedOverride ?? url;
 	const target = peelUrl(pasted);
 	if (!target) {
 		error = "请先贴一条链接，或 App 里复制出来的整段分享口令。";
 		return;
 	}
-	url = target;
+	url = quiet ? "" : target;
+	quietLoading = quiet;
 	loading = true;
 	try {
 		const res = await fetch("/api/pull/extract/", {
@@ -85,6 +96,7 @@ async function extract(pastedOverride?: string): Promise<void> {
 		const data = (await res.json()) as
 			| PullSuccess
 			| { ok: false; error?: string };
+		if (seq !== extractSeq) return;
 		if (!data.ok) {
 			error = data.error || "提取失败。";
 			return;
@@ -96,9 +108,13 @@ async function extract(pastedOverride?: string): Promise<void> {
 		refreshAlbums();
 		enterGalleryHistory(target);
 	} catch {
+		if (seq !== extractSeq) return;
 		error = "网络断了一下。再试一次。";
 	} finally {
-		loading = false;
+		if (seq === extractSeq) {
+			loading = false;
+			quietLoading = false;
+		}
 	}
 }
 
@@ -130,10 +146,25 @@ function galleryPath(target: string): string {
 	return `${deskPath()}?u=${encodeURIComponent(target)}`;
 }
 
+function galleryAlbumPath(id: string): string {
+	return `${deskPath()}?a=${encodeURIComponent(id)}`;
+}
+
 function enterGalleryHistory(target: string): void {
-	const href = galleryPath(target);
-	const currentU = new URLSearchParams(window.location.search).get("u");
-	if (currentU === target || pullState().pull === "gallery" || currentU) {
+	const href =
+		quietLoading && activeAlbumId
+			? galleryAlbumPath(activeAlbumId)
+			: galleryPath(target);
+	const params = new URLSearchParams(window.location.search);
+	const currentU = params.get("u");
+	const currentA = params.get("a");
+	if (
+		currentU === target ||
+		currentA === activeAlbumId ||
+		pullState().pull === "gallery" ||
+		currentU ||
+		currentA
+	) {
 		history.replaceState(stampPull("gallery"), "", href);
 		return;
 	}
@@ -141,6 +172,9 @@ function enterGalleryHistory(target: string): void {
 }
 
 function showDesk(): void {
+	extractSeq += 1;
+	loading = false;
+	quietLoading = false;
 	clearPullSession();
 	result = null;
 	url = "";
@@ -148,8 +182,27 @@ function showDesk(): void {
 	activeAlbumId = null;
 }
 
+function openQuietAlbum(album: PullAlbum): void {
+	activeAlbumId = album.id;
+	albumName = album.name;
+	result = null;
+	url = "";
+	error = "";
+	void extract(album.url, { quiet: true });
+}
+
 function onPullPopState(): void {
-	const passed = new URLSearchParams(window.location.search).get("u");
+	const params = new URLSearchParams(window.location.search);
+	const albumId = params.get("a");
+	if (albumId) {
+		const album = findAlbumById(albumId);
+		if (album) {
+			if (result && activeAlbumId === album.id) return;
+			openQuietAlbum(album);
+			return;
+		}
+	}
+	const passed = params.get("u");
 	if (passed) {
 		const stored = loadPullSession();
 		const storedUrl = stored ? peelUrl(stored.url) || stored.url : "";
@@ -178,16 +231,61 @@ function softNavigate(href: string, replace = false): void {
 
 function clearBrowse(): void {
 	showDesk();
-	if (pullState().pull === "gallery") {
-		history.back();
-		return;
+	history.replaceState(stampPull("desk"), "", deskPath());
+}
+
+function rememberQuietOpen(album: PullAlbum): void {
+	try {
+		sessionStorage.setItem(
+			QUIET_OPEN_KEY,
+			JSON.stringify({ id: album.id, channel: album.channel }),
+		);
+	} catch {
+		/* ignore */
 	}
-	const here = deskPath();
-	if (here === "/pull/") {
-		history.replaceState(stampPull("desk"), "", "/pull/");
-		return;
+}
+
+function readQuietOpen(): { id: string; channel: string } | null {
+	try {
+		const raw = sessionStorage.getItem(QUIET_OPEN_KEY);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw) as { id?: string; channel?: string };
+		if (!parsed.id || !parsed.channel) return null;
+		return { id: parsed.id, channel: parsed.channel };
+	} catch {
+		return null;
 	}
-	softNavigate("/pull/", true);
+}
+
+function clearQuietOpen(): void {
+	try {
+		sessionStorage.removeItem(QUIET_OPEN_KEY);
+	} catch {
+		/* ignore */
+	}
+}
+
+function alreadyShowingAlbum(id: string): boolean {
+	return activeAlbumId === id && (quietLoading || loading || Boolean(result));
+}
+
+function tryQuietAlbumOpen(): boolean {
+	if (typeof window === "undefined") return false;
+	const pending = readQuietOpen();
+	if (pending) {
+		const album = findAlbumById(pending.id);
+		if (album && (!channelId || album.channel === channelId)) {
+			clearQuietOpen();
+			if (!alreadyShowingAlbum(album.id)) openQuietAlbum(album);
+			return true;
+		}
+	}
+	const albumId = new URLSearchParams(window.location.search).get("a");
+	if (!albumId) return false;
+	const album = findAlbumById(albumId);
+	if (!album || (channelId && album.channel !== channelId)) return false;
+	if (!alreadyShowingAlbum(album.id)) openQuietAlbum(album);
+	return true;
 }
 
 function saveAlbum(): void {
@@ -209,19 +307,14 @@ function saveAlbum(): void {
 
 function openAlbum(album: PullAlbum): void {
 	const path = `/pull/${album.channel}/`;
-	const here = window.location.pathname.replace(/\/$/, "") + "/";
-	const want = path;
 	touchPullAlbum(album.id);
 	clearPullSession();
-	if (here === want || here === `/pull/${album.channel}`) {
-		url = album.url;
-		activeAlbumId = album.id;
-		albumName = album.name;
-		result = null;
-		void extract(album.url);
+	if (deskPath() === path) {
+		openQuietAlbum(album);
 		return;
 	}
-	softNavigate(`${path}?u=${encodeURIComponent(album.url)}`);
+	rememberQuietOpen(album);
+	softNavigate(`${path}?a=${encodeURIComponent(album.id)}`);
 }
 
 function startRename(album: PullAlbum): void {
@@ -275,7 +368,18 @@ let booted = false;
 $effect(() => {
 	if (typeof window === "undefined") return;
 	window.addEventListener("popstate", onPullPopState, true);
-	return () => window.removeEventListener("popstate", onPullPopState, true);
+	const onView = (): void => {
+		tryQuietAlbumOpen();
+	};
+	window.swup?.hooks?.on("page:view", onView);
+	return () => {
+		window.removeEventListener("popstate", onPullPopState, true);
+		try {
+			window.swup?.hooks?.off?.("page:view", onView);
+		} catch {
+			/* ignore */
+		}
+	};
 });
 
 $effect(() => {
@@ -283,7 +387,9 @@ $effect(() => {
 	booted = true;
 	void hydratePullAlbums().then(() => {
 		refreshAlbums();
+		tryQuietAlbumOpen();
 	});
+	if (tryQuietAlbumOpen()) return;
 	const passed = new URLSearchParams(window.location.search).get("u");
 	if (passed) {
 		history.replaceState(stampPull("desk"), "", deskPath());
@@ -361,16 +467,22 @@ $effect(() => {
 					id="pull-url"
 					type="text"
 					inputmode="url"
-					bind:value={url}
+					value={quietLoading ? "取图中" : url}
 					placeholder={current
 						? current.placeholder
 						: "网页链接、短链，或直接粘贴 App 分享口令"}
+					disabled={loading}
+					readonly={quietLoading}
 					autocomplete="off"
 					spellcheck="false"
 					enterkeyhint="go"
+					oninput={(event) => {
+						if (quietLoading) return;
+						url = event.currentTarget.value;
+					}}
 				/>
 				<button type="submit" disabled={loading}>
-					{loading ? "正在抽" : current ? "提取图片" : "识别并提取"}
+					{loading ? "取图中" : current ? "提取图片" : "识别并提取"}
 				</button>
 			</form>
 			{#if error}
@@ -411,7 +523,7 @@ $effect(() => {
 			{:else if loading}
 				<div class="empty">
 					<h3>正在抽图</h3>
-					<p>渠道打开得慢时要等十几秒。公开帖最稳。</p>
+					<p>{quietLoading ? "图集打开中。" : "渠道打开得慢时要等十几秒。公开帖最稳。"}</p>
 				</div>
 			{:else if current && !error}
 				<div class="empty">
