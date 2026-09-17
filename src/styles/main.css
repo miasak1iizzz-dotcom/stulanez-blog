@@ -427,12 +427,14 @@ html {
     }
 
     .dropdown-container:hover .dropdown-menu,
-    .dropdown-container:focus-within .dropdown-menu {
+    .dropdown-container:focus-within .dropdown-menu,
+    .dropdown-container.is-open .dropdown-menu {
         @apply pointer-events-auto;
     }
 
     .dropdown-container:hover .dropdown-arrow,
-    .dropdown-container:focus-within .dropdown-arrow {
+    .dropdown-container:focus-within .dropdown-arrow,
+    .dropdown-container.is-open .dropdown-arrow {
         @apply rotate-180;
     }
 
@@ -442,7 +444,8 @@ html {
     }
 
     .dropdown-container:hover .dropdown-content,
-    .dropdown-container:focus-within .dropdown-content {
+    .dropdown-container:focus-within .dropdown-content,
+    .dropdown-container.is-open .dropdown-content {
         @apply opacity-100 translate-y-0;
     }
 

@@ -81,6 +81,11 @@ declare global {
 		wavesInitialized?: boolean;
 		/** 布局初始化守卫,确保 Swup 切页重跑模块脚本时只执行一次 */
 		__fireflyLayoutInit?: boolean;
+		/** 导航下拉（汉堡手风琴 + 桌面点击）只绑一次，跨 Swup 换壳仍有效 */
+		__stulanezNavMenusBound?: boolean;
+		__stulanezDesktopDropdownBound?: boolean;
+		__stulanezNavbarOutsideBound?: boolean;
+		__stulanezNavbarTogglesBound?: boolean;
 		__fireflyShellNav?: boolean;
 		/** 壁纸轮播内联脚本的监听器，跨壳重跑前 abort */
 		__bannerWallpaperAbort?: AbortController;
