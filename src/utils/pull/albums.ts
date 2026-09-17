@@ -71,8 +71,7 @@ function normalizeAlbum(raw: unknown): PullAlbum | null {
 		url: item.url.trim(),
 		channel: item.channel as PullChannelId,
 		hintTitle: typeof item.hintTitle === "string" ? item.hintTitle : undefined,
-		hintCount:
-			typeof item.hintCount === "number" ? item.hintCount : undefined,
+		hintCount: typeof item.hintCount === "number" ? item.hintCount : undefined,
 		createdAt: typeof item.createdAt === "string" ? item.createdAt : now,
 		updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : now,
 	};
@@ -224,6 +223,10 @@ export function findAlbumByUrl(url: string): PullAlbum | undefined {
 	);
 }
 
+export function findAlbumById(id: string): PullAlbum | undefined {
+	return readAll().find((a) => a.id === id);
+}
+
 export function upsertPullAlbum(input: {
 	name: string;
 	url: string;
@@ -246,7 +249,8 @@ export function upsertPullAlbum(input: {
 		existing.url = url;
 		existing.channel = input.channel;
 		if (input.hintTitle) existing.hintTitle = input.hintTitle;
-		if (typeof input.hintCount === "number") existing.hintCount = input.hintCount;
+		if (typeof input.hintCount === "number")
+			existing.hintCount = input.hintCount;
 		existing.updatedAt = now;
 		writeAll([existing, ...all.filter((a) => a.id !== existing.id)]);
 		return existing;
