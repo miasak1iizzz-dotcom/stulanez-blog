@@ -17,6 +17,10 @@ if errorlevel 1 goto failed
 
 echo [3/3] 推送到线上...
 git -c http.sslBackend=openssl push origin main
+if errorlevel 1 (
+  echo     第一次没通，换直连再试一次...
+  git -c http.sslBackend=openssl -c http.proxy= -c https.proxy= push origin main
+)
 if errorlevel 1 goto pushfail
 
 echo.
