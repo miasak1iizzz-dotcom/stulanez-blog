@@ -1,0 +1,43 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<Layout {title} {description}>
+	<div id="banner-overlay-container" hidden></div>
+	<div id="banner-dim-container" hidden></div>
+	<div id="left-sidebar-dynamic" hidden></div>
+	<div id="right-sidebar-dynamic" hidden></div>
+	<div id="floating-toc-wrapper" hidden></div>
+	<main id="swup-container" class="hotel-tool-main">
+		<slot />
+	</main>
+</Layout>
+
+<style is:global>
+	body:has(.hotel-tool-main) {
+		background: #120c10 !important;
+		overflow: hidden;
+	}
+
+	body:has(.hotel-tool-main) #navbar,
+	body:has(.hotel-tool-main) #top-row {
+		display: none !important;
+	}
+
+	html.hotel-playing.custom-cursor-enabled,
+	html.hotel-playing.custom-cursor-enabled * {
+		cursor: none !important;
+	}
+
+	.hotel-tool-main {
+		min-height: 100vh;
+		padding: 0;
+	}
+</style>
