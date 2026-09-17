@@ -40,9 +40,11 @@ export const GET: APIRoute = async ({ url }) => {
 	return new Response(upstream.body, {
 		status: 200,
 		headers: {
-			"content-type": upstream.headers.get("content-type") ?? "image/webp",
-			// 文件名即内容哈希，内容永不变 → 浏览器与 CDN 都能长期缓存
-			"cache-control": "public, max-age=31536000, immutable",
+			// 展品缩略图统一是 webp；上游 B2 常回 binary/octet-stream，对浏览器不友好
+			"content-type": "image/webp",
+			// 文件名即内容哈希，内容永不变。
+			// s-maxage 是关键：Vercel 默认不缓存函数响应，缺了它每个新访客都要回源一次。
+			"cache-control": "public, max-age=31536000, s-maxage=31536000, immutable",
 		},
 	});
 };
