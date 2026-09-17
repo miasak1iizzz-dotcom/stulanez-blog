@@ -2,7 +2,7 @@
 	import { onMount, tick } from "svelte";
 	import LocalArtwork from "./LocalArtwork.svelte";
 	import { artOptions, artworkFile, describeArtwork, filterArtworks, isArtworkPath, readArtDirectory, type Artwork, type LocalDirectoryHandle } from "@/utils/art-library";
-	import { isOwnerDevice } from "@/utils/owner";
+	import { isOwnerDevice, OWNER_CHANGE_EVENT } from "@/utils/owner";
 	let entries = $state<Artwork[]>([]);
 	let connected = $state(false);
 	let owner = $state(false);
@@ -34,8 +34,15 @@
 	const title = $derived(member ? `${member} · 专属图墙` : group ? `${group} · 专属图墙` : category ? `${category} 展厅` : "所有展品");
 	$effect(() => { query; category; group; member; style; source; page = 0; });
 	onMount(() => {
-		owner = isOwnerDevice();
-		return () => controller?.abort();
+		const sync = () => {
+			owner = isOwnerDevice();
+		};
+		sync();
+		window.addEventListener(OWNER_CHANGE_EVENT, sync);
+		return () => {
+			window.removeEventListener(OWNER_CHANGE_EVENT, sync);
+			controller?.abort();
+		};
 	});
 	function reset() { query = ""; category = ""; group = ""; member = ""; style = ""; source = ""; page = 0; }
 	function install(items: Artwork[], name: string) {
