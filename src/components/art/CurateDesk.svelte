@@ -352,7 +352,7 @@
 			const manifestBlob = new Blob([`${JSON.stringify(manifest, null, 2)}\n`], { type: "application/json" });
 
 			publishNote = `正在申请上传许可（${files.length + 1} 个文件）…`;
-			const signResponse = await fetch("/api/art/sign", {
+			const signResponse = await fetch("/api/art/sign/", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
 				body: JSON.stringify({ token: publishToken, keys: [...files.map(f => f.key), manifestKey] }),
