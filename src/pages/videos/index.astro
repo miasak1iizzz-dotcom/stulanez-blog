@@ -1,0 +1,8 @@
+---
+import VideoDigest from "@/components/videos/VideoDigest.svelte";
+import VideosLayout from "@/layouts/VideosLayout.astro";
+---
+
+<VideosLayout title="视频总结" description="贴一条 B 站链接，当场拆成带时间轴的图文笔记">
+	<VideoDigest client:load />
+</VideosLayout>
