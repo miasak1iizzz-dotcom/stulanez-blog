@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import RemoteArtwork from "./RemoteArtwork.svelte";
 	import type { ArtManifest, ArtManifestItem } from "@/types/artManifest";
 
 	// 阶段 2：清单优先从站内接口取（它从对象存储读清单、顺手签好每张图的临时链接）；
 	// 取不到就退回站内 public/art 的静态清单，切换期或接口故障时不会白屏。
 	const REMOTE_MANIFEST = "/api/art/manifest/";
-	const batchSize = 60;
+	const batchSize = 24;
 	const gradeOrder = ["8K", "4K", "2K", "1080P", "HD", "低清"];
 
 	let { owner = false, onLocal, onCurate }: { owner?: boolean; onLocal?: () => void; onCurate?: () => void } = $props();
@@ -172,14 +173,7 @@
 			{#each visible as item (item.id)}
 				<figure>
 					<button class="frame" onclick={() => open(item)} aria-label={`查看大图：${name(item)}`}>
-						<img
-							src={thumb(item, "480")}
-							alt=""
-							loading="lazy"
-							decoding="async"
-							width={item.width}
-							height={item.height}
-						/>
+						<RemoteArtwork src={thumb(item, "480")} ratio={`${item.width} / ${item.height}`} />
 					</button>
 					<figcaption>
 						<strong title={item.origin.path}>{name(item)}</strong>
@@ -443,19 +437,8 @@
 		border-radius: 7px;
 		overflow: hidden;
 	}
-	.frame img {
-		display: block;
-		width: 100%;
-		height: auto;
-		transition: transform 0.3s;
-	}
-	.frame:hover img {
+	.frame:hover :global(.shot img) {
 		transform: scale(1.02);
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.frame img {
-			transition: none;
-		}
 	}
 	figcaption {
 		margin-top: 9px;
