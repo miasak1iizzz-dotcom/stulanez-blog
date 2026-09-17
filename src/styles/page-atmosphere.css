@@ -110,11 +110,12 @@
 	opacity: 0.22;
 }
 
-/* 主内容抬到氛围层之上（不改布局结构） */
+/* 主内容抬到氛围层之上（不改布局结构）。
+   不要把 .content-panel 放进来：它必须保持 absolute + z-30，
+   否则会落到横幅波浪（z-15）下面，首页分类栏只剩一条白边。 */
 body > #progress-bar,
 body > .top-gradient-highlight,
 #top-row,
-.content-panel,
 .pull-tool-main,
 .art-tool-main,
 .library-tool-main,
