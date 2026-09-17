@@ -197,9 +197,6 @@ importers:
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
-      three:
-        specifier: ^0.186.0
-        version: 0.186.0
       tsx:
         specifier: ^4.23.12
         version: 4.23.12
@@ -5838,9 +5835,6 @@ packages:
     resolution: {integrity: sha512-CN9BVxWhgS/hRxtUMjtC2uRWSTcSfQFHMDWma6sKKfIivCD91sM+FOPfvwoaRMqCSrUpe1nv3jDamd9eEQ4y+w==}
     engines: {node: '>=10'}
     hasBin: true
-
-  three@0.186.0:
-    resolution: {integrity: sha512-cr/fIM2ddMSVbYVgkfD4jLJv7Fh/8ZTjvo+7gQeSVGUZHxpx9FDwoL5iC7hUz/LiRA8wMbqfnb90xKfm1/HHkQ==}
 
   tiny-glob@0.2.9:
     resolution: {integrity: sha512-g/55ssRPUjShh+xkfx9UPDXqhckHEsHr4Vd9zX55oSdGZc/MD0m3sferOkwWtp98bv+kcVfEHtRJgBVJzelrzg==}
@@ -12980,8 +12974,6 @@ snapshots:
       acorn: 8.18.0
       commander: 2.20.3
       source-map-support: 0.5.21
-
-  three@0.186.0: {}
 
   tiny-glob@0.2.9:
     dependencies:
