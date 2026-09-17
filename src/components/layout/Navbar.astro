@@ -274,36 +274,31 @@ const logoVariants = await Promise.all(
 </div>
 
 <script>
+function bindNavbarPanelToggles() {
+    if (window.__stulanezNavbarTogglesBound) return;
+    window.__stulanezNavbarTogglesBound = true;
+
+    const pairs: Array<[string, string]> = [
+        ["nav-menu-switch", "nav-menu-panel"],
+        ["display-settings-switch", "display-setting"],
+        ["music-player-switch", "music-nav-panel"],
+        ["scheme-switch", "theme-mode-panel"],
+    ];
+
+    document.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        for (const [btnId, panelId] of pairs) {
+            const btn = document.getElementById(btnId);
+            if (!btn?.contains(target)) continue;
+            document.getElementById(panelId)?.classList.toggle("float-panel-closed");
+            return;
+        }
+    });
+}
+
 function loadButtonScript() {
-    let settingBtn = document.getElementById("display-settings-switch");
-    if (settingBtn) {
-        settingBtn.onclick = function () {
-            let settingPanel = document.getElementById("display-setting");
-            if (settingPanel) {
-                settingPanel.classList.toggle("float-panel-closed");
-            }
-        };
-    }
-
-    let menuBtn = document.getElementById("nav-menu-switch");
-    if (menuBtn) {
-        menuBtn.onclick = function () {
-            let menuPanel = document.getElementById("nav-menu-panel");
-            if (menuPanel) {
-                menuPanel.classList.toggle("float-panel-closed");
-            }
-        };
-    }
-
-    let musicBtn = document.getElementById("music-player-switch");
-    if (musicBtn) {
-        musicBtn.onclick = function () {
-            let musicPanel = document.getElementById("music-nav-panel");
-            if (musicPanel) {
-                musicPanel.classList.toggle("float-panel-closed");
-            }
-        };
-    }
+    bindNavbarPanelToggles();
 
     // 背景视频播放器控制按钮
     let bgPlayerBtn = document.getElementById("bg-player-toggle");
@@ -349,30 +344,23 @@ function loadButtonScript() {
         }
     }
 
-    let themeSwitchBtn = document.getElementById("scheme-switch");
-    if (themeSwitchBtn) {
-        themeSwitchBtn.onclick = function () {
-            let themePanel = document.getElementById("theme-mode-panel");
-            if (themePanel) {
-                themePanel.classList.toggle("float-panel-closed");
-            }
-        };
-    }
+    if (!window.__stulanezNavbarOutsideBound) {
+        window.__stulanezNavbarOutsideBound = true;
+        document.addEventListener("click", function(event) {
+            const panels = ["display-setting", "nav-menu-panel", "music-nav-panel", "theme-mode-panel"];
+            const buttons = ["display-settings-switch", "nav-menu-switch", "music-player-switch", "scheme-switch"];
 
-    document.addEventListener("click", function(event) {
-        const panels = ["display-setting", "nav-menu-panel", "music-nav-panel", "theme-mode-panel"];
-        const buttons = ["display-settings-switch", "nav-menu-switch", "music-player-switch", "scheme-switch"];
-
-        panels.forEach((id, index) => {
-            const panel = document.getElementById(id);
-            const button = document.getElementById(buttons[index]);
-            if (panel && button && !panel.classList.contains("float-panel-closed")) {
-                if (event.target instanceof Node && !panel.contains(event.target) && !button.contains(event.target)) {
-                    panel.classList.add("float-panel-closed");
+            panels.forEach((id, index) => {
+                const panel = document.getElementById(id);
+                const button = document.getElementById(buttons[index]);
+                if (panel && button && !panel.classList.contains("float-panel-closed")) {
+                    if (event.target instanceof Node && !panel.contains(event.target) && !button.contains(event.target)) {
+                        panel.classList.add("float-panel-closed");
+                    }
                 }
-            }
+            });
         });
-    });
+    }
 }
 
 loadButtonScript();

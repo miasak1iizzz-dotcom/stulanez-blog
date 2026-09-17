@@ -90,43 +90,42 @@ const processedLinks = Astro.props.links;
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const mobileDropdowns = document.querySelectorAll('[data-mobile-dropdown]');
-
-        mobileDropdowns.forEach(dropdown => {
-            const trigger = dropdown.querySelector('[data-mobile-dropdown-trigger]');
-            const submenu = dropdown.querySelector('[data-mobile-submenu]');
-
-            if (!trigger || !submenu) return;
-
-            trigger.addEventListener('click', function(e) {
-                e.preventDefault();
-                const isExpanded = dropdown.getAttribute('data-expanded') === 'true';
-
-                // 关闭其他打开的下拉菜单
-                mobileDropdowns.forEach(otherDropdown => {
-                    if (otherDropdown !== dropdown) {
-                        setDropdownExpanded(otherDropdown, false);
-                    }
-                });
-
-                // 切换当前下拉菜单
-                const newState = !isExpanded;
-                setDropdownExpanded(dropdown, newState);
-            });
-        });
-    });
-
     function setDropdownExpanded(dropdown: Element, isExpanded: boolean) {
-        dropdown.setAttribute('data-expanded', isExpanded.toString());
+        dropdown.setAttribute("data-expanded", String(isExpanded));
 
-        const trigger = dropdown.querySelector('[data-mobile-dropdown-trigger]');
-        trigger?.setAttribute('aria-expanded', isExpanded.toString());
+        const trigger = dropdown.querySelector("[data-mobile-dropdown-trigger]");
+        trigger?.setAttribute("aria-expanded", String(isExpanded));
 
-        const submenu = dropdown.querySelector('[data-mobile-submenu]');
+        const submenu = dropdown.querySelector("[data-mobile-submenu]");
         if (submenu instanceof HTMLElement) {
             submenu.inert = !isExpanded;
-            submenu.setAttribute('aria-hidden', (!isExpanded).toString());
+            submenu.setAttribute("aria-hidden", String(!isExpanded));
         }
     }
+
+    function bindMobileNavDropdowns() {
+        if (window.__stulanezNavMenusBound) return;
+        window.__stulanezNavMenusBound = true;
+
+        document.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+
+            const trigger = target.closest("[data-mobile-dropdown-trigger]");
+            if (!(trigger instanceof HTMLElement)) return;
+
+            const dropdown = trigger.closest("[data-mobile-dropdown]");
+            if (!dropdown) return;
+
+            event.preventDefault();
+
+            const willExpand = dropdown.getAttribute("data-expanded") !== "true";
+            document.querySelectorAll("[data-mobile-dropdown]").forEach((other) => {
+                if (other !== dropdown) setDropdownExpanded(other, false);
+            });
+            setDropdownExpanded(dropdown, willExpand);
+        });
+    }
+
+    bindMobileNavDropdowns();
 </script>
