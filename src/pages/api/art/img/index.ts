@@ -1,12 +1,14 @@
 /**
  * 艺术馆图片代理 —— 让图片走 CDN 缓存，而不是每个访客每张图都跨洋回源。
  *
- * 为什么需要它：图片存在美国的私有桶里，直接给带签名的对象存储链接有两个问题——
- *   1. 签名每次不同 → 浏览器与 CDN 都无法缓存 → 每个访客、每张图都要重新跨洋拉一次（实测每张 2 秒）
- *   2. 私有桶的链接 7 天过期，收藏或分享会失效
- * 改成走这个站内地址（URL 稳定、按内容哈希命名），首次回源后由 CDN 长期缓存。
+ * 为什么用查询参数而不是路径：
+ *   站点开了 trailingSlash: "always"，带扩展名的路径会被 308 重定向到加斜杠的形式
+ *   （多一次往返，缓存键也变复杂）。/api/art/img/?key=... 是规范路径，一次命中。
  *
- * 缓存策略：内容按内容哈希命名，文件内容永不改变，所以可以 immutable 长缓存。
+ * 为什么需要这层代理：
+ *   图片存在美国的私有桶里。早先直接给预签名链接，问题是签名每次不同 →
+ *   浏览器与 CDN 都无法缓存 → 每个访客每张图都要跨洋回源一次（实测每张约 2 秒）。
+ *   这里用稳定 URL + 长缓存，首次回源后由 CDN 长期供给。
  */
 import type { APIRoute } from "astro";
 import { presign, READ_EXPIRES, resolveCredentials } from "@/utils/s3-sign";
@@ -16,8 +18,8 @@ export const prerender = false;
 /** 只代理展品相关路径，别被当成任意文件的通道 */
 const ALLOWED_PREFIXES = ["art/img/", "art/thumb/"];
 
-export const GET: APIRoute = async ({ params }) => {
-	const key = (params.path ?? "").replace(/^\/+/, "");
+export const GET: APIRoute = async ({ url }) => {
+	const key = (url.searchParams.get("key") ?? "").replace(/^\/+/, "");
 	if (!key || !ALLOWED_PREFIXES.some(prefix => key.startsWith(prefix))) {
 		return new Response("forbidden", { status: 403 });
 	}
