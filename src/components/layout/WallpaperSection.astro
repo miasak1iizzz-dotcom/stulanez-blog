@@ -185,10 +185,13 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
 
     <!-- 壁纸轮播脚本（基于 CSS transition） -->
     {state.hasMultipleImages && (
-    <script is:inline data-swup-ignore-script>
+    <script is:inline>
         (function initBannerCarousel() {
             var container = document.getElementById('banner-images-container');
             if (!container) return;
+            if (window.__bannerWallpaperAbort) window.__bannerWallpaperAbort.abort();
+            window.__bannerWallpaperAbort = new AbortController();
+            var signal = window.__bannerWallpaperAbort.signal;
 
             var WALLPAPER_BANNER = 'banner';
             var interval = parseInt(container.dataset.carouselInterval || '5000', 10);
@@ -381,12 +384,12 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                     e.preventDefault();
                     appState.isPlaying ? stopAutoPlay() : startAutoPlay();
                 }
-            });
+            }, { signal: signal });
 
             // 触屏滑动
             document.addEventListener('touchstart', function(e) {
                 appState.touchStartX = e.changedTouches[0].screenX;
-            }, { passive: true });
+            }, { passive: true, signal: signal });
             document.addEventListener('touchend', function(e) {
                 appState.touchEndX = e.changedTouches[0].screenX;
                 var diff = appState.touchEndX - appState.touchStartX;
@@ -395,19 +398,19 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                     if (diff > 0) changeToSlide(getCurrentIndex(slides) - 1);
                     else changeToSlide(getCurrentIndex(slides) + 1);
                 }
-            }, { passive: true });
+            }, { passive: true, signal: signal });
 
             // 事件监听
             window.addEventListener('bannerCarouselChange', function(e) {
                 e.detail && e.detail.enabled ? startAutoPlay() : stopAutoPlay();
-            });
+            }, { signal: signal });
             window.addEventListener('wallpaperModeChange', function(e) {
                 if (e.detail && (e.detail.mode === 'banner' || e.detail.mode === 'fullscreen')) {
                     if (isCarouselEnabled()) startAutoPlay();
                 } else {
                     stopAutoPlay();
                 }
-            });
+            }, { signal: signal });
             window.addEventListener('bannerWallpaperSelect', function(e) {
                 var slidesForSelect = getVisibleSlides();
                 if (!slidesForSelect.length) return;
@@ -421,7 +424,7 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                     return;
                 }
                 changeToSlide(idx, true);
-            });
+            }, { signal: signal });
 
             // 随机首张：只有被抽中的这一张会真的下载，其余仍留在 <template> 里
             var slides = getVisibleSlides();
@@ -468,7 +471,7 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                     materialize(s[idx], false);
                     if (isCarouselEnabled()) materializeAhead(s, idx);
                 };
-                if (lgQuery.addEventListener) lgQuery.addEventListener('change', onBreakpointChange);
+                if (lgQuery.addEventListener) lgQuery.addEventListener('change', onBreakpointChange, { signal: signal });
                 else if (lgQuery.addListener) lgQuery.addListener(onBreakpointChange);
             }
 
@@ -479,7 +482,7 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                     idle(function () { materializeRest(getVisibleSlides()); });
                 };
                 if (document.readyState === 'complete') schedulePrefetch();
-                else window.addEventListener('load', schedulePrefetch, { once: true });
+                else window.addEventListener('load', schedulePrefetch, { once: true, signal: signal });
             }
 
             // 启动
@@ -492,10 +495,13 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
 
     <!-- 单图模式：只实例化当前断点匹配的那一侧 -->
     {!state.hasMultipleImages && (
-    <script is:inline data-swup-ignore-script>
+    <script is:inline>
         (function initBannerSingle() {
             var container = document.getElementById('banner-images-container');
             if (!container) return;
+            if (window.__bannerWallpaperAbort) window.__bannerWallpaperAbort.abort();
+            window.__bannerWallpaperAbort = new AbortController();
+            var signal = window.__bannerWallpaperAbort.signal;
 
             function materialize(slot, high) {
                 var tpl = slot.querySelector('template');
@@ -545,7 +551,7 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
 
             if (window.matchMedia) {
                 var lgQuery = window.matchMedia('(min-width: 1024px)');
-                if (lgQuery.addEventListener) lgQuery.addEventListener('change', sync);
+                if (lgQuery.addEventListener) lgQuery.addEventListener('change', sync, { signal: signal });
                 else if (lgQuery.addListener) lgQuery.addListener(sync);
             }
         })();
