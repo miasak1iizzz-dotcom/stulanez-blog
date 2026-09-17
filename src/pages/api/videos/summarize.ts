@@ -74,8 +74,7 @@ export const POST: APIRoute = async ({ request }) => {
 				{
 					ok: false,
 					bvid: knownBvid || undefined,
-					error:
-						"B 站把这台公网机器拦住了。不是按钮没点上。本机开着拆解引擎时，页面会改走你电脑。",
+					error: "B 站把这台公网机器拦住了，视频信息没拿到。",
 				},
 				422,
 			);
@@ -121,7 +120,7 @@ export const POST: APIRoute = async ({ request }) => {
 				{
 					ok: false,
 					error:
-						"这条没有公开字幕，公网也跑不了转写。本机开着拆解引擎时，页面会改走你电脑。",
+						"这条没有公开字幕，在线模型没东西可总结。云端函数也下不了 B 站音轨做转写。",
 				},
 				422,
 			);

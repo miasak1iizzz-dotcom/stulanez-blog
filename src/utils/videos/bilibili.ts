@@ -2,6 +2,7 @@ import type { VideoMeta } from "./types";
 
 const VIEW = "https://api.bilibili.com/x/web-interface/view";
 const PLAYER = "https://api.bilibili.com/x/player/v2";
+const JINA = "https://r.jina.ai/";
 
 export function peelBilibili(input: string): string {
 	const raw = input.trim();
@@ -23,15 +24,44 @@ function headers(): HeadersInit {
 		"User-Agent":
 			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
 		Referer: "https://www.bilibili.com/",
+		Origin: "https://www.bilibili.com",
 		Accept: "application/json,text/plain,*/*",
 		...(cookie ? { Cookie: `SESSDATA=${cookie}` } : {}),
 	};
 }
 
+function parseJsonBlob(text: string): unknown {
+	const trimmed = text.trim();
+	if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+		return JSON.parse(trimmed);
+	}
+	const start = trimmed.indexOf("{");
+	const end = trimmed.lastIndexOf("}");
+	if (start >= 0 && end > start) {
+		return JSON.parse(trimmed.slice(start, end + 1));
+	}
+	throw new Error("中转没有把数据给我。");
+}
+
+async function readJsonViaRelay(url: string): Promise<unknown> {
+	const res = await fetch(`${JINA}${url}`, {
+		headers: {
+			Accept: "text/plain",
+			"User-Agent":
+				"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+		},
+	});
+	if (!res.ok) throw new Error(`中转接口 ${res.status}`);
+	return parseJsonBlob(await res.text());
+}
+
 async function readJson(url: string): Promise<unknown> {
 	const res = await fetch(url, { headers: headers() });
-	if (!res.ok) throw new Error(`B 站接口 ${res.status}`);
-	return res.json();
+	if (res.ok) return res.json();
+	if (res.status === 412 || res.status === 403) {
+		return readJsonViaRelay(url);
+	}
+	throw new Error(`B 站接口 ${res.status}`);
 }
 
 export async function fetchVideoMeta(source: string): Promise<VideoMeta> {
@@ -55,12 +85,15 @@ export async function fetchVideoMeta(source: string): Promise<VideoMeta> {
 		throw new Error(payload.message || "B 站没把视频信息给我。");
 	}
 	const data = payload.data;
+	const cover = data.pic
+		? data.pic.replace(/^http:\/\//, "https://")
+		: undefined;
 	return {
 		bvid: data.bvid || bvid,
 		title: data.title || bvid,
 		up: data.owner?.name || "",
 		duration: Number(data.duration) || 0,
-		cover: data.pic,
+		cover,
 		url: `https://www.bilibili.com/video/${data.bvid || bvid}/`,
 	};
 }
