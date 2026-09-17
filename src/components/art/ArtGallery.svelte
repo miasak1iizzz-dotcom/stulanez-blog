@@ -6,7 +6,7 @@
 	// 阶段 2：清单优先从站内接口取（它从对象存储读清单、顺手签好每张图的临时链接）；
 	// 取不到就退回站内 public/art 的静态清单，切换期或接口故障时不会白屏。
 	const REMOTE_MANIFEST = "/api/art/manifest/";
-	const batchSize = 24;
+	const batchSize = 8;
 	const gradeOrder = ["8K", "4K", "2K", "1080P", "HD", "低清"];
 
 	let { owner = false, onLocal, onCurate }: { owner?: boolean; onLocal?: () => void; onCurate?: () => void } = $props();

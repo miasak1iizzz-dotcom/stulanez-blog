@@ -24,7 +24,7 @@
 					observer.disconnect();
 				}
 			},
-			{ rootMargin: "240px" },
+			{ rootMargin: "120px" },
 		);
 		observer.observe(host);
 		return () => observer.disconnect();
