@@ -22,18 +22,17 @@ function clock(seconds: number): string {
 	return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
-async function submit(event: Event) {
-	event.preventDefault();
+async function run(pasted: string) {
 	error = "";
 	result = null;
 	copied = false;
-	const pasted = url.trim();
-	if (!pasted) {
+	if (!pasted.trim()) {
 		error = "请先贴一条 B 站链接。";
 		return;
 	}
+	url = pasted;
 	busy = true;
-	message = "正在交给引擎…";
+	message = "正在拆…";
 	try {
 		const created = (await (
 			await fetch("/api/videos/summarize/", {
@@ -65,6 +64,11 @@ async function submit(event: Event) {
 		busy = false;
 		message = "";
 	}
+}
+
+function submit(event: Event) {
+	event.preventDefault();
+	void run(url);
 }
 
 async function poll(id: string, bvid: string) {
@@ -125,7 +129,7 @@ async function copyMarkdown() {
 			<button class="vd-btn-main" type="submit" disabled={busy}>
 				{busy ? "正在拆…" : "开始总结"}
 			</button>
-			<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => (url = SAMPLE)}>
+			<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void run(SAMPLE)}>
 				填入试看
 			</button>
 			{#if busy}
