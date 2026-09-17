@@ -1,7 +1,7 @@
 <script lang="ts">
 import { pullFileUrl, safePullName } from "@/utils/pull/fileUrl";
 import type { PullImage, PullSuccess } from "@/utils/pull/types";
-import { buildZip } from "@/utils/pull/zip";
+import { buildZip, type ZipEntry } from "@/utils/pull/zip";
 
 type Props = {
 	result: PullSuccess;
@@ -264,6 +264,26 @@ function targets(): PullImage[] {
 	return deck;
 }
 
+const ZIP_FETCH_AT_ONCE = 8;
+
+async function runPool(
+	count: number,
+	limit: number,
+	worker: (index: number) => Promise<void>,
+): Promise<void> {
+	let cursor = 0;
+	const n = Math.min(Math.max(1, limit), count);
+	await Promise.all(
+		Array.from({ length: n }, async () => {
+			while (cursor < count) {
+				const index = cursor;
+				cursor += 1;
+				await worker(index);
+			}
+		}),
+	);
+}
+
 async function ensureFancybox(): Promise<
 	typeof import("@fancyapps/ui")["Fancybox"]
 > {
@@ -322,27 +342,33 @@ async function runDownload(): Promise<void> {
 	}
 
 	busy = `打包 0/${list.length}`;
-	const entries: { name: string; data: Uint8Array }[] = [];
+	const slots: (ZipEntry | undefined)[] = new Array(list.length);
+	let done = 0;
 	let failed = 0;
 	try {
-		for (let i = 0; i < list.length; i++) {
+		await runPool(list.length, ZIP_FETCH_AT_ONCE, async (i) => {
 			const image = list[i];
-			if (!image) continue;
-			busy = `打包 ${i + 1}/${list.length}`;
-			try {
-				const res = await fetch(pullFileUrl(image));
-				if (!res.ok) {
+			if (image) {
+				try {
+					const res = await fetch(pullFileUrl(image));
+					if (res.ok) {
+						slots[i] = {
+							name: safePullName(image.filename, i),
+							data: new Uint8Array(await res.arrayBuffer()),
+						};
+					} else {
+						failed += 1;
+					}
+				} catch {
 					failed += 1;
-					continue;
 				}
-				entries.push({
-					name: safePullName(image.filename, i),
-					data: new Uint8Array(await res.arrayBuffer()),
-				});
-			} catch {
+			} else {
 				failed += 1;
 			}
-		}
+			done += 1;
+			busy = `打包 ${done}/${list.length}`;
+		});
+		const entries = slots.filter((row): row is ZipEntry => Boolean(row));
 		if (!entries.length) {
 			note = "卡包是空的，原图没拿到。";
 			return;
