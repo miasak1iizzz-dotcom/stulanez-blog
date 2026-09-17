@@ -162,12 +162,28 @@ flowchart TD
 
 ## 7. 访问与鉴权
 
+✅ 已实现（2026-09-17）：
+
 | 面向 | 方式 |
 |---|---|
-| 游客读图 | `img.stulanez.com`（R2 自定义域 + Cloudflare 缓存，公开读） |
-| 游客读清单 | 同上，`art/manifest.json` |
-| 站长写（上传/改标） | 预签名 URL，由轻接口签发；密钥只在服务端环境变量 |
-| 签名接口鉴权 | ❓ 先用「站长口令」共享密钥（简单、零依赖）；需要更严再上 Cloudflare Access |
+| 游客读图 / 读清单 | 对象存储公共读（先 r2.dev，日后接 `img.stulanez.com`） |
+| 站长写 | `POST /api/art/sign` 签发预签名 PUT（SigV4，15 分钟有效） |
+| 签名接口鉴权 | 站长口令 `ART_PUBLISH_TOKEN`——比 localStorage 的设备标记硬，但仍是共享密钥 |
+| 浏览器直传 | 图片字节不经过本站服务器，Vercel 只负责签发许可 |
+
+签名接口只给三个前缀签发：`art/img/`、`art/thumb/`、`art/manifest.json`。其余路径一律拒绝，避免它被当成任意文件的通行证。
+
+服务端环境变量（Vercel 项目设置里配，或本机 `.env.local`；`。env*` 已被 gitignore，绝不进仓库）：
+
+```
+R2_ACCOUNT_ID           Cloudflare 账号 ID
+R2_ACCESS_KEY_ID        R2 API 令牌的 Access Key ID
+R2_SECRET_ACCESS_KEY    R2 API 令牌的 Secret Access Key
+R2_BUCKET               桶名，默认 stulanez
+ART_PUBLISH_TOKEN       站长口令（没配则接口直接拒绝服务）
+```
+
+**发布顺序是有讲究的**：先把全部缩略图传完，最后才更新 `art/manifest.json`。因为清单一旦更新，展厅立刻按它渲染——任何一张图没传成功，就不更新清单，展厅维持原样，不会出现半张白图。
 
 **必读风险**：站长设备识别（`src/utils/owner.ts`）是 localStorage 标记，**客户端可伪造**，只能用来决定「界面显不显示」，绝不能用来决定「允不允许写」。写权限必须另有一层真校验。
 
@@ -190,7 +206,7 @@ flowchart TD
   - 实测 `public/assets/images`：345 张 → **313 条**（合并 32 组重复，多为抖音名单头像占位图）。
 - ✅ **阶段 1（2026-09-17）**：艺术馆拆两层——`ArtGallery`（游客展厅，读 `/art/manifest.json`）+ `LocalLibrary`（站长专属本机全库）；首批 62 件展品上线。
 - 🚧 **阶段 3 前半（2026-09-17）**：策展台 `src/components/art/CurateDesk.svelte` 落地——浏览器内选本地图库、判图（与本地管线共用 `art-rules.ts`）、批量打标、写回展品目录。**「上传」那一步等阶段 2 接入 R2 后替换掉「写回目录」**，其余流程不变。
-- ⏳ **阶段 2**：开 R2 桶 + `img.stulanez.com` + 签名接口，打通浏览器直传。
+- 🚧 **阶段 2（2026-09-17 接线完成，等 R2 凭证）**：`/api/art/sign` 签名接口 + 策展台「发布到展厅」已落地，浏览器直传对象存储；展厅改为远端清单优先、站内兜底。剩下只等 R2 桶建好、环境变量配上。
 - ⏳ **阶段 4**：扩成通用资产仓库（音乐/视频/管线产物迁入），艺术馆接二期视觉判图。
 
 ## 10. 待定问题

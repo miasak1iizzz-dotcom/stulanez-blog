@@ -2,15 +2,16 @@
 	import { onMount } from "svelte";
 	import type { ArtManifest, ArtManifestItem } from "@/types/artManifest";
 
-	// 阶段 1：图片跟站点同源（public/art/…）。
-	// 阶段 2 接对象存储后把这里置 true，改用清单里的 baseUrl（img.stulanez.com）。
-	const USE_REMOTE_BASE = false;
+	// 阶段 2：清单优先从对象存储取；取不到就退回站内 public/art，切换期不会白屏。
+	const REMOTE_MANIFEST = "https://img.stulanez.com/art/manifest.json";
 	const batchSize = 60;
 	const gradeOrder = ["8K", "4K", "2K", "1080P", "HD", "低清"];
 
 	let { owner = false, onLocal, onCurate }: { owner?: boolean; onLocal?: () => void; onCurate?: () => void } = $props();
 
 	let manifest = $state<ArtManifest | null>(null);
+	/** 清单实际来自哪里：remote=对象存储，local=站内兜底 */
+	let manifestFrom = $state<"remote" | "local">("local");
 	let loading = $state(true);
 	let failed = $state(false);
 	let query = $state("");
@@ -40,7 +41,7 @@
 	const currentIndex = $derived(selected ? filtered.findIndex(item => item.id === selected?.id) : -1);
 
 	function assetUrl(key: string): string {
-		const remote = USE_REMOTE_BASE ? (manifest?.baseUrl ?? "").replace(/\/+$/, "") : "";
+		const remote = manifestFrom === "remote" ? (manifest?.baseUrl ?? "").replace(/\/+$/, "") : "";
 		return remote ? `${remote}/${key}` : `/${key}`;
 	}
 
@@ -54,15 +55,30 @@
 
 	onMount(async () => {
 		try {
-			const response = await fetch("/art/manifest.json", { cache: "no-cache" });
-			if (!response.ok) throw new Error(String(response.status));
-			manifest = (await response.json()) as ArtManifest;
+			manifest = await loadManifest();
 		} catch {
 			failed = true;
 		} finally {
 			loading = false;
 		}
 	});
+
+	/** 先试对象存储，失败退回站内清单。 */
+	async function loadManifest(): Promise<ArtManifest> {
+		try {
+			const remote = await fetch(REMOTE_MANIFEST, { cache: "no-cache" });
+			if (remote.ok) {
+				manifestFrom = "remote";
+				return (await remote.json()) as ArtManifest;
+			}
+		} catch {
+			// 远端不可用（域名还没接、离线等），走站内兜底
+		}
+		const local = await fetch("/art/manifest.json", { cache: "no-cache" });
+		if (!local.ok) throw new Error(String(local.status));
+		manifestFrom = "local";
+		return (await local.json()) as ArtManifest;
+	}
 
 	$effect(() => {
 		query;
