@@ -32,7 +32,8 @@ function env(name: string, fallback = ""): string {
 /** 从环境变量里认出一家可用的存储。 */
 export function resolveCredentials(): S3Credentials | null {
 	const accessKeyId = env("S3_ACCESS_KEY_ID") || env("R2_ACCESS_KEY_ID");
-	const secretAccessKey = env("S3_SECRET_ACCESS_KEY") || env("R2_SECRET_ACCESS_KEY");
+	const secretAccessKey =
+		env("S3_SECRET_ACCESS_KEY") || env("R2_SECRET_ACCESS_KEY");
 	const bucket = env("S3_BUCKET") || env("R2_BUCKET", "stulanez");
 	if (!accessKeyId || !secretAccessKey) return null;
 
@@ -59,17 +60,36 @@ function sha256Hex(data: string): string {
 
 /** encodeURIComponent 之外的额外编码，S3 规范要求 */
 function encodeKeyPart(part: string): string {
-	return encodeURIComponent(part).replace(/[!'()*]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+	return encodeURIComponent(part).replace(
+		/[!'()*]/g,
+		(c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+	);
 }
 
 export function objectUrl(key: string, credentials: S3Credentials): string {
 	return `https://${credentials.endpoint}/${credentials.bucket}/${key.split("/").map(encodeKeyPart).join("/")}`;
 }
 
+/**
+ * 把签名时间钉在一个窗口里，让同一把钥匙在几天内 URL 不变。
+ * 以前每次请求都用「现在」，签名天天变，浏览器和 CDN 都缓存不了。
+ */
+export function frozenSigningDate(expiresSec = READ_EXPIRES): Date {
+	const windowMs = Math.max(expiresSec - 86400, 3600) * 1000;
+	return new Date(Math.floor(Date.now() / windowMs) * windowMs);
+}
+
 /** 生成预签名 URL（SigV4，UNSIGNED-PAYLOAD，路径风格）。 */
-export function presign(method: "GET" | "PUT" | "DELETE", key: string, expires: number, credentials: S3Credentials): string {
-	const { endpoint, region, accessKeyId, secretAccessKey, bucket } = credentials;
-	const now = new Date();
+export function presign(
+	method: "GET" | "PUT" | "DELETE",
+	key: string,
+	expires: number,
+	credentials: S3Credentials,
+	at: Date = new Date(),
+): string {
+	const { endpoint, region, accessKeyId, secretAccessKey, bucket } =
+		credentials;
+	const now = at;
 	const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
 	const dateStamp = amzDate.slice(0, 8);
 	const credentialScope = `${dateStamp}/${region}/${SERVICE}/aws4_request`;
@@ -84,17 +104,40 @@ export function presign(method: "GET" | "PUT" | "DELETE", key: string, expires: 
 	params.set("X-Amz-SignedHeaders", "host");
 	const canonicalQuery = params.toString();
 
-	const canonicalRequest = [method, canonicalUri, canonicalQuery, `host:${endpoint}\n`, "host", "UNSIGNED-PAYLOAD"].join("\n");
-	const stringToSign = ["AWS4-HMAC-SHA256", amzDate, credentialScope, sha256Hex(canonicalRequest)].join("\n");
-	const signingKey = hmac(hmac(hmac(hmac(`AWS4${secretAccessKey}`, dateStamp), region), SERVICE), "aws4_request");
-	const signature = crypto.createHmac("sha256", signingKey).update(stringToSign, "utf8").digest("hex");
+	const canonicalRequest = [
+		method,
+		canonicalUri,
+		canonicalQuery,
+		`host:${endpoint}\n`,
+		"host",
+		"UNSIGNED-PAYLOAD",
+	].join("\n");
+	const stringToSign = [
+		"AWS4-HMAC-SHA256",
+		amzDate,
+		credentialScope,
+		sha256Hex(canonicalRequest),
+	].join("\n");
+	const signingKey = hmac(
+		hmac(hmac(hmac(`AWS4${secretAccessKey}`, dateStamp), region), SERVICE),
+		"aws4_request",
+	);
+	const signature = crypto
+		.createHmac("sha256", signingKey)
+		.update(stringToSign, "utf8")
+		.digest("hex");
 
 	return `${objectUrl(key, credentials)}?${canonicalQuery}&X-Amz-Signature=${signature}`;
 }
 
 /** 读一个对象的文本内容（用于取清单）。取不到返回 null。 */
-export async function getObjectText(key: string, credentials: S3Credentials): Promise<string | null> {
-	const response = await fetch(presign("GET", key, READ_EXPIRES, credentials), { cache: "no-store" });
+export async function getObjectText(
+	key: string,
+	credentials: S3Credentials,
+): Promise<string | null> {
+	const response = await fetch(presign("GET", key, READ_EXPIRES, credentials), {
+		cache: "no-store",
+	});
 	if (!response.ok) return null;
 	return await response.text();
 }

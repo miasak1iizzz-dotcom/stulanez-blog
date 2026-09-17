@@ -8,7 +8,13 @@
  * 失败时返回 503/502，展厅会自动退回站内清单，不会白屏。
  */
 import type { APIRoute } from "astro";
-import { getObjectText, resolveCredentials } from "@/utils/s3-sign";
+import {
+	frozenSigningDate,
+	getObjectText,
+	presign,
+	READ_EXPIRES,
+	resolveCredentials,
+} from "@/utils/s3-sign";
 
 export const prerender = false;
 
@@ -29,7 +35,10 @@ function json(body: unknown, status = 200, maxAge = 0): Response {
 		status,
 		headers: {
 			"content-type": "application/json; charset=utf-8",
-			"cache-control": maxAge > 0 ? `public, s-maxage=${maxAge}, stale-while-revalidate=600` : "no-store",
+			"cache-control":
+				maxAge > 0
+					? `public, s-maxage=${maxAge}, stale-while-revalidate=600`
+					: "no-store",
 		},
 	});
 }
@@ -54,16 +63,22 @@ export const GET: APIRoute = async () => {
 	}
 
 	const items = Array.isArray(manifest.items) ? manifest.items : [];
-	// 图片改成走站内代理（URL 稳定、可被 CDN 长期缓存）。
-	// 早先直接给对象存储的签名链接，结果每次签名都不同 → 浏览器与 CDN 都缓存不了，
-	// 每个访客每张图都得跨洋回源一次（实测每张约 2 秒）。
+	// 签名时间钉死在窗口内，同一张图几天内 URL 不变，浏览器能缓存。
+	// 访客浏览器直连对象存储，不再经过 Vercel 函数代拉（函数排队才是首屏 12 秒的原因）。
+	const signedAt = frozenSigningDate(READ_EXPIRES);
 	for (const item of items) {
 		if (!item.thumbs) continue;
-		const proxied: Record<string, string> = {};
+		const signed: Record<string, string> = {};
 		for (const [width, key] of Object.entries(item.thumbs)) {
-			proxied[width] = `/api/art/img/?key=${encodeURIComponent(String(key))}`;
+			signed[width] = presign(
+				"GET",
+				String(key),
+				READ_EXPIRES,
+				credentials,
+				signedAt,
+			);
 		}
-		item.thumbs = proxied;
+		item.thumbs = signed;
 	}
 
 	return json(manifest, 200, 60);
