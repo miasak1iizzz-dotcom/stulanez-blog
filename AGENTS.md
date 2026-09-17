@@ -27,7 +27,7 @@
 
 - 图库/Serpent/采集/判图操作规程：[docs/ai/assets.md](docs/ai/assets.md)。
 - 封面生图端点说明：[docs/AGENT-1-SUMMARY.md](docs/AGENT-1-SUMMARY.md) §3（凭证只在本机）。
-- 视频吸纳（B 站教程拆解）管线：工作区 `.ai-work/_dissect-<BV号>/`（下载→ffmpeg 抽帧→`_vl-run.mjs` 跑 qwen3-vl-plus 分批识图→汇总笔记），成品在 `.ai-work/tutorial-dissections/`；key 在 `E:\AI\Harvest\dashscope.key`，全都不进仓库。
+- 视频吸纳（B 站教程拆解）管线 v2：`node .ai-work/_dissect/_pipeline.mjs <BV号或URL>` 一键跑完（yt-dlp 下载 → 场景+网格抽帧 → faster-whisper 转写（本机崩则自动落 pywhispercpp/ggml）→ qwen3-vl-plus 分批识图 → 合并 timeline.md），AI 读 timeline.md 写拆解笔记进 `.ai-work/tutorial-dissections/` 并更新 INDEX.md；key 在 `E:\AI\Harvest\dashscope.key`，模型在 `.ai-work/_dissect/models/`，全都不进仓库。
 - 站点架构速查：[docs/ai/reference/](docs/ai/reference/)。
 
 ## 历史
