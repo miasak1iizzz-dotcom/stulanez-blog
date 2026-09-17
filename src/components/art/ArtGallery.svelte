@@ -43,8 +43,8 @@
 	const currentIndex = $derived(selected ? filtered.findIndex(item => item.id === selected?.id) : -1);
 
 	function assetUrl(key: string): string {
-		// 接口已经把缩略图换成了带签名的完整链接，直接用
-		if (/^https?:\/\//.test(key)) return key;
+		// 完整链接（含站内代理路径 /api/...）直接用
+		if (/^(https?:)?\/\//.test(key) || key.startsWith("/")) return key;
 		const remote = manifestFrom === "remote" ? (manifest?.baseUrl ?? "").replace(/\/+$/, "") : "";
 		return remote ? `${remote}/${key}` : `/${key}`;
 	}
