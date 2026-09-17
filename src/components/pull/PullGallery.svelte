@@ -24,7 +24,7 @@ let pageSize = $state<PageSize>(10);
 let orderMode = $state<OrderMode>("seq");
 let axis = $state<Axis>("marquee");
 let range = $state<Range>("all");
-let pack = $state<Pack>("each");
+let pack = $state<Pack>("zip");
 let grabbing = $state(false);
 let page = $state(1);
 let deck = $state<PullImage[]>([]);
@@ -266,16 +266,43 @@ function targets(): PullImage[] {
 
 const ZIP_FETCH_AT_ONCE = 8;
 
+let downloadCtl: AbortController | null = null;
+
+function cancelDownload(): void {
+	downloadCtl?.abort();
+}
+
+function isAbortError(error: unknown): boolean {
+	return error instanceof DOMException && error.name === "AbortError";
+}
+
+function waitMs(ms: number, signal: AbortSignal): Promise<void> {
+	if (signal.aborted) return Promise.resolve();
+	return new Promise((resolve) => {
+		const timer = setTimeout(resolve, ms);
+		signal.addEventListener(
+			"abort",
+			() => {
+				clearTimeout(timer);
+				resolve();
+			},
+			{ once: true },
+		);
+	});
+}
+
 async function runPool(
 	count: number,
 	limit: number,
 	worker: (index: number) => Promise<void>,
+	signal?: AbortSignal,
 ): Promise<void> {
 	let cursor = 0;
 	const n = Math.min(Math.max(1, limit), count);
 	await Promise.all(
 		Array.from({ length: n }, async () => {
 			while (cursor < count) {
+				if (signal?.aborted) return;
 				const index = cursor;
 				cursor += 1;
 				await worker(index);
@@ -324,18 +351,25 @@ async function runDownload(): Promise<void> {
 		note = range === "selected" ? "还没有勾选图片。" : "这里没有图。";
 		return;
 	}
+	downloadCtl?.abort();
+	const ac = new AbortController();
+	downloadCtl = ac;
+	const { signal } = ac;
 	note = "";
 	if (pack === "each") {
 		busy = `逐张 0/${list.length}`;
 		try {
 			for (let i = 0; i < list.length; i++) {
+				if (signal.aborted) break;
 				const image = list[i];
 				if (!image) continue;
 				busy = `逐张 ${i + 1}/${list.length}`;
 				await saveOne(image);
-				await new Promise((r) => setTimeout(r, 360));
+				await waitMs(360, signal);
 			}
+			note = signal.aborted ? "已取消下载。" : "";
 		} finally {
+			if (downloadCtl === ac) downloadCtl = null;
 			busy = "";
 		}
 		return;
@@ -346,34 +380,50 @@ async function runDownload(): Promise<void> {
 	let done = 0;
 	let failed = 0;
 	try {
-		await runPool(list.length, ZIP_FETCH_AT_ONCE, async (i) => {
-			const image = list[i];
-			if (image) {
-				try {
-					const res = await fetch(pullFileUrl(image));
-					if (res.ok) {
-						slots[i] = {
-							name: safePullName(image.filename, i),
-							data: new Uint8Array(await res.arrayBuffer()),
-						};
-					} else {
+		await runPool(
+			list.length,
+			ZIP_FETCH_AT_ONCE,
+			async (i) => {
+				if (signal.aborted) return;
+				const image = list[i];
+				if (image) {
+					try {
+						const res = await fetch(pullFileUrl(image), { signal });
+						if (signal.aborted) return;
+						if (res.ok) {
+							slots[i] = {
+								name: safePullName(image.filename, i),
+								data: new Uint8Array(await res.arrayBuffer()),
+							};
+						} else {
+							failed += 1;
+						}
+					} catch (error) {
+						if (isAbortError(error) || signal.aborted) return;
 						failed += 1;
 					}
-				} catch {
+				} else {
 					failed += 1;
 				}
-			} else {
-				failed += 1;
-			}
-			done += 1;
-			busy = `打包 ${done}/${list.length}`;
-		});
+				done += 1;
+				if (!signal.aborted) busy = `打包 ${done}/${list.length}`;
+			},
+			signal,
+		);
+		if (signal.aborted) {
+			note = "已取消打包。";
+			return;
+		}
 		const entries = slots.filter((row): row is ZipEntry => Boolean(row));
 		if (!entries.length) {
 			note = "卡包是空的，原图没拿到。";
 			return;
 		}
 		const blob = await buildZip(entries);
+		if (signal.aborted) {
+			note = "已取消打包。";
+			return;
+		}
 		const a = document.createElement("a");
 		a.href = URL.createObjectURL(blob);
 		a.download = `${result.channel}-${entries.length}p.zip`;
@@ -384,6 +434,7 @@ async function runDownload(): Promise<void> {
 			? `ZIP 已收下，有 ${failed} 张没打进去。`
 			: `ZIP 卡包 ${entries.length} 张。`;
 	} finally {
+		if (downloadCtl === ac) downloadCtl = null;
 		busy = "";
 	}
 }
@@ -471,9 +522,19 @@ async function runDownload(): Promise<void> {
 			>
 		</div>
 		<button type="button" class="wipe" onclick={onClear}>回到总览</button>
-		<button type="button" class="go" disabled={Boolean(busy)} onclick={() => void runDownload()}>
-			{busy || (pack === "zip" ? "下载卡包" : "下载到文件夹")}
-		</button>
+		<div class="pack-actions">
+			{#if busy}
+				<button type="button" class="stop" onclick={cancelDownload}>取消</button>
+			{/if}
+			<button
+				type="button"
+				class="go"
+				disabled={Boolean(busy)}
+				onclick={() => void runDownload()}
+			>
+				{busy || (pack === "zip" ? "下载卡包" : "下载到文件夹")}
+			</button>
+		</div>
 	</div>
 
 	{#if note}
@@ -714,11 +775,32 @@ async function runDownload(): Promise<void> {
 	}
 
 	.go {
-		margin-left: auto;
 		padding: 0.55rem 1.1rem;
 		border: 0;
 		border-radius: 999px;
 		cursor: pointer;
+	}
+
+	.pack-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		margin-left: auto;
+	}
+
+	.stop {
+		padding: 0.55rem 1.05rem;
+		border-radius: 999px;
+		border: 1px solid rgba(255, 255, 255, 0.28);
+		background: rgba(255, 255, 255, 0.08);
+		color: #f6ecea;
+		cursor: pointer;
+		font-size: 0.82rem;
+	}
+
+	.stop:hover {
+		border-color: #c67b55;
+		color: #fff;
 	}
 
 	.go:disabled {
@@ -923,6 +1005,7 @@ async function runDownload(): Promise<void> {
 			margin-right: 0.7rem;
 		}
 
+		.pack-actions,
 		.go {
 			margin-left: 0;
 		}
