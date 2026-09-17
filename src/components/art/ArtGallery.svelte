@@ -8,7 +8,7 @@
 	const batchSize = 60;
 	const gradeOrder = ["8K", "4K", "2K", "1080P", "HD", "低清"];
 
-	let { owner = false, onLocal }: { owner?: boolean; onLocal?: () => void } = $props();
+	let { owner = false, onLocal, onCurate }: { owner?: boolean; onLocal?: () => void; onCurate?: () => void } = $props();
 
 	let manifest = $state<ArtManifest | null>(null);
 	let loading = $state(true);
@@ -116,8 +116,11 @@
 			{#if !loading && !failed && items.length}
 				<div class="ledger"><b>{items.length}</b><span>件展品 · {(totalBytes / 1024 / 1024).toFixed(0)} MB</span></div>
 			{/if}
+			{#if owner && onCurate}
+				<button class="local" onclick={onCurate}>策展台<span aria-hidden="true"> ↗</span></button>
+			{/if}
 			{#if owner && onLocal}
-				<button class="local" onclick={onLocal}>整理我的图库<span aria-hidden="true"> ↗</span></button>
+				<button class="soft" onclick={onLocal}>本机图库<span aria-hidden="true"> ↗</span></button>
 			{/if}
 		</div>
 	</header>
@@ -302,6 +305,15 @@
 		border: 0;
 		border-radius: 7px;
 		padding: 12px 16px;
+		font-size: 12px;
+		white-space: nowrap;
+	}
+	.soft {
+		background: none;
+		border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+		color: var(--ink);
+		border-radius: 7px;
+		padding: 11px 15px;
 		font-size: 12px;
 		white-space: nowrap;
 	}
