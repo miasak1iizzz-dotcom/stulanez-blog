@@ -11,6 +11,9 @@ export const profileConfig: ProfileConfig = {
 	// 名字
 	name: "Saki",
 
+	// 名字旁的身份徽章。站长按设备认定，规矩见 /posts/site-protocol/ 的「站长与游客」
+	badge: "站长",
+
 	// 个人签名
 	bio: "慢慢写，也算在往前走。",
 
