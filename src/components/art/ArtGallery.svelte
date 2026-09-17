@@ -2,8 +2,9 @@
 	import { onMount } from "svelte";
 	import type { ArtManifest, ArtManifestItem } from "@/types/artManifest";
 
-	// 阶段 2：清单优先从对象存储取；取不到就退回站内 public/art，切换期不会白屏。
-	const REMOTE_MANIFEST = "https://img.stulanez.com/art/manifest.json";
+	// 阶段 2：清单优先从站内接口取（它从对象存储读清单、顺手签好每张图的临时链接）；
+	// 取不到就退回站内 public/art 的静态清单，切换期或接口故障时不会白屏。
+	const REMOTE_MANIFEST = "/api/art/manifest/";
 	const batchSize = 60;
 	const gradeOrder = ["8K", "4K", "2K", "1080P", "HD", "低清"];
 
@@ -41,6 +42,8 @@
 	const currentIndex = $derived(selected ? filtered.findIndex(item => item.id === selected?.id) : -1);
 
 	function assetUrl(key: string): string {
+		// 接口已经把缩略图换成了带签名的完整链接，直接用
+		if (/^https?:\/\//.test(key)) return key;
 		const remote = manifestFrom === "remote" ? (manifest?.baseUrl ?? "").replace(/\/+$/, "") : "";
 		return remote ? `${remote}/${key}` : `/${key}`;
 	}
