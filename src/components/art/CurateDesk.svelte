@@ -183,26 +183,73 @@
 		return handle;
 	}
 
-	async function writeInto(root: FileSystemDirectoryHandle): Promise<{ written: number; count: number }> {
-		const thumbRoot = await root.getDirectoryHandle("thumb", { create: true });
-		let written = 0;
-		for (const item of items) {
-			const shard = await thumbRoot.getDirectoryHandle(item.id.slice(0, 2), { create: true });
-			for (const [width, blob] of Object.entries(item.thumbs)) {
-				const handle = await shard.getFileHandle(`${item.id}-${width}.webp`, { create: true });
+	async function writeManifest(root: FileSystemDirectoryHandle, json: string): Promise<string> {
+		let reason = "";
+		for (let attempt = 0; attempt < 3; attempt++) {
+			try {
+				const handle = await root.getFileHandle("manifest.json", { create: true });
+				const stream = await handle.createWritable();
+				await stream.write(json);
+				await stream.close();
+				return "";
+			} catch (error) {
+				reason = `${(error as Error).name}: ${(error as Error).message}`;
+				await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)));
+			}
+		}
+		return reason;
+	}
+
+	async function writeBlob(dir: FileSystemDirectoryHandle, name: string, blob: Blob): Promise<boolean> {
+		for (let attempt = 0; attempt < 2; attempt++) {
+			try {
+				const handle = await dir.getFileHandle(name, { create: true });
 				const stream = await handle.createWritable();
 				await stream.write(blob);
 				await stream.close();
-				written++;
-				exportNote = `正在写入缩略图 ${written} / ${totalThumbs}…`;
+				return true;
+			} catch {
+				await new Promise(resolve => setTimeout(resolve, 80));
 			}
 		}
+		return false;
+	}
+
+	async function writeInto(root: FileSystemDirectoryHandle): Promise<{ written: number; failed: string[]; count: number }> {
+		// 顺序是关键：先写清单，再写缩略图。
+		// 在同一个目录句柄下创建大量文件之后，Chrome 的目录状态缓存会失效，
+		// 那时再对根句柄 getFileHandle 会抛 InvalidStateError（踩过的坑：
+		// "state had changed since it was read from disk"）。
 		const manifest = buildManifest();
-		const manifestHandle = await root.getFileHandle("manifest.json", { create: true });
-		const stream = await manifestHandle.createWritable();
-		await stream.write(`${JSON.stringify(manifest, null, 2)}\n`);
-		await stream.close();
-		return { written, count: manifest.items.length };
+		const thumbRoot = await root.getDirectoryHandle("thumb", { create: true });
+		const manifestFailure = await writeManifest(root, `${JSON.stringify(manifest, null, 2)}\n`);
+
+		const shards = new Map<string, FileSystemDirectoryHandle>();
+		const failed: string[] = [];
+		let written = 0;
+		let done = 0;
+		for (const item of items) {
+			const key = item.id.slice(0, 2);
+			let shard = shards.get(key);
+			if (!shard) {
+				// 每个分片只取一次句柄，重复 create 同一路径同样会踩状态缓存
+				try {
+					shard = await thumbRoot.getDirectoryHandle(key, { create: true });
+					shards.set(key, shard);
+				} catch (error) {
+					failed.push(`${key}/ 目录：${(error as Error).message}`);
+					continue;
+				}
+			}
+			for (const [width, blob] of Object.entries(item.thumbs)) {
+				done++;
+				exportNote = `正在写入缩略图 ${done} / ${totalThumbs}…`;
+				if (await writeBlob(shard, `${item.id}-${width}.webp`, blob)) written++;
+				else failed.push(`${item.id}-${width}.webp`);
+			}
+		}
+		if (manifestFailure) failed.unshift(`manifest.json：${manifestFailure}`);
+		return { written, failed, count: manifest.items.length };
 	}
 
 	async function exportTo() {
@@ -217,8 +264,12 @@
 				return;
 			}
 			writeStage = `正在写入「${root.name}」…`;
-			const { written, count } = await writeInto(root);
-			exportNote = `已写入「${root.name}」：${written} 张缩略图 + manifest.json（${count} 件）。提交推送后才会出现在展厅。`;
+			const { written, failed, count } = await writeInto(root);
+			if (failed.length) {
+				exportNote = `写入「${root.name}」有 ${failed.length} 处失败（成功写入 ${written} 张缩略图，共 ${count} 件）。首条原因：${failed[0]}`;
+			} else {
+				exportNote = `已写入「${root.name}」：${written} 张缩略图 + manifest.json（${count} 件）。提交推送后才会出现在展厅。`;
+			}
 		} catch (error) {
 			if ((error as Error).name === "AbortError") exportNote = "已取消，什么都没写。";
 			else exportNote = `写入失败：${(error as Error).message}`;
