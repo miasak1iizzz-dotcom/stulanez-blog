@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import type { ArtManifest } from "@/types/artManifest";
 	import { type CurateDirectoryHandle, type CurateItem, type CurateProgress, readCurateDirectory, revokeItem, toManifestItem } from "@/utils/art-curate";
+	import { ensurePermission, HANDLE_KEYS, loadDirectoryHandle, saveDirectoryHandle } from "@/utils/dir-handles";
 
 	// 站长策展台：选一个本地图库目录 → 浏览器内判图 → 打标 → 写回展品目录。
 	// 图片字节始终在本机：判图与缩略图都在浏览器里做，不上传任何东西。
@@ -19,6 +21,21 @@
 	let selected = $state<Set<string>>(new Set());
 	let bulk = $state({ group: "", member: "", style: "", source: "", year: "" });
 	let fileInput: HTMLInputElement;
+	/** 上次授权过的目录（存在 IndexedDB）。有就能直接复用，不必每次重选 */
+	let lastSource = $state<{ handle: FileSystemDirectoryHandle; name: string } | null>(null);
+	let savedOutput = $state<FileSystemDirectoryHandle | null>(null);
+	let outputName = $state("");
+	let writeStage = $state("");
+
+	onMount(async () => {
+		const source = await loadDirectoryHandle(HANDLE_KEYS.source);
+		if (source) lastSource = { handle: source.handle, name: source.name };
+		const output = await loadDirectoryHandle(HANDLE_KEYS.output);
+		if (output) {
+			savedOutput = output.handle;
+			outputName = output.name;
+		}
+	});
 
 	const selectedCount = $derived(selected.size);
 	const publicCount = $derived(items.filter(item => item.public).length);
@@ -41,6 +58,8 @@
 		exportNote = "";
 		try {
 			const directory = await pick.call(window, { mode: "read", id: "stulanez-art-curate" });
+			lastSource = { handle: directory as unknown as FileSystemDirectoryHandle, name: directory.name };
+			void saveDirectoryHandle(HANDLE_KEYS.source, directory as unknown as FileSystemDirectoryHandle);
 			await scan(directory);
 		} catch (error) {
 			if ((error as Error).name !== "AbortError") message = "这个文件夹打不开，换一个可读取的图片目录试试。";
@@ -129,61 +148,105 @@
 		message = value ? `已标记 ${selectedCount} 件可上站。` : `已把 ${selectedCount} 件移出上站清单。`;
 	}
 
-	async function exportTo() {
-		if (!items.length) return;
-		const pick = (window as Window & {
-			showDirectoryPicker?: (options: { mode: string; id: string }) => Promise<FileSystemDirectoryHandle>;
-		}).showDirectoryPicker;
-		if (!pick) {
-			exportNote = "当前浏览器不支持写入目录（需要 Chrome / Edge）。可以下载清单，缩略图请用命令行管线生成。";
+	/** 复用上次授权过的图库目录，不必重选。 */
+	async function reuseSource() {
+		if (!lastSource) return;
+		if (!(await ensurePermission(lastSource.handle, "read"))) {
+			message = "浏览器没有放行这个目录，重新选一次吧。";
 			return;
 		}
-		exporting = true;
-		exportNote = "";
-		try {
-			const root = await pick.call(window, { mode: "readwrite", id: "stulanez-art-out" });
-			const thumbRoot = await root.getDirectoryHandle("thumb", { create: true });
-			let written = 0;
-			for (const item of items) {
-				const shard = await thumbRoot.getDirectoryHandle(item.id.slice(0, 2), { create: true });
-				for (const [width, blob] of Object.entries(item.thumbs)) {
-					const handle = await shard.getFileHandle(`${item.id}-${width}.webp`, { create: true });
-					const stream = await handle.createWritable();
-					await stream.write(blob);
-					await stream.close();
-					written++;
-					exportNote = `正在写入缩略图 ${written} / ${totalThumbs}…`;
-				}
-			}
-			const onShelf = items.filter(item => item.public);
-			const manifest: ArtManifest = {
-				version: 1,
-				updatedAt: new Date().toISOString(),
-				generator: "art-curate/0.1",
-				baseUrl: "https://img.stulanez.com",
-				items: (onShelf.length ? onShelf : items).map(toManifestItem),
-			};
-			const manifestHandle = await root.getFileHandle("manifest.json", { create: true });
-			const stream = await manifestHandle.createWritable();
-			await stream.write(`${JSON.stringify(manifest, null, 2)}\n`);
-			await stream.close();
-			exportNote = `写完：${written} 张缩略图 + manifest.json（${manifest.items.length} 件）。提交推送后才会出现在展厅。`;
-		} catch (error) {
-			if ((error as Error).name !== "AbortError") exportNote = `导出失败：${(error as Error).message}`;
-		} finally {
-			exporting = false;
-		}
+		await scan(lastSource.handle as unknown as CurateDirectoryHandle);
 	}
 
-	function downloadManifest() {
+	function buildManifest(): ArtManifest {
 		const onShelf = items.filter(item => item.public);
-		const manifest: ArtManifest = {
+		return {
 			version: 1,
 			updatedAt: new Date().toISOString(),
 			generator: "art-curate/0.1",
 			baseUrl: "https://img.stulanez.com",
 			items: (onShelf.length ? onShelf : items).map(toManifestItem),
 		};
+	}
+
+	/** 拿输出目录：优先用上次授权过的，没有才弹选择器（选完记住）。 */
+	async function resolveOutput(): Promise<FileSystemDirectoryHandle | null> {
+		if (savedOutput && (await ensurePermission(savedOutput, "readwrite"))) return savedOutput;
+		const pick = (window as Window & {
+			showDirectoryPicker?: (options: { mode: string; id: string }) => Promise<FileSystemDirectoryHandle>;
+		}).showDirectoryPicker;
+		if (!pick) return null;
+		const handle = await pick.call(window, { mode: "readwrite", id: "stulanez-art-out" });
+		savedOutput = handle;
+		outputName = handle.name;
+		void saveDirectoryHandle(HANDLE_KEYS.output, handle);
+		return handle;
+	}
+
+	async function writeInto(root: FileSystemDirectoryHandle): Promise<{ written: number; count: number }> {
+		const thumbRoot = await root.getDirectoryHandle("thumb", { create: true });
+		let written = 0;
+		for (const item of items) {
+			const shard = await thumbRoot.getDirectoryHandle(item.id.slice(0, 2), { create: true });
+			for (const [width, blob] of Object.entries(item.thumbs)) {
+				const handle = await shard.getFileHandle(`${item.id}-${width}.webp`, { create: true });
+				const stream = await handle.createWritable();
+				await stream.write(blob);
+				await stream.close();
+				written++;
+				exportNote = `正在写入缩略图 ${written} / ${totalThumbs}…`;
+			}
+		}
+		const manifest = buildManifest();
+		const manifestHandle = await root.getFileHandle("manifest.json", { create: true });
+		const stream = await manifestHandle.createWritable();
+		await stream.write(`${JSON.stringify(manifest, null, 2)}\n`);
+		await stream.close();
+		return { written, count: manifest.items.length };
+	}
+
+	async function exportTo() {
+		if (!items.length || exporting) return;
+		exporting = true;
+		exportNote = "";
+		writeStage = `准备写入到「${outputName || "…"}」`;
+		try {
+			const root = await resolveOutput();
+			if (!root) {
+				exportNote = "当前浏览器不支持写入目录（需要 Chrome / Edge）。可以下载清单，缩略图请用命令行管线生成。";
+				return;
+			}
+			writeStage = `正在写入「${root.name}」…`;
+			const { written, count } = await writeInto(root);
+			exportNote = `已写入「${root.name}」：${written} 张缩略图 + manifest.json（${count} 件）。提交推送后才会出现在展厅。`;
+		} catch (error) {
+			if ((error as Error).name === "AbortError") exportNote = "已取消，什么都没写。";
+			else exportNote = `写入失败：${(error as Error).message}`;
+		} finally {
+			exporting = false;
+			writeStage = "";
+		}
+	}
+
+	/** 换一个展品输出目录。 */
+	async function changeOutput() {
+		const pick = (window as Window & {
+			showDirectoryPicker?: (options: { mode: string; id: string }) => Promise<FileSystemDirectoryHandle>;
+		}).showDirectoryPicker;
+		if (!pick) return;
+		try {
+			const handle = await pick.call(window, { mode: "readwrite", id: "stulanez-art-out" });
+			savedOutput = handle;
+			outputName = handle.name;
+			void saveDirectoryHandle(HANDLE_KEYS.output, handle);
+			exportNote = `展品目录已改为「${handle.name}」，以后直接写这里。`;
+		} catch (error) {
+			if ((error as Error).name !== "AbortError") exportNote = "没换成，保持原来的目录。";
+		}
+	}
+
+	function downloadManifest() {
+		const manifest = buildManifest();
 		const blob = new Blob([`${JSON.stringify(manifest, null, 2)}\n`], { type: "application/json" });
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement("a");
@@ -204,6 +267,9 @@
 		</div>
 		<div class="actions">
 			{#if onExit}<button class="ghost" onclick={onExit}>← 返回展厅</button>{/if}
+			{#if lastSource && !scanning}
+				<button class="ghost" onclick={reuseSource} title={`上次用的图库：${lastSource.name}`}>继续上次：{lastSource.name}</button>
+			{/if}
 			<button class="primary" onclick={chooseDirectory} disabled={scanning}>{items.length ? "换一个图库" : "选择图库文件夹"}</button>
 			<input class="file-input" bind:this={fileInput} type="file" multiple webkitdirectory onchange={chooseFiles} aria-label="选择图片文件夹" />
 		</div>
@@ -281,12 +347,22 @@
 		</div>
 
 		<footer class="export">
+			<div class="dest">
+				<span class="eyebrow">展品目录</span>
+				<strong>{outputName || "还没选过（第一次要手选一次，之后记住）"}</strong>
+				<button class="ghost" onclick={changeOutput}>更换</button>
+			</div>
 			<div>
-				<button class="primary" onclick={exportTo} disabled={exporting}>{exporting ? "正在写入…" : "写回展品目录"}</button>
+				<button class="primary" onclick={exportTo} disabled={exporting}>
+					{exporting ? "正在写入…" : outputName ? `写回「${outputName}」` : "选择并写回展品目录"}
+				</button>
 				<button class="ghost" onclick={downloadManifest}>只下载清单</button>
 			</div>
+			{#if exporting && writeStage}
+				<p class="writing" role="status"><span class="spinner" aria-hidden="true"></span>{writeStage}</p>
+			{/if}
 			{#if exportNote}<p class="notice" role="status">{exportNote}</p>{/if}
-			<p class="hint">写回时选仓库的 <code>public/art</code> 目录：缩略图进 <code>thumb/</code>，清单覆盖 <code>manifest.json</code>。标的「上站」决定清单里收哪些；没标任何上站时按全部导出。</p>
+			<p class="hint">浏览器不允许网页直接指定路径，所以第一次要手选一次目录——选完就记住了，以后直接写。建议选仓库的 <code>public/art</code>：缩略图进 <code>thumb/</code>，清单覆盖 <code>manifest.json</code>。标的「上站」决定清单里收哪些；一件都没标时按全部导出。</p>
 		</footer>
 	{/if}
 </section>
@@ -600,6 +676,42 @@
 	}
 	.hint code {
 		font-size: 10px;
+	}
+	.dest {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+	.dest strong {
+		font-size: 13px;
+		font-weight: 500;
+	}
+	.writing {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		font-size: 12px;
+		color: var(--muted);
+		margin: 0;
+	}
+	.spinner {
+		width: 14px;
+		height: 14px;
+		border: 2px solid var(--muted);
+		border-top-color: transparent;
+		border-radius: 50%;
+		animation: spin 0.9s linear infinite;
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.spinner {
+			animation: none;
+		}
 	}
 	@media (max-width: 700px) {
 		.grid {
