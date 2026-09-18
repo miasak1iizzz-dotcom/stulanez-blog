@@ -6,17 +6,21 @@ import type { VideoMeta } from "./types";
 const LANGS = ["zh-Hans", "zh-CN", "zh", "zh-Hant", "en", "en-US", "en-GB"];
 
 async function readText(url: string): Promise<string> {
-	const direct = await fetch(url, {
-		headers: {
-			"User-Agent":
-				"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-			Accept: "*/*",
-		},
-	});
-	if (direct.ok) return direct.text();
+	try {
+		const direct = await fetch(url, {
+			headers: {
+				"User-Agent":
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+				Accept: "*/*",
+			},
+		});
+		if (direct.ok) return direct.text();
+	} catch {
+		/* fall through to relay */
+	}
 	const relay = await readRemoteText(url);
 	if (relay.trim()) return relay;
-	throw new Error(`YouTube 接口 ${direct.status}`);
+	throw new Error("YouTube 这边暂时连不上。换一条带字幕的再试。");
 }
 
 function parseJson3(raw: string): string {

@@ -86,26 +86,30 @@ async function pollTask(id: string, timeoutMs: number): Promise<AsrTask> {
 }
 
 async function readTranscript(url: string): Promise<string> {
-	const res = await fetch(url);
-	if (!res.ok) throw new Error("语音识别结果没取回来。");
-	const payload = (await res.json()) as {
-		transcripts?: Array<{
-			sentences?: Array<{ begin_time?: number; text?: string }>;
-			text?: string;
-		}>;
-	};
-	const sentences = payload.transcripts?.[0]?.sentences || [];
-	if (sentences.length) {
-		return sentences
-			.map((row) => {
-				const text = String(row.text || "").trim();
-				if (!text) return "";
-				return `${formatClock((Number(row.begin_time) || 0) / 1000)} ${text}`;
-			})
-			.filter(Boolean)
-			.join("\n");
+	try {
+		const res = await fetch(url);
+		if (!res.ok) return "";
+		const payload = (await res.json()) as {
+			transcripts?: Array<{
+				sentences?: Array<{ begin_time?: number; text?: string }>;
+				text?: string;
+			}>;
+		};
+		const sentences = payload.transcripts?.[0]?.sentences || [];
+		if (sentences.length) {
+			return sentences
+				.map((row) => {
+					const text = String(row.text || "").trim();
+					if (!text) return "";
+					return `${formatClock((Number(row.begin_time) || 0) / 1000)} ${text}`;
+				})
+				.filter(Boolean)
+				.join("\n");
+		}
+		return String(payload.transcripts?.[0]?.text || "").trim();
+	} catch {
+		return "";
 	}
-	return String(payload.transcripts?.[0]?.text || "").trim();
 }
 
 export async function transcribeBilibili(
