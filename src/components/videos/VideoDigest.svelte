@@ -2,9 +2,10 @@
 import { onMount } from "svelte";
 import { isOwnerDevice } from "@/utils/owner";
 import { harvestBiliBag } from "@/utils/videos/bili-fetch";
-import { clipKey, isYoutubeMeta, youtubeIdFromKey } from "@/utils/videos/clip";
+import { clipKey, isYoutubeMeta, youtubeId, youtubeIdFromKey } from "@/utils/videos/clip";
 import { isCompleteNote, polishNote } from "@/utils/videos/cover";
 import { ankiCsv, layoutMind, mermaidOf } from "@/utils/videos/derive";
+import { explainVideoError } from "@/utils/videos/errors";
 import type { VideoDigestResult, VideoJob } from "@/utils/videos/types";
 
 const NOTES_KEY = "stulanez:videos:notes";
@@ -210,6 +211,14 @@ function openNote(note: VideoDigestResult, hint: string) {
 	remember(packed);
 }
 
+function displayUrl(raw: string): string {
+	const bv = /BV[0-9A-Za-z]+/.exec(raw)?.[0];
+	if (bv) return `https://www.bilibili.com/video/${bv}/`;
+	const yt = youtubeId(raw);
+	if (yt) return `https://www.youtube.com/watch?v=${yt}`;
+	return raw.replace(/\?.*$/, "");
+}
+
 function nextSlide(step: number) {
 	if (!result?.slides?.length) return;
 	slideAt = Math.min(result.slides.length - 1, Math.max(0, slideAt + step));
@@ -253,7 +262,7 @@ async function run(pasted: string, refresh = false) {
 			message = "正在取片…";
 			harvest = await harvestBiliBag(key);
 			if (typeof harvest.__gone === "string" && harvest.__gone) {
-				error = harvest.__gone;
+				error = explainVideoError(harvest.__gone);
 				busy = false;
 				message = "";
 				return;
@@ -279,7 +288,7 @@ async function run(pasted: string, refresh = false) {
 				openNote(fallback, created.error || "这次没写成，先看上次的笔记。");
 				return;
 			}
-			error = created.error || "没做成。";
+			error = explainVideoError(created.error || "没做成。");
 			busy = false;
 			message = "";
 			return;
@@ -291,7 +300,7 @@ async function run(pasted: string, refresh = false) {
 		error = "没有任务号。";
 		busy = false;
 	} catch (err) {
-		error = err instanceof Error ? err.message : "请求失败。";
+		error = explainVideoError(err);
 		busy = false;
 		message = "";
 	} finally {
@@ -432,7 +441,7 @@ function fileStem(note: VideoDigestResult): string {
 	{:else if busy}
 		<section class="vd-progress">
 			<p class="vd-eyebrow">正在处理这条片子</p>
-			<h1>{url || "贴进来的链接"}</h1>
+			<h1>{displayUrl(url) || "贴进来的链接"}</h1>
 			<div class="vd-bar" aria-hidden="true">
 				<i style={`width:${percent}%`}></i>
 			</div>
@@ -456,9 +465,13 @@ function fileStem(note: VideoDigestResult): string {
 					bind:value={url}
 					placeholder="粘贴 B 站 / YouTube 链接"
 					disabled={busy}
+					spellcheck="false"
+					autocomplete="off"
 				/>
-				<button class="vd-btn-ghost" type="button" onclick={() => void pasteUrl()}>粘贴</button>
-				<button class="vd-btn-main" type="submit" disabled={busy}>开始总结</button>
+				<div class="vd-hero-actions">
+					<button class="vd-btn-ghost" type="button" onclick={() => void pasteUrl()}>粘贴</button>
+					<button class="vd-btn-main" type="submit" disabled={busy}>开始总结</button>
+				</div>
 			</form>
 			<div class="vd-plats">
 				<span>B 站</span>
@@ -476,9 +489,16 @@ function fileStem(note: VideoDigestResult): string {
 				<li>AI 追问</li>
 			</ul>
 			<div class="vd-preview" aria-hidden="true">
-				<div class="vd-preview-player">
-					<span>播放器</span>
-					<small>点时间戳直接跳回来</small>
+				<div class="vd-preview-stage">
+					<div class="vd-preview-screen">
+						<span>左边看片</span>
+						<small>点时间戳，播放器跟着跳</small>
+					</div>
+					<ol>
+						<li class="on"><i>01</i><span>先判断值不值得看完</span><time>00:00</time></li>
+						<li><i>02</i><span>按章节拆机制和数字</span><time>01:20</time></li>
+						<li><i>03</i><span>导图节点也能跳回来</span><time>03:05</time></li>
+					</ol>
 				</div>
 				<div class="vd-preview-notes">
 					<nav>
@@ -489,7 +509,20 @@ function fileStem(note: VideoDigestResult): string {
 						<span>原文</span>
 						<span>问</span>
 					</nav>
-					<p>先看值不值得点开，再按章节把机制、数字、步骤写清。点节点、点时间，播放器跟着走。</p>
+					<div class="vd-preview-tldr">
+						<em>精华速览</em>
+						<p>先给结论，再带时间戳。不是一长段空话。</p>
+					</div>
+					<div class="vd-preview-cards">
+						<article>
+							<strong>机制</strong>
+							<p>词条写清怎么用、踩什么坑。</p>
+						</article>
+						<article>
+							<strong>对照</strong>
+							<p>原文逐字稿对着片核对。</p>
+						</article>
+					</div>
 				</div>
 			</div>
 			{#if library.length}
@@ -878,20 +911,27 @@ function fileStem(note: VideoDigestResult): string {
 	}
 	.vd-hero-form, .vd-cmd {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
 		align-items: center;
+		gap: 8px;
 	}
 	.vd-hero-form {
-		max-width: 720px;
+		max-width: 760px;
 		margin: 0 auto;
-		padding: 8px 8px 8px 16px;
+		padding: 6px 6px 6px 16px;
 		background: color-mix(in oklch, var(--primary) 10%, #161018);
 		border: 1px solid var(--vd-line);
-		border-radius: 999px;
+		border-radius: 18px;
 		box-shadow: 0 18px 50px color-mix(in oklch, var(--primary) 16%, transparent);
+		min-width: 0;
+	}
+	.vd-hero-actions {
+		display: flex;
+		flex-shrink: 0;
+		gap: 6px;
+		align-items: center;
 	}
 	.vd-cmd {
+		flex-wrap: wrap;
 		padding: 10px 12px;
 		margin-bottom: 12px;
 		background: var(--vd-panel);
@@ -907,7 +947,7 @@ function fileStem(note: VideoDigestResult): string {
 	.vd-brand span { font-size: 11px; color: var(--vd-mute); }
 	.vd-hero-form input, .vd-cmd input {
 		flex: 1;
-		min-width: 180px;
+		min-width: 0;
 		height: 44px;
 		border: 0;
 		border-radius: 10px;
@@ -916,6 +956,7 @@ function fileStem(note: VideoDigestResult): string {
 		padding: 0 8px;
 		font-size: 15px;
 		outline: none;
+		text-overflow: ellipsis;
 	}
 	.vd-cmd input {
 		height: 40px;
@@ -957,18 +998,47 @@ function fileStem(note: VideoDigestResult): string {
 		text-align: left;
 		box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
 	}
-	.vd-preview-player {
+	.vd-preview-stage {
+		display: grid;
+		grid-template-rows: 148px 1fr;
+		background: #0a070c;
+		border-right: 1px solid var(--vd-line);
+	}
+	.vd-preview-screen {
 		display: grid;
 		place-content: center;
-		gap: 6px;
-		background:
-			radial-gradient(420px 180px at 50% 40%, color-mix(in oklch, var(--primary) 28%, transparent), transparent 70%),
-			#0a070c;
-		color: var(--vd-mute);
-		font-size: 14px;
+		gap: 4px;
 		text-align: center;
+		background:
+			radial-gradient(380px 160px at 50% 40%, color-mix(in oklch, var(--primary) 26%, transparent), transparent 70%),
+			#0a070c;
+		border-bottom: 1px solid var(--vd-line);
 	}
-	.vd-preview-player span { font-size: 18px; color: #fff; font-weight: 650; }
+	.vd-preview-screen span { font-size: 16px; color: #fff; font-weight: 650; }
+	.vd-preview-screen small { color: var(--vd-mute); font-size: 12px; }
+	.vd-preview-stage ol {
+		margin: 0;
+		padding: 8px;
+		list-style: none;
+		display: grid;
+		gap: 4px;
+	}
+	.vd-preview-stage li {
+		display: grid;
+		grid-template-columns: 28px 1fr auto;
+		gap: 8px;
+		align-items: center;
+		padding: 7px 8px;
+		border-radius: 9px;
+		font-size: 12.5px;
+		color: var(--vd-mute);
+	}
+	.vd-preview-stage li.on {
+		background: var(--vd-glow);
+		color: var(--vd-text);
+		box-shadow: inset 2px 0 0 var(--vd-accent);
+	}
+	.vd-preview-stage i { font-style: normal; font-family: ui-monospace, Consolas, monospace; font-size: 11px; }
 	.vd-preview-notes { padding: 16px 18px 20px; }
 	.vd-preview-notes nav {
 		display: flex;
@@ -985,7 +1055,39 @@ function fileStem(note: VideoDigestResult): string {
 		border-radius: 8px;
 		font-weight: 650;
 	}
-	.vd-preview-notes p { margin: 0; color: #d5c6d2; line-height: 1.75; font-size: 14px; }
+	.vd-preview-tldr {
+		background: var(--vd-glow);
+		border: 1px solid color-mix(in oklch, var(--primary) 32%, transparent);
+		border-radius: 12px;
+		padding: 10px 12px;
+		margin-bottom: 10px;
+	}
+	.vd-preview-tldr em {
+		font-style: normal;
+		font-size: 11px;
+		letter-spacing: 0.12em;
+		color: var(--vd-mute);
+		font-weight: 700;
+	}
+	.vd-preview-tldr p, .vd-preview-cards p {
+		margin: 6px 0 0;
+		color: #d5c6d2;
+		line-height: 1.65;
+		font-size: 13.5px;
+	}
+	.vd-preview-cards {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+	}
+	.vd-preview-cards article {
+		background: var(--vd-ink);
+		border: 1px solid var(--vd-line);
+		border-radius: 12px;
+		padding: 10px 12px;
+		border-top: 2px solid var(--vd-accent);
+	}
+	.vd-preview-cards strong { font-size: 13px; }
 	.vd-bar {
 		height: 8px;
 		max-width: 520px;
@@ -1259,13 +1361,19 @@ function fileStem(note: VideoDigestResult): string {
 		.vd-lib, .vd-stage { position: static; max-height: none; }
 		.vd-flash, .vd-know { grid-template-columns: 1fr 1fr; }
 		.vd-preview { grid-template-columns: 1fr; min-height: 0; }
-		.vd-preview-player { min-height: 160px; }
+		.vd-preview-stage { grid-template-rows: 120px auto; border-right: 0; border-bottom: 1px solid var(--vd-line); }
 	}
 	@media (max-width: 720px) {
 		.vd-flash, .vd-know { grid-template-columns: 1fr; }
 		.vd-board { min-height: 0; }
 		.vd-app { padding: 0.6rem 0.7rem 0; }
 		.vd-hero { padding-top: 1.2rem; }
-		.vd-hero-form { border-radius: 18px; }
+		.vd-hero-form {
+			flex-wrap: wrap;
+			padding: 10px;
+		}
+		.vd-hero-form input { width: 100%; flex-basis: 100%; }
+		.vd-hero-actions { width: 100%; justify-content: flex-end; }
+		.vd-preview-cards { grid-template-columns: 1fr; }
 	}
 </style>

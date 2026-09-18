@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { fetchVideoMeta, withBiliHarvest } from "@/utils/videos/bilibili";
 import { cachedDigest } from "@/utils/videos/cache";
 import { youtubeId } from "@/utils/videos/clip";
+import { explainVideoError } from "@/utils/videos/errors";
 import { clientIp, rateLimit } from "@/utils/videos/limit";
 import { summarizeFromSubtitles } from "@/utils/videos/llm";
 import type { VideoJob } from "@/utils/videos/types";
@@ -65,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
 			youtubeId(url) ? await fetchYoutubeMeta(url) : await fetchVideoMeta(url),
 		);
 	} catch (error) {
-		return json({ ok: false, error: (error as Error).message }, 422);
+		return json({ ok: false, error: explainVideoError(error) }, 422);
 	}
 
 	try {
@@ -93,6 +94,6 @@ export const POST: APIRoute = async ({ request }) => {
 			result,
 		});
 	} catch (error) {
-		return json({ ok: false, error: (error as Error).message }, 502);
+		return json({ ok: false, error: explainVideoError(error) }, 502);
 	}
 };

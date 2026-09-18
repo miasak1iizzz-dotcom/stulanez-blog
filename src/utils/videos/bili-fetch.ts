@@ -59,6 +59,10 @@ export function biliFailCopy(
 	return null;
 }
 
+function inBrowser(): boolean {
+	return typeof document !== "undefined" && typeof window !== "undefined";
+}
+
 function looksBlocked(text: string): boolean {
 	const head = text.slice(0, 500).toLowerCase();
 	return (
@@ -67,6 +71,39 @@ function looksBlocked(text: string): boolean {
 		head.includes("attention required") ||
 		(head.includes("<!doctype html") && !head.includes("{"))
 	);
+}
+
+async function jsonpJson(
+	url: string,
+	timeoutMs = 10000,
+): Promise<unknown | null> {
+	if (!inBrowser()) return null;
+	const cb = `__stulanezBili${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+	const href = `${url}${url.includes("?") ? "&" : "?"}jsonp=jsonp&callback=${cb}`;
+	return new Promise((resolve) => {
+		const script = document.createElement("script");
+		let done = false;
+		const finish = (value: unknown | null) => {
+			if (done) return;
+			done = true;
+			window.clearTimeout(timer);
+			script.remove();
+			const bag = window as unknown as Record<string, unknown>;
+			try {
+				delete bag[cb];
+			} catch {
+				bag[cb] = undefined;
+			}
+			resolve(value);
+		};
+		const timer = window.setTimeout(() => finish(null), timeoutMs);
+		(
+			window as unknown as Record<string, (data: unknown) => void>
+		)[cb] = (data: unknown) => finish(data);
+		script.onerror = () => finish(null);
+		script.src = href;
+		document.head.appendChild(script);
+	});
 }
 
 async function fetchPlain(
@@ -99,6 +136,8 @@ async function fetchPlain(
 }
 
 async function fetchJson(url: string): Promise<unknown | null> {
+	const jsonp = await jsonpJson(url);
+	if (jsonp && typeof jsonp === "object") return jsonp;
 	const text = await fetchPlain(url);
 	if (!text) return null;
 	try {
@@ -131,26 +170,31 @@ function subtitleFile(player: unknown): string {
 	return file.startsWith("//") ? `https:${file}` : file;
 }
 
+function bagGone(
+	bag: Record<string, unknown>,
+	code?: number,
+	message?: string,
+	extra = "",
+): boolean {
+	const gone = biliFailCopy(code, message, extra);
+	if (!gone) return false;
+	bag.__gone = gone;
+	return true;
+}
+
 export async function harvestBiliBag(
 	bvid: string,
 ): Promise<Record<string, unknown>> {
 	const bag: Record<string, unknown> = {};
-	const page = await fetchPlain(pageUrl(bvid), 12000);
-	if (page) {
-		const gone = biliFailCopy(undefined, undefined, page.slice(0, 6000));
-		if (gone) {
-			bag.__gone = gone;
-			return bag;
-		}
-	}
 	const viewUrl = viewApi(bvid);
 	const view = await fetchJson(viewUrl);
 	if (view) {
 		bag[viewUrl] = view;
 		const rec = view as { code?: number; message?: string };
-		const gone = biliFailCopy(rec.code, rec.message);
-		if (gone) {
-			bag.__gone = gone;
+		if (bagGone(bag, rec.code, rec.message)) return bag;
+	} else {
+		const page = await fetchPlain(pageUrl(bvid), 8000);
+		if (page && bagGone(bag, undefined, undefined, page.slice(0, 6000))) {
 			return bag;
 		}
 	}
