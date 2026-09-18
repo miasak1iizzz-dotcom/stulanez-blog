@@ -66,6 +66,7 @@ export function digestFromEngine(
 			},
 			tldr,
 			points,
+			cards: [],
 			chapters,
 			markdown,
 		},

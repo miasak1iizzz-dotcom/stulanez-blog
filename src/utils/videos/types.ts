@@ -20,10 +20,16 @@ export interface VideoChapter {
 	summary: string;
 }
 
+export interface VideoCard {
+	title: string;
+	body: string;
+}
+
 export interface VideoDigestResult {
 	meta: VideoMeta;
 	tldr: string;
 	points: string[];
+	cards: VideoCard[];
 	chapters: VideoChapter[];
 	markdown: string;
 }

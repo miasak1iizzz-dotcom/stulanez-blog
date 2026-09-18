@@ -1,54 +1,95 @@
 import { readFileSync } from "node:fs";
-import { bvidOf, fetchSubtitles, peelBilibili } from "./bilibili";
-import type { VideoChapter, VideoDigestResult, VideoMeta } from "./types";
+import { transcribeBilibili } from "./asr";
+import {
+	bvidOf,
+	fetchOfficialSummary,
+	fetchSubtitles,
+	peelBilibili,
+} from "./bilibili";
+import type {
+	VideoCard,
+	VideoChapter,
+	VideoDigestResult,
+	VideoMeta,
+} from "./types";
 
-function zhipuKey(): string {
-	const env = (
-		process.env.ZHIPU_API_KEY ||
-		process.env.VIDEO_SUM_LLM_API_KEY ||
-		""
-	).trim();
-	if (env) return env;
+interface LlmTarget {
+	key: string;
+	base: string;
+	model: string;
+}
+
+function readKeyFile(path: string): string {
 	try {
-		return readFileSync("E:/AI/Harvest/zhipu.key", "utf8").trim();
+		return readFileSync(path, "utf8").trim().split(/\r?\n/)[0] || "";
 	} catch {
 		return "";
 	}
 }
 
+function llmTarget(): LlmTarget {
+	const deepseek = (
+		process.env.DEEPSEEK_API_KEY || readKeyFile("E:/AI/Harvest/deepseek.key")
+	).trim();
+	if (deepseek) {
+		return {
+			key: deepseek,
+			base: (
+				process.env.VIDEO_SUM_LLM_BASE_URL || "https://api.deepseek.com"
+			).replace(/\/$/, ""),
+			model: process.env.VIDEO_SUM_LLM_MODEL || "deepseek-chat",
+		};
+	}
+	const zhipu = (
+		process.env.ZHIPU_API_KEY ||
+		process.env.VIDEO_SUM_LLM_API_KEY ||
+		readKeyFile("E:/AI/Harvest/zhipu.key")
+	).trim();
+	if (zhipu) {
+		return {
+			key: zhipu,
+			base: (
+				process.env.VIDEO_SUM_LLM_BASE_URL ||
+				"https://open.bigmodel.cn/api/paas/v4"
+			).replace(/\/$/, ""),
+			model: process.env.VIDEO_SUM_LLM_MODEL || "glm-4-flash",
+		};
+	}
+	throw new Error(
+		"总结模型的密钥没配。本地放 Harvest 的 deepseek.key，线上配 DEEPSEEK_API_KEY。",
+	);
+}
+
+const SYSTEM = `你是 B 站知识笔记编辑。用户会给你带时间戳的字幕，字幕可能是 AI 识别，有错别字、同音字、术语错误。先结合标题和上下文把工具名、模型名、按钮文案修正清楚，再写成可扫读的中文笔记。禁止编造字幕里没有的步骤、数字、功能。
+输出 JSON：
+{"tldr":"不超过60字，讲清这期到底在教什么、看完能干什么","points":["5到8条高密度要点"],"cards":[{"title":"卡片名","body":"80字内讲清一个概念、结论、配置或坑"}],"chapters":[{"time":"mm:ss","title":"小节标题","summary":"这段在讲什么、要注意什么"}]}
+要求：
+- 删除口语、重复、无意义过渡。
+- points 每条一句，带关键名词，不要空话。
+- cards 3到6张，像知识卡片，适合扫读。
+- chapters 按时间顺序覆盖全片，time 必须来自字幕里出现过的时间戳。
+- 小节标题短、具体，不要「第一部分」这种空标题。`;
+
 export async function summarizeTranscript(
 	meta: VideoMeta,
 	transcript: string,
 ): Promise<VideoDigestResult> {
-	const key = zhipuKey();
-	if (!key) {
-		throw new Error(
-			"总结模型的密钥没配。本地看 E:\\AI\\Harvest\\zhipu.key，线上配 ZHIPU_API_KEY。",
-		);
-	}
-	const base = (
-		process.env.VIDEO_SUM_LLM_BASE_URL || "https://open.bigmodel.cn/api/paas/v4"
-	).replace(/\/$/, "");
-	const model = process.env.VIDEO_SUM_LLM_MODEL || "glm-4-flash";
-	const res = await fetch(`${base}/chat/completions`, {
+	const llm = llmTarget();
+	const res = await fetch(`${llm.base}/chat/completions`, {
 		method: "POST",
 		headers: {
 			"content-type": "application/json",
-			authorization: `Bearer ${key}`,
+			authorization: `Bearer ${llm.key}`,
 		},
 		body: JSON.stringify({
-			model,
-			temperature: 0.3,
+			model: llm.model,
+			temperature: 0.2,
 			response_format: { type: "json_object" },
 			messages: [
-				{
-					role: "system",
-					content:
-						'你是视频笔记助手。只根据字幕写中文总结。输出 JSON：{"tldr":"一句话","points":["要点"],"chapters":[{"time":"mm:ss","title":"小节","summary":"这段在讲什么"}]}。不要编造字幕里没有的内容。',
-				},
+				{ role: "system", content: SYSTEM },
 				{
 					role: "user",
-					content: `标题：${meta.title}\nUP：${meta.up}\nBV：${meta.bvid}\n字幕：\n${transcript.slice(0, 12000)}`,
+					content: `标题：${meta.title}\nUP：${meta.up}\nBV：${meta.bvid}\n时长：${meta.duration}秒\n字幕：\n${transcript.slice(0, 24000)}`,
 				},
 			],
 		}),
@@ -59,22 +100,31 @@ export async function summarizeTranscript(
 	const payload = (await res.json()) as {
 		choices?: Array<{ message?: { content?: string } }>;
 	};
-	const raw = payload.choices?.[0]?.message?.content || "{}";
+	let raw = payload.choices?.[0]?.message?.content || "{}";
+	const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(raw);
+	if (fenced) raw = fenced[1];
 	let parsed: {
 		tldr?: string;
 		points?: string[];
+		cards?: Array<{ title?: string; body?: string }>;
 		chapters?: Array<{ time?: string; title?: string; summary?: string }>;
 	} = {};
 	try {
 		parsed = JSON.parse(raw) as typeof parsed;
 	} catch {
-		parsed = { tldr: raw.slice(0, 200), points: [], chapters: [] };
+		parsed = { tldr: raw.slice(0, 200), points: [], cards: [], chapters: [] };
 	}
 	const chapters: VideoChapter[] = (parsed.chapters || []).map((row) => ({
 		time: row.time || "00:00",
 		title: row.title || "",
 		summary: row.summary || "",
 	}));
+	const cards: VideoCard[] = (parsed.cards || [])
+		.map((row) => ({
+			title: String(row.title || "").trim(),
+			body: String(row.body || "").trim(),
+		}))
+		.filter((row) => row.title && row.body);
 	const points = (parsed.points || [])
 		.map((row) => String(row))
 		.filter(Boolean);
@@ -86,11 +136,13 @@ export async function summarizeTranscript(
 		"",
 		...points.map((p) => `- ${p}`),
 		"",
+		...cards.map((c) => `### ${c.title}\n\n${c.body}`),
+		"",
 		...chapters.map((c) => `## ${c.time} ${c.title}\n\n${c.summary}`),
 		"",
 		meta.url,
 	].join("\n");
-	return { meta, tldr, points, chapters, markdown };
+	return { meta, tldr, points, cards, chapters, markdown };
 }
 
 export async function summarizeFromSubtitles(
@@ -99,7 +151,12 @@ export async function summarizeFromSubtitles(
 ): Promise<VideoDigestResult | null> {
 	const bvid = bvidOf(peelBilibili(source));
 	if (!bvid) return null;
-	const transcript = await fetchSubtitles(bvid);
-	if (!transcript.trim()) return null;
+	const captions = await fetchSubtitles(bvid);
+	const official = captions.trim() ? "" : await fetchOfficialSummary(bvid);
+	let transcript = captions.trim() || official.trim();
+	if (!transcript) {
+		transcript = (await transcribeBilibili(bvid)).trim();
+	}
+	if (!transcript) return null;
 	return summarizeTranscript(meta, transcript);
 }
