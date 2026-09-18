@@ -5,9 +5,12 @@ import type { VideoDigestResult, VideoJob } from "@/utils/videos/types";
 
 const SAMPLE = "https://www.bilibili.com/video/BV14Utf6QEnB/";
 const EXAMPLE = "https://www.bilibili.com/video/BV1fFtc6uEHL/";
+const NOTES_KEY = "stulanez:videos:notes";
+const LAST_KEY = "stulanez:videos:last";
 
 type Tab = "note" | "cues" | "ask";
 type ChatTurn = { q: string; a: string };
+type StampPart = { kind: "text" | "time"; value: string };
 
 let url = $state("");
 let busy = $state(false);
@@ -23,8 +26,64 @@ let chat = $state<ChatTurn[]>([]);
 
 onMount(() => {
 	const q = new URLSearchParams(location.search).get("u");
-	if (q) url = q;
+	if (q) {
+		url = q;
+		return;
+	}
+	try {
+		const last = localStorage.getItem(LAST_KEY) || "";
+		const note = last ? readNotes()[last] : null;
+		if (note?.meta?.bvid) {
+			result = note;
+			url = note.meta.url;
+		}
+	} catch {
+		/* ignore broken cache */
+	}
 });
+
+function readNotes(): Record<string, VideoDigestResult> {
+	try {
+		return JSON.parse(localStorage.getItem(NOTES_KEY) || "{}") as Record<
+			string,
+			VideoDigestResult
+		>;
+	} catch {
+		return {};
+	}
+}
+
+function remember(note: VideoDigestResult) {
+	try {
+		const all = readNotes();
+		all[note.meta.bvid] = note;
+		localStorage.setItem(NOTES_KEY, JSON.stringify(all));
+		localStorage.setItem(LAST_KEY, note.meta.bvid);
+	} catch {
+		/* quota */
+	}
+}
+
+function bvidFrom(input: string): string {
+	return /BV[0-9A-Za-z]+/.exec(input)?.[0] || "";
+}
+
+function stampParts(text: string): StampPart[] {
+	const parts: StampPart[] = [];
+	const re = /(\d{1,2}:\d{2}(?::\d{2})?)/g;
+	let last = 0;
+	let hit = re.exec(text);
+	while (hit) {
+		if (hit.index > last) {
+			parts.push({ kind: "text", value: text.slice(last, hit.index) });
+		}
+		parts.push({ kind: "time", value: hit[1] });
+		last = hit.index + hit[1].length;
+		hit = re.exec(text);
+	}
+	if (last < text.length) parts.push({ kind: "text", value: text.slice(last) });
+	return parts.length ? parts : [{ kind: "text", value: text }];
+}
 
 function clock(seconds: number): string {
 	const s = Math.max(0, Math.floor(seconds));
@@ -68,9 +127,21 @@ function askContext(note: VideoDigestResult): string {
 	return [note.markdown, note.transcript || ""].filter(Boolean).join("\n\n");
 }
 
-async function run(pasted: string) {
+function openNote(note: VideoDigestResult, hint: string) {
+	result = note;
+	url = note.meta.url;
+	seek = 0;
+	chat = [];
+	tab = "note";
+	copied = false;
 	error = "";
-	result = null;
+	busy = false;
+	message = hint;
+	remember(note);
+}
+
+async function run(pasted: string, refresh = false) {
+	error = "";
 	copied = false;
 	chat = [];
 	tab = "note";
@@ -79,6 +150,15 @@ async function run(pasted: string) {
 		return;
 	}
 	url = pasted;
+	const bvid = bvidFrom(pasted);
+	if (!refresh && bvid) {
+		const local = readNotes()[bvid];
+		if (local?.tldr && (local.transcript || "").trim()) {
+			openNote(local, "用的是这台设备上次写的笔记");
+			return;
+		}
+	}
+	result = null;
 	busy = true;
 	message = "正在听片子、写笔记…";
 	try {
@@ -90,16 +170,18 @@ async function run(pasted: string) {
 			})
 		).json()) as VideoJob;
 		if (!created.ok) {
+			const fallback = bvid ? readNotes()[bvid] : null;
+			if (fallback?.tldr) {
+				openNote(fallback, created.error || "这次没写成，先看上次的笔记。");
+				return;
+			}
 			error = created.error || "没做成。";
 			busy = false;
 			message = "";
 			return;
 		}
 		if (created.result) {
-			result = created.result;
-			seek = 0;
-			message = created.message || "做好了";
-			busy = false;
+			openNote(created.result, created.message || "做好了");
 			return;
 		}
 		if (!created.id) {
@@ -135,10 +217,7 @@ async function poll(id: string, bvid: string) {
 		}
 		message = job.message || (job.status === "queued" ? "排队中" : "正在听…");
 		if (job.result) {
-			result = job.result;
-			seek = 0;
-			busy = false;
-			message = "做好了";
+			openNote(job.result, "做好了");
 			return;
 		}
 		await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -190,6 +269,14 @@ async function ask(event: Event) {
 }
 </script>
 
+{#snippet stamped(text: string)}
+	{#each stampParts(text) as part}
+		{#if part.kind === "time"}
+			<button type="button" class="vd-stamp" onclick={() => seekTo(part.value)}>{part.value}</button>
+		{:else}{part.value}{/if}
+	{/each}
+{/snippet}
+
 <div class="vd-shell">
 	<header class="vd-mast">
 		<span class="vd-eyebrow">STULANEZ / VIDEO DIGEST</span>
@@ -219,6 +306,8 @@ async function ask(event: Event) {
 				填入例片
 			</button>
 			{#if busy}
+				<span class="vd-actions-hint">{message}</span>
+			{:else if message}
 				<span class="vd-actions-hint">{message}</span>
 			{/if}
 		</div>
@@ -253,7 +342,12 @@ async function ask(event: Event) {
 					<section class="vd-card vd-chapters">
 						<div class="vd-chapters-head">时间轴</div>
 						{#each result.chapters as chapter, i}
-							<button class="vd-chapter" type="button" onclick={() => seekTo(chapter.time)}>
+							<button
+								class="vd-chapter"
+								class:on={seek === secondsOf(chapter.time)}
+								type="button"
+								onclick={() => seekTo(chapter.time)}
+							>
 								<span class="vd-num">{String(i + 1).padStart(2, "0")}</span>
 								<span class="vd-chapter-body">
 									<strong>{chapter.title}</strong>
@@ -269,14 +363,16 @@ async function ask(event: Event) {
 			<section class="vd-right vd-card">
 				<div class="vd-tabs">
 					<button class:on={tab === "note"} type="button" onclick={() => (tab = "note")}>笔记</button>
-					<button class:on={tab === "cues"} type="button" onclick={() => (tab = "cues")}>字幕</button>
+					<button class:on={tab === "cues"} type="button" onclick={() => (tab = "cues")}>
+						字幕{#if result.transcript}<i>{cueLines(result.transcript).length}</i>{/if}
+					</button>
 					<button class:on={tab === "ask"} type="button" onclick={() => (tab = "ask")}>追问</button>
 				</div>
 				<div class="vd-pane">
 					{#if tab === "note"}
 						<section class="vd-tldr">
 							<span class="vd-kicker">一句话总结</span>
-							<p>{result.tldr}</p>
+							<p>{@render stamped(result.tldr)}</p>
 						</section>
 						{#if result.cards?.length}
 							<div class="vd-sect"><h2>知识卡片</h2></div>
@@ -284,7 +380,7 @@ async function ask(event: Event) {
 								{#each result.cards as card}
 									<article class="vd-knowledge">
 										<h3>{card.title}</h3>
-										<p>{card.body}</p>
+										<p>{@render stamped(card.body)}</p>
 									</article>
 								{/each}
 							</div>
@@ -293,7 +389,7 @@ async function ask(event: Event) {
 							<div class="vd-sect"><h2>要点</h2></div>
 							<ul class="vd-points">
 								{#each result.points as point}
-									<li>{point}</li>
+									<li>{@render stamped(point)}</li>
 								{/each}
 							</ul>
 						{/if}
@@ -301,14 +397,19 @@ async function ask(event: Event) {
 						{#if result.transcript}
 							<div class="vd-cues">
 								{#each cueLines(result.transcript) as cue}
-									<button class="vd-cue" type="button" onclick={() => seekTo(cue.time)}>
+									<button
+										class="vd-cue"
+										class:on={Boolean(cue.time) && seek === secondsOf(cue.time)}
+										type="button"
+										onclick={() => seekTo(cue.time)}
+									>
 										{#if cue.time}<span>{cue.time}</span>{/if}
 										<p>{cue.text}</p>
 									</button>
 								{/each}
 							</div>
 						{:else}
-							<p class="vd-empty">这条还没有逐字稿。追问可以按右边的笔记来。</p>
+							<p class="vd-empty">这条还没有逐字稿，先看笔记或追问。</p>
 						{/if}
 					{:else}
 						<div class="vd-chat">
@@ -317,7 +418,7 @@ async function ask(event: Event) {
 							{/if}
 							{#each chat as turn}
 								<article class="vd-bubble me"><p>{turn.q}</p></article>
-								<article class="vd-bubble ai"><p>{turn.a}</p></article>
+								<article class="vd-bubble ai"><p>{@render stamped(turn.a)}</p></article>
 							{/each}
 						</div>
 						<form class="vd-ask" onsubmit={ask}>
@@ -335,6 +436,9 @@ async function ask(event: Event) {
 				<div class="vd-actions">
 					<button class="vd-btn-main" type="button" onclick={copyMarkdown}>
 						{copied ? "已复制" : "复制 Markdown"}
+					</button>
+					<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void run(result.meta.url, true)}>
+						重新写
 					</button>
 					<a class="vd-btn-ghost" href={jump(result.meta.url, clock(seek))} target="_blank" rel="noopener">到 B 站看原片</a>
 				</div>
@@ -411,7 +515,8 @@ async function ask(event: Event) {
 		text-align: left; background: transparent; border: 0; color: inherit;
 		padding: 9px 10px; border-radius: 12px; cursor: pointer;
 	}
-	.vd-chapter:hover { background: rgba(255, 255, 255, 0.04); }
+	.vd-chapter:hover, .vd-chapter.on { background: rgba(255, 255, 255, 0.04); }
+	.vd-chapter.on { outline: 1px solid rgba(225, 138, 210, 0.28); }
 	.vd-chapter-body { min-width: 0; flex: 1; display: grid; gap: 3px; }
 	.vd-chapter-body strong { font-size: 13.5px; color: #eceaf2; }
 	.vd-chapter-body em { font-style: normal; font-size: 12px; color: #9b97a9; line-height: 1.5; }
@@ -434,7 +539,7 @@ async function ask(event: Event) {
 		border: 0; background: transparent; color: #9b97a9;
 		padding: 8px 14px; border-radius: 10px 10px 0 0; cursor: pointer; font-size: 14px;
 	}
-	.vd-tabs button.on { color: #eceaf2; background: rgba(225, 138, 210, 0.1); }
+	.vd-tabs button i { font-style: normal; margin-left: 6px; font-size: 11px; color: #c4a6e0; }
 	.vd-pane { flex: 1; padding: 18px 18px 8px; overflow: auto; }
 	.vd-kicker { font-size: 11px; letter-spacing: 0.2em; color: #6d6a7c; text-transform: uppercase; }
 	.vd-tldr { border-left: 3px solid var(--primary); padding: 4px 0 4px 14px; margin-bottom: 18px; }
@@ -461,7 +566,12 @@ async function ask(event: Event) {
 		width: 100%; text-align: left; border: 0; background: transparent;
 		color: inherit; padding: 7px 8px; border-radius: 10px; cursor: pointer;
 	}
-	.vd-cue:hover { background: rgba(255, 255, 255, 0.04); }
+	.vd-cue:hover, .vd-cue.on { background: rgba(255, 255, 255, 0.04); }
+	.vd-stamp {
+		display: inline; padding: 0 5px; margin: 0 1px; border: 0; border-radius: 6px;
+		cursor: pointer; font: inherit; font-family: ui-monospace, Consolas, monospace;
+		font-size: 0.92em; color: #e8c4f0; background: rgba(225, 138, 210, 0.16);
+	}
 	.vd-cue span { font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: #c4a6e0; }
 	.vd-cue p { margin: 0; font-size: 13px; line-height: 1.55; color: #d8d4e2; }
 	.vd-empty { margin: 12px 0; color: #9b97a9; font-size: 14px; line-height: 1.65; }
