@@ -3,7 +3,7 @@ import bv1gl from "@/data/videos/BV1GL9wBbEMX.json";
 import bv1q from "@/data/videos/BV1Qwby6DEu1.json";
 import bv14 from "@/data/videos/BV14Utf6QEnB.json";
 import { bvidOf, peelBilibili } from "./bilibili";
-import { polishNote } from "./cover";
+import { isCompleteNote, polishNote } from "./cover";
 import type { VideoDigestResult } from "./types";
 
 const NOTES: Record<string, VideoDigestResult> = {
@@ -17,9 +17,8 @@ export function cachedDigest(input: string): VideoDigestResult | null {
 	const bvid = bvidOf(peelBilibili(input));
 	if (!bvid) return null;
 	const hit = NOTES[bvid];
-	return hit ? asNote(hit as VideoDigestResult) : null;
-}
-
-function asNote(row: VideoDigestResult): VideoDigestResult {
-	return polishNote(row, row.transcript || "");
+	if (!hit) return null;
+	if ((hit.cards?.length || 0) < 4) return null;
+	const note = polishNote(hit as VideoDigestResult, hit.transcript || "");
+	return isCompleteNote(note) ? note : null;
 }
