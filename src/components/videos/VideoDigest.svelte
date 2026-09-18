@@ -1,6 +1,7 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import { isOwnerDevice } from "@/utils/owner";
+import { harvestBiliBag } from "@/utils/videos/bili-fetch";
 import { clipKey, isYoutubeMeta, youtubeIdFromKey } from "@/utils/videos/clip";
 import { isCompleteNote, polishNote } from "@/utils/videos/cover";
 import { ankiCsv, layoutMind, mermaidOf } from "@/utils/videos/derive";
@@ -245,11 +246,21 @@ async function run(pasted: string, refresh = false) {
 	busy = true;
 	message = "正在听片子、写笔记…";
 	try {
+		let harvest: Record<string, unknown> = {};
+		if (key && !key.startsWith("yt_")) {
+			message = "正在从片子那边取资料…";
+			harvest = await harvestBiliBag(key);
+			message = "正在听片子、写笔记…";
+		}
 		const created = (await (
 			await fetch("/api/videos/summarize/", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
-				body: JSON.stringify({ url: pasted, owner: isOwnerDevice() }),
+				body: JSON.stringify({
+					url: pasted,
+					owner: isOwnerDevice(),
+					harvest,
+				}),
 			})
 		).json()) as VideoJob;
 		if (!created.ok) {
