@@ -5,6 +5,8 @@ export type VideoJobStatus =
 	| "failed"
 	| "cancelled";
 
+export type VideoPlatform = "bilibili" | "youtube";
+
 export interface VideoMeta {
 	bvid: string;
 	title: string;
@@ -12,6 +14,8 @@ export interface VideoMeta {
 	duration: number;
 	cover?: string;
 	url: string;
+	platform?: VideoPlatform;
+	youtube?: string;
 }
 
 export interface VideoChapter {
@@ -25,6 +29,26 @@ export interface VideoCard {
 	body: string;
 }
 
+export interface VideoFlashcard {
+	q: string;
+	a: string;
+	time?: string;
+}
+
+export interface VideoSlide {
+	time: string;
+	title: string;
+	body: string;
+	bullets: string[];
+}
+
+export interface VideoMindNode {
+	id: string;
+	title: string;
+	time?: string;
+	children?: VideoMindNode[];
+}
+
 export interface VideoDigestResult {
 	meta: VideoMeta;
 	tldr: string;
@@ -33,6 +57,11 @@ export interface VideoDigestResult {
 	chapters: VideoChapter[];
 	markdown: string;
 	transcript?: string;
+	mindmap?: VideoMindNode;
+	flashcards?: VideoFlashcard[];
+	slides?: VideoSlide[];
+	article?: string;
+	savedAt?: number;
 }
 
 export interface VideoJob {
