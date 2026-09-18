@@ -1,4 +1,5 @@
 import { formatClock, parseClock } from "./clock";
+import { deriveProducts } from "./derive";
 import type {
 	VideoCard,
 	VideoChapter,
@@ -197,7 +198,7 @@ export function polishNote(
 		markdown: row.markdown || "",
 	};
 	next.markdown = renderMarkdown(next);
-	return next;
+	return { ...next, ...deriveProducts(next) };
 }
 
 export function isCompleteNote(

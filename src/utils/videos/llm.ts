@@ -6,6 +6,7 @@ import {
 	fetchSubtitles,
 	peelBilibili,
 } from "./bilibili";
+import { youtubeId } from "./clip";
 import { formatClock } from "./clock";
 import {
 	asCards,
@@ -15,6 +16,7 @@ import {
 	polishNote,
 } from "./cover";
 import type { VideoChapter, VideoDigestResult, VideoMeta } from "./types";
+import { fetchYoutubeTranscript } from "./youtube";
 
 interface LlmTarget {
 	key: string;
@@ -162,8 +164,14 @@ export async function summarizeFromSubtitles(
 	source: string,
 	meta: VideoMeta,
 ): Promise<VideoDigestResult | null> {
-	const bvid = bvidOf(peelBilibili(source));
-	if (!bvid) return null;
+	const yt = meta.youtube || youtubeId(source);
+	if (yt) {
+		const transcript = (await fetchYoutubeTranscript(yt)).trim();
+		if (!transcript) return null;
+		return summarizeTranscript(meta, transcript);
+	}
+	const bvid = bvidOf(peelBilibili(source)) || meta.bvid;
+	if (!bvid || bvid.startsWith("yt_")) return null;
 	const captions = await fetchSubtitles(bvid);
 	const official = captions.trim() ? "" : await fetchOfficialSummary(bvid);
 	let transcript = captions.trim() || official.trim();
@@ -172,6 +180,40 @@ export async function summarizeFromSubtitles(
 	}
 	if (!transcript) return null;
 	return summarizeTranscript(meta, transcript);
+}
+
+export async function writeLongArticle(
+	markdown: string,
+	transcript: string,
+): Promise<string> {
+	const llm = llmTarget();
+	const res = await fetch(`${llm.base}/chat/completions`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			authorization: `Bearer ${llm.key}`,
+		},
+		body: JSON.stringify({
+			model: llm.model,
+			temperature: 0.35,
+			messages: [
+				{
+					role: "system",
+					content:
+						"你是中文视频图文编辑。根据笔记和字幕写成一篇可发布长文：小标题、短段、保留关键 mm:ss。禁止编造笔记里没有的数字和结论。不要写开场套话。",
+				},
+				{
+					role: "user",
+					content: `笔记：\n${markdown.slice(0, 12000)}\n\n字幕摘录：\n${transcript.slice(0, 8000)}`,
+				},
+			],
+		}),
+	});
+	if (!res.ok) throw new Error(`长文模型返回 ${res.status}。`);
+	const payload = (await res.json()) as {
+		choices?: Array<{ message?: { content?: string } }>;
+	};
+	return (payload.choices?.[0]?.message?.content || "").trim();
 }
 
 export async function askAboutNote(
