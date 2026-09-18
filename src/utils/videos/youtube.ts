@@ -1,8 +1,8 @@
 import { youtubeId } from "./clip";
 import { formatClock } from "./clock";
+import { readRemoteText } from "./relay";
 import type { VideoMeta } from "./types";
 
-const JINA = "https://r.jina.ai/";
 const LANGS = ["zh-Hans", "zh-CN", "zh", "zh-Hant", "en", "en-US", "en-GB"];
 
 async function readText(url: string): Promise<string> {
@@ -14,11 +14,9 @@ async function readText(url: string): Promise<string> {
 		},
 	});
 	if (direct.ok) return direct.text();
-	const relay = await fetch(`${JINA}${url}`, {
-		headers: { Accept: "text/plain" },
-	});
-	if (!relay.ok) throw new Error(`YouTube 接口 ${direct.status}`);
-	return relay.text();
+	const relay = await readRemoteText(url);
+	if (relay.trim()) return relay;
+	throw new Error(`YouTube 接口 ${direct.status}`);
 }
 
 function parseJson3(raw: string): string {

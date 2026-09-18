@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { fetchVideoMeta } from "@/utils/videos/bilibili";
+import { fetchVideoMeta, withBiliHarvest } from "@/utils/videos/bilibili";
 import { cachedDigest } from "@/utils/videos/cache";
 import { youtubeId } from "@/utils/videos/clip";
 import { clientIp, rateLimit } from "@/utils/videos/limit";
@@ -30,9 +30,15 @@ export const POST: APIRoute = async ({ request }) => {
 	if (!body || typeof body !== "object") {
 		return json({ ok: false, error: "请求内容不对。" }, 400);
 	}
-	const rec = body as { url?: unknown; owner?: unknown };
+	const rec = body as { url?: unknown; owner?: unknown; harvest?: unknown };
 	const url = typeof rec.url === "string" ? rec.url : "";
 	const owner = rec.owner === true;
+	const harvest =
+		rec.harvest &&
+		typeof rec.harvest === "object" &&
+		!Array.isArray(rec.harvest)
+			? (rec.harvest as Record<string, unknown>)
+			: {};
 	if (!url.trim())
 		return json({ ok: false, error: "请先贴一条 B 站或 YouTube 链接。" }, 400);
 
@@ -52,15 +58,17 @@ export const POST: APIRoute = async ({ request }) => {
 
 	let meta: Awaited<ReturnType<typeof fetchVideoMeta>>;
 	try {
-		meta = youtubeId(url)
-			? await fetchYoutubeMeta(url)
-			: await fetchVideoMeta(url);
+		meta = await withBiliHarvest(harvest, async () =>
+			youtubeId(url) ? await fetchYoutubeMeta(url) : await fetchVideoMeta(url),
+		);
 	} catch (error) {
 		return json({ ok: false, error: (error as Error).message }, 422);
 	}
 
 	try {
-		const result = await summarizeFromSubtitles(url, meta);
+		const result = await withBiliHarvest(harvest, () =>
+			summarizeFromSubtitles(url, meta),
+		);
 		if (!result) {
 			const youtube = meta.platform === "youtube";
 			return json(
