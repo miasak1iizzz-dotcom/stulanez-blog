@@ -1,6 +1,7 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import { isOwnerDevice } from "@/utils/owner";
+import { isCompleteNote } from "@/utils/videos/cover";
 import type { VideoDigestResult, VideoJob } from "@/utils/videos/types";
 
 const SAMPLE = "https://www.bilibili.com/video/BV14Utf6QEnB/";
@@ -35,7 +36,7 @@ onMount(() => {
 		const note = last ? readNotes()[last] : null;
 		if (note?.meta?.bvid) {
 			url = note.meta.url;
-			if (usableNote(note)) result = note;
+			if (isCompleteNote(note)) result = note;
 		}
 	} catch {
 		/* ignore broken cache */
@@ -66,14 +67,6 @@ function remember(note: VideoDigestResult) {
 
 function bvidFrom(input: string): string {
 	return /BV[0-9A-Za-z]+/.exec(input)?.[0] || "";
-}
-
-function usableNote(note: VideoDigestResult): boolean {
-	if (!note?.tldr) return false;
-	const last = secondsOf(note.chapters?.at(-1)?.time || "00:00");
-	const duration = note.meta?.duration || 0;
-	if (duration && last < duration * 0.75) return false;
-	return Boolean(note.cards?.length || (note.transcript || "").trim());
 }
 
 function stampParts(text: string): StampPart[] {
@@ -166,7 +159,7 @@ async function run(pasted: string, refresh = false) {
 	const bvid = bvidFrom(pasted);
 	if (!refresh && bvid) {
 		const local = readNotes()[bvid];
-		if (local && usableNote(local)) {
+		if (local && isCompleteNote(local)) {
 			openNote(local, "用的是这台设备上次写的笔记");
 			return;
 		}
@@ -184,7 +177,7 @@ async function run(pasted: string, refresh = false) {
 		).json()) as VideoJob;
 		if (!created.ok) {
 			const fallback = bvid ? readNotes()[bvid] : null;
-			if (fallback?.tldr) {
+			if (fallback && isCompleteNote(fallback)) {
 				openNote(fallback, created.error || "这次没写成，先看上次的笔记。");
 				return;
 			}
@@ -320,6 +313,31 @@ async function ask(event: Event) {
 
 	{#if error}
 		<p class="vd-error">{error}</p>
+	{/if}
+
+	{#if busy && !result}
+		<p class="vd-wait">正在听片子、按时间轴写笔记。长一点的片子要多等一会儿。</p>
+	{/if}
+
+	{#if !result && !busy}
+		<section class="vd-idle">
+			<article>
+				<h3>知识卡片</h3>
+				<p>机制、数值、阵容、坑拆成词条，点时间能跳播放器。</p>
+			</article>
+			<article>
+				<h3>全片章节</h3>
+				<p>从片头写到片尾，不再只停在前两分钟。</p>
+			</article>
+			<article>
+				<h3>字幕对照</h3>
+				<p>有公开字幕就用字幕，没有就语音识别，再按时间整理。</p>
+			</article>
+			<article>
+				<h3>追问</h3>
+				<p>对着这期笔记继续问，答案里的时间也能点。</p>
+			</article>
+		</section>
 	{/if}
 
 	{#if result}
@@ -493,6 +511,18 @@ async function ask(event: Event) {
 		border: 1px solid rgba(225, 138, 210, 0.28);
 		border-radius: 12px; padding: 12px 16px; font-size: 14px;
 	}
+	.vd-wait { margin: 0 4px 16px; font-size: 13.5px; color: #9b97a9; }
+	.vd-idle {
+		display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;
+		margin: 4px 0 8px;
+	}
+	.vd-idle article {
+		background: rgba(16, 14, 22, 0.72);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 14px; padding: 16px 16px 14px;
+	}
+	.vd-idle h3 { margin: 0 0 6px; font-size: 14px; color: #f3f1f7; }
+	.vd-idle p { margin: 0; font-size: 13px; line-height: 1.65; color: #9b97a9; }
 	.vd-work {
 		display: grid;
 		grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.2fr);
@@ -625,9 +655,11 @@ async function ask(event: Event) {
 		.vd-cards { grid-template-columns: 1fr; }
 		.vd-right { min-height: 0; }
 		.vd-toc { max-height: 220px; }
+		.vd-idle { grid-template-columns: 1fr 1fr; }
 	}
 	@media (max-width: 640px) {
 		.vd-shell { padding: 1rem 0.7rem 0; }
 		.vd-hero-body { padding: 12px; }
+		.vd-idle { grid-template-columns: 1fr; }
 	}
 </style>

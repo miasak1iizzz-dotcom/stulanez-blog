@@ -4,16 +4,17 @@ import {
 	bvidOf,
 	fetchOfficialSummary,
 	fetchSubtitles,
-	formatClock,
 	peelBilibili,
 } from "./bilibili";
-import { asCards, asPoints, ensureChapters } from "./cover";
-import type {
-	VideoCard,
-	VideoChapter,
-	VideoDigestResult,
-	VideoMeta,
-} from "./types";
+import { formatClock } from "./clock";
+import {
+	asCards,
+	asPoints,
+	llmDraftThin,
+	packTranscript,
+	polishNote,
+} from "./cover";
+import type { VideoChapter, VideoDigestResult, VideoMeta } from "./types";
 
 interface LlmTarget {
 	key: string;
@@ -73,11 +74,20 @@ const SYSTEM = `你是专业的中文视频知识编辑，对标 BibiGPT / BiliS
 - time 必须来自字幕里出现过的时间戳。
 - 删除口语、重复、无意义过渡。`;
 
-export async function summarizeTranscript(
+interface NoteDraft {
+	tldr?: string;
+	points?: unknown;
+	cards?: unknown;
+	chapters?: Array<{ time?: string; title?: string; summary?: string }>;
+}
+
+async function draftNote(
 	meta: VideoMeta,
 	transcript: string,
-): Promise<VideoDigestResult> {
+	extra = "",
+): Promise<NoteDraft> {
 	const llm = llmTarget();
+	const packed = packTranscript(transcript);
 	const res = await fetch(`${llm.base}/chat/completions`, {
 		method: "POST",
 		headers: {
@@ -86,14 +96,14 @@ export async function summarizeTranscript(
 		},
 		body: JSON.stringify({
 			model: llm.model,
-			temperature: 0.2,
+			temperature: extra ? 0.15 : 0.2,
 			max_tokens: 4096,
 			response_format: { type: "json_object" },
 			messages: [
 				{ role: "system", content: SYSTEM },
 				{
 					role: "user",
-					content: `标题：${meta.title}\nUP：${meta.up}\nBV：${meta.bvid}\n片长：${formatClock(meta.duration)}（${meta.duration}秒）\n章节最后一条时间必须接近 ${formatClock(meta.duration)}，禁止只写前两分钟。\n字幕：\n${transcript.slice(0, 32000)}`,
+					content: `标题：${meta.title}\nUP：${meta.up}\nBV：${meta.bvid}\n片长：${formatClock(meta.duration)}（${meta.duration}秒）\n章节最后一条时间必须接近 ${formatClock(meta.duration)}，禁止只写前两分钟。\n字幕：\n${packed}${extra ? `\n\n${extra}` : ""}`,
 				},
 			],
 		}),
@@ -107,43 +117,45 @@ export async function summarizeTranscript(
 	let raw = payload.choices?.[0]?.message?.content || "{}";
 	const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(raw);
 	if (fenced) raw = fenced[1];
-	let parsed: {
-		tldr?: string;
-		points?: unknown;
-		cards?: unknown;
-		chapters?: Array<{ time?: string; title?: string; summary?: string }>;
-	} = {};
 	try {
-		parsed = JSON.parse(raw) as typeof parsed;
+		return JSON.parse(raw) as NoteDraft;
 	} catch {
-		parsed = { tldr: raw.slice(0, 200), points: [], cards: [], chapters: [] };
+		return { tldr: raw.slice(0, 200), points: [], cards: [], chapters: [] };
 	}
-	const chapters: VideoChapter[] = ensureChapters(
-		meta,
+}
+
+function chaptersOf(parsed: NoteDraft): VideoChapter[] {
+	return (parsed.chapters || []).map((row) => ({
+		time: row.time || "00:00",
+		title: row.title || "",
+		summary: row.summary || "",
+	}));
+}
+
+export async function summarizeTranscript(
+	meta: VideoMeta,
+	transcript: string,
+): Promise<VideoDigestResult> {
+	let parsed = await draftNote(meta, transcript);
+	if (llmDraftThin(meta, asCards(parsed.cards), chaptersOf(parsed))) {
+		parsed = await draftNote(
+			meta,
+			transcript,
+			`上一稿不合格。必须输出完整 JSON：cards 至少 4 张（词条名+机制/数值/用法），points 每条带 mm:ss，chapters 从 00:00 写到接近 ${formatClock(meta.duration)}，大约每 40 到 50 秒一段。不要只写片头。`,
+		);
+	}
+	return polishNote(
+		{
+			meta,
+			tldr: parsed.tldr || meta.title,
+			points: asPoints(parsed.points),
+			cards: asCards(parsed.cards),
+			chapters: chaptersOf(parsed),
+			markdown: "",
+			transcript,
+		},
 		transcript,
-		(parsed.chapters || []).map((row) => ({
-			time: row.time || "00:00",
-			title: row.title || "",
-			summary: row.summary || "",
-		})),
 	);
-	const cards: VideoCard[] = asCards(parsed.cards);
-	const points = asPoints(parsed.points);
-	const tldr = parsed.tldr || meta.title;
-	const markdown = [
-		`# ${meta.title}`,
-		"",
-		tldr,
-		"",
-		...points.map((p) => `- ${p}`),
-		"",
-		...cards.map((c) => `### ${c.title}\n\n${c.body}`),
-		"",
-		...chapters.map((c) => `## ${c.time} ${c.title}\n\n${c.summary}`),
-		"",
-		meta.url,
-	].join("\n");
-	return { meta, tldr, points, cards, chapters, markdown, transcript };
 }
 
 export async function summarizeFromSubtitles(

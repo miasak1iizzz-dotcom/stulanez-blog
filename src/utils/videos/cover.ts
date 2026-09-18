@@ -1,4 +1,4 @@
-import { formatClock, parseClock } from "./bilibili";
+import { formatClock, parseClock } from "./clock";
 import type {
 	VideoCard,
 	VideoChapter,
@@ -63,6 +63,25 @@ export function asCards(raw: unknown): VideoCard[] {
 		.filter((row): row is VideoCard => Boolean(row));
 }
 
+export function packTranscript(transcript: string, maxChars = 28000): string {
+	const text = transcript.trim();
+	if (text.length <= maxChars) return text;
+	const lines = text
+		.split("\n")
+		.map((line) => line.trim())
+		.filter(Boolean);
+	if (lines.length <= 24) return text.slice(0, maxChars);
+	const keep = Math.max(48, Math.floor(maxChars / 90));
+	const step = lines.length / keep;
+	const mid: string[] = [];
+	for (let i = 0; i < keep; i += 1) {
+		mid.push(lines[Math.min(lines.length - 1, Math.floor(i * step))]);
+	}
+	return [...lines.slice(0, 10), "…", ...mid, "…", ...lines.slice(-10)]
+		.join("\n")
+		.slice(0, maxChars);
+}
+
 export function ensureChapters(
 	meta: VideoMeta,
 	transcript: string,
@@ -111,14 +130,99 @@ export function ensureChapters(
 	return filled.length ? filled : chapters;
 }
 
+export function fillPoints(
+	points: string[],
+	chapters: VideoChapter[],
+): string[] {
+	const stamped = points
+		.map((row) => row.trim())
+		.filter((row) => /^\d{1,2}:\d{2}(?::\d{2})?\s+\S/.test(row));
+	if (stamped.length >= 6) return stamped.slice(0, 10);
+	const merged = [...stamped];
+	for (const chapter of chapters) {
+		if (merged.length >= 8) break;
+		const text = chapter.summary.replace(/\s+/g, " ").trim().slice(0, 72);
+		if (!text) continue;
+		merged.push(`${chapter.time} ${chapter.title}：${text}`);
+	}
+	return merged.length ? merged : points;
+}
+
+export function fillCards(
+	cards: VideoCard[],
+	chapters: VideoChapter[],
+): VideoCard[] {
+	const merged = cards.filter((row) => row.title && row.body);
+	for (const chapter of chapters) {
+		if (merged.length >= 6) break;
+		if (merged.some((row) => row.title === chapter.title)) continue;
+		const body = `${chapter.time} ${chapter.summary}`.trim().slice(0, 160);
+		if (!chapter.title || !body) continue;
+		merged.push({ title: chapter.title.slice(0, 18), body });
+	}
+	return merged;
+}
+
+export function renderMarkdown(note: VideoDigestResult): string {
+	return [
+		`# ${note.meta.title}`,
+		"",
+		note.tldr,
+		"",
+		...note.points.map((point) => `- ${point}`),
+		"",
+		...note.cards.map((card) => `### ${card.title}\n\n${card.body}`),
+		"",
+		...note.chapters.map(
+			(chapter) => `## ${chapter.time} ${chapter.title}\n\n${chapter.summary}`,
+		),
+		"",
+		note.meta.url,
+	].join("\n");
+}
+
 export function polishNote(
 	row: VideoDigestResult,
 	transcript = row.transcript || "",
 ): VideoDigestResult {
-	return {
+	const chapters = ensureChapters(row.meta, transcript, row.chapters || []);
+	const cards = fillCards(row.cards || [], chapters);
+	const points = fillPoints(row.points || [], chapters);
+	const next: VideoDigestResult = {
 		...row,
-		cards: row.cards || [],
+		cards,
+		points,
 		transcript,
-		chapters: ensureChapters(row.meta, transcript, row.chapters || []),
+		chapters,
+		markdown: row.markdown || "",
 	};
+	next.markdown = renderMarkdown(next);
+	return next;
+}
+
+export function isCompleteNote(
+	note: VideoDigestResult | null | undefined,
+): boolean {
+	if (!note?.tldr || !note.meta) return false;
+	const duration = Math.max(0, Number(note.meta.duration) || 0);
+	const chapters = note.chapters || [];
+	const last = parseClock(chapters.at(-1)?.time || "00:00");
+	if ((note.cards?.length || 0) < 4) return false;
+	if ((note.points?.length || 0) < 5) return false;
+	if (chapters.length < 5) return false;
+	if (duration >= 90 && last < duration * 0.8) return false;
+	return true;
+}
+
+export function llmDraftThin(
+	meta: VideoMeta,
+	cards: VideoCard[],
+	chapters: VideoChapter[],
+): boolean {
+	const last = parseClock(chapters.at(-1)?.time || "00:00");
+	return (
+		cards.length < 4 ||
+		chapters.length < 5 ||
+		(meta.duration >= 90 && last < meta.duration * 0.8)
+	);
 }
