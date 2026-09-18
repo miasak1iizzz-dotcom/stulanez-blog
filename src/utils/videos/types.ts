@@ -32,6 +32,7 @@ export interface VideoDigestResult {
 	cards: VideoCard[];
 	chapters: VideoChapter[];
 	markdown: string;
+	transcript?: string;
 }
 
 export interface VideoJob {

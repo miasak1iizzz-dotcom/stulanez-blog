@@ -142,7 +142,7 @@ export async function summarizeTranscript(
 		"",
 		meta.url,
 	].join("\n");
-	return { meta, tldr, points, cards, chapters, markdown };
+	return { meta, tldr, points, cards, chapters, markdown, transcript };
 }
 
 export async function summarizeFromSubtitles(
@@ -159,4 +159,38 @@ export async function summarizeFromSubtitles(
 	}
 	if (!transcript) return null;
 	return summarizeTranscript(meta, transcript);
+}
+
+export async function askAboutNote(
+	question: string,
+	context: string,
+): Promise<string> {
+	const llm = llmTarget();
+	const res = await fetch(`${llm.base}/chat/completions`, {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+			authorization: `Bearer ${llm.key}`,
+		},
+		body: JSON.stringify({
+			model: llm.model,
+			temperature: 0.3,
+			messages: [
+				{
+					role: "system",
+					content:
+						"你是这期视频的笔记助理。只根据给定笔记和字幕回答，不知道就说笔记里没有。中文短答，必要时带 mm:ss 方便跳转。",
+				},
+				{
+					role: "user",
+					content: `笔记与字幕：\n${context.slice(0, 18000)}\n\n问题：${question.trim()}`,
+				},
+			],
+		}),
+	});
+	if (!res.ok) throw new Error(`追问模型返回 ${res.status}。`);
+	const payload = (await res.json()) as {
+		choices?: Array<{ message?: { content?: string } }>;
+	};
+	return (payload.choices?.[0]?.message?.content || "").trim() || "没答上来。";
 }
