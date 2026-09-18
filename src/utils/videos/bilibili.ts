@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createHash } from "node:crypto";
-import { playApi, playerApi, viewApi } from "./bili-fetch";
+import { biliFailCopy, playApi, playerApi, viewApi } from "./bili-fetch";
 import { formatClock } from "./clock";
 import { readRemoteJson } from "./relay";
 import type { VideoMeta } from "./types";
@@ -73,6 +73,8 @@ export async function fetchVideoMeta(source: string): Promise<VideoMeta> {
 			owner?: { name?: string };
 		};
 	};
+	const gone = biliFailCopy(payload.code, payload.message, payload.data?.title);
+	if (gone) throw new Error(gone);
 	if (payload.code !== 0 || !payload.data) {
 		throw new Error(payload.message || "B 站没把视频信息给我。");
 	}

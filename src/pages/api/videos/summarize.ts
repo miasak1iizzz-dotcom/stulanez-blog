@@ -39,6 +39,9 @@ export const POST: APIRoute = async ({ request }) => {
 		!Array.isArray(rec.harvest)
 			? (rec.harvest as Record<string, unknown>)
 			: {};
+	if (typeof harvest.__gone === "string" && harvest.__gone.trim()) {
+		return json({ ok: false, error: harvest.__gone }, 422);
+	}
 	if (!url.trim())
 		return json({ ok: false, error: "请先贴一条 B 站或 YouTube 链接。" }, 400);
 

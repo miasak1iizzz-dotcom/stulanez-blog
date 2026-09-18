@@ -32,7 +32,10 @@ let slideAt = $state(0);
 let presenting = $state(false);
 let menu = $state(false);
 let extra = $state<"cards" | "slides" | "article" | "">("");
+let step = $state(0);
+let percent = $state(8);
 
+const STEPS = ["取片", "听写", "写笔记"] as const;
 const mapLayout = $derived(result?.mindmap ? layoutMind(result.mindmap) : null);
 
 onMount(() => {
@@ -40,16 +43,8 @@ onMount(() => {
 	const q = new URLSearchParams(location.search).get("u");
 	if (q) {
 		url = q;
+		void run(q);
 		return;
-	}
-	try {
-		const last = localStorage.getItem(LAST_KEY) || "";
-		const note = last ? readNotes()[last] : null;
-		if (note?.meta?.bvid && isCompleteNote(note)) {
-			openNote(note, "");
-		}
-	} catch {
-		/* ignore */
 	}
 	const onKey = (event: KeyboardEvent) => {
 		if (!presenting || !result?.slides?.length) return;
@@ -244,13 +239,28 @@ async function run(pasted: string, refresh = false) {
 	}
 	result = null;
 	busy = true;
-	message = "正在听片子、写笔记…";
+	step = 0;
+	percent = 10;
+	message = "正在取片…";
+	const tick = window.setInterval(() => {
+		percent = Math.min(92, percent + 3);
+		if (percent > 28) step = Math.max(step, 1);
+		if (percent > 58) step = Math.max(step, 2);
+	}, 420);
 	try {
 		let harvest: Record<string, unknown> = {};
 		if (key && !key.startsWith("yt_")) {
-			message = "正在从片子那边取资料…";
+			message = "正在取片…";
 			harvest = await harvestBiliBag(key);
-			message = "正在听片子、写笔记…";
+			if (typeof harvest.__gone === "string" && harvest.__gone) {
+				error = harvest.__gone;
+				busy = false;
+				message = "";
+				return;
+			}
+			step = 1;
+			percent = Math.max(percent, 36);
+			message = "正在听写、写笔记…";
 		}
 		const created = (await (
 			await fetch("/api/videos/summarize/", {
@@ -284,6 +294,18 @@ async function run(pasted: string, refresh = false) {
 		error = err instanceof Error ? err.message : "请求失败。";
 		busy = false;
 		message = "";
+	} finally {
+		window.clearInterval(tick);
+		if (!busy) percent = 8;
+	}
+}
+
+async function pasteUrl() {
+	try {
+		const text = (await navigator.clipboard.readText()).trim();
+		if (text) url = text;
+	} catch {
+		error = "浏览器不让读剪贴板，把链接直接贴进框里。";
 	}
 }
 
@@ -386,31 +408,123 @@ function fileStem(note: VideoDigestResult): string {
 	{/each}
 {/snippet}
 
-<div class="vd-app">
-	<form class="vd-cmd" onsubmit={submit}>
-		<div class="vd-brand">
-			<strong>视频总结</strong>
-			<span>速览 · 大纲 · 导图 · 笔记</span>
-		</div>
-		<input
-			id="vd-url"
-			bind:value={url}
-			placeholder="粘贴 B 站或 YouTube 链接"
-			disabled={busy}
-		/>
-		<button class="vd-btn-main" type="submit" disabled={busy}>
-			{busy ? "正在写…" : "总结"}
-		</button>
-		{#if message}
-			<em>{message}</em>
+<div class="vd-app" class:work={Boolean(result)}>
+	{#if result}
+		<form class="vd-cmd" onsubmit={submit}>
+			<div class="vd-brand">
+				<strong>视频总结</strong>
+				<span>速览 · 大纲 · 导图 · 笔记</span>
+			</div>
+			<input
+				id="vd-url"
+				bind:value={url}
+				placeholder="再贴一条 B 站或 YouTube 链接"
+				disabled={busy}
+			/>
+			<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void pasteUrl()}>粘贴</button>
+			<button class="vd-btn-main" type="submit" disabled={busy}>
+				{busy ? "正在写…" : "总结"}
+			</button>
+		</form>
+		{#if error}
+			<p class="vd-error">{error}</p>
 		{/if}
-	</form>
-
-	{#if error}
-		<p class="vd-error">{error}</p>
+	{:else if busy}
+		<section class="vd-progress">
+			<p class="vd-eyebrow">正在处理这条片子</p>
+			<h1>{url || "贴进来的链接"}</h1>
+			<div class="vd-bar" aria-hidden="true">
+				<i style={`width:${percent}%`}></i>
+			</div>
+			<ol>
+				{#each STEPS as label, i}
+					<li class:on={step === i} class:done={step > i}>{label}</li>
+				{/each}
+			</ol>
+			<p class="vd-lead">{message || "正在听写、按时间轴写笔记。长一点的片子要多等一会儿。"}</p>
+		</section>
+	{:else}
+		<section class="vd-hero">
+			<p class="vd-eyebrow">视频总结</p>
+			<h1>贴一条片子<br /><em>变成能跳的笔记</em></h1>
+			<p class="vd-lead">
+				精华速览先判断值不值得看，大纲和导图点一下跳播放器，原文对着核对，还能追问这期。B 站没字幕会语音识别。
+			</p>
+			<form class="vd-hero-form" onsubmit={submit}>
+				<input
+					id="vd-url"
+					bind:value={url}
+					placeholder="粘贴 B 站 / YouTube 链接"
+					disabled={busy}
+				/>
+				<button class="vd-btn-ghost" type="button" onclick={() => void pasteUrl()}>粘贴</button>
+				<button class="vd-btn-main" type="submit" disabled={busy}>开始总结</button>
+			</form>
+			<div class="vd-plats">
+				<span>B 站</span>
+				<span>YouTube</span>
+			</div>
+			{#if error}
+				<p class="vd-error">{error}</p>
+			{/if}
+			<ul class="vd-pills">
+				<li>精华速览</li>
+				<li>章节大纲</li>
+				<li>思维导图</li>
+				<li>图文笔记</li>
+				<li>原文逐字稿</li>
+				<li>AI 追问</li>
+			</ul>
+			<div class="vd-preview" aria-hidden="true">
+				<div class="vd-preview-player">
+					<span>播放器</span>
+					<small>点时间戳直接跳回来</small>
+				</div>
+				<div class="vd-preview-notes">
+					<nav>
+						<b>速览</b>
+						<span>大纲</span>
+						<span>导图</span>
+						<span>笔记</span>
+						<span>原文</span>
+						<span>问</span>
+					</nav>
+					<p>先看值不值得点开，再按章节把机制、数字、步骤写清。点节点、点时间，播放器跟着走。</p>
+				</div>
+			</div>
+			{#if library.length}
+				<div class="vd-recent">
+					<div class="vd-lib-h">这台设备上的最近笔记</div>
+					<div class="vd-recent-list">
+						{#each library as item}
+							<div class="vd-lib-row">
+								<button type="button" class="vd-lib-open" onclick={() => openNote(item, "")}>
+									{#if item.meta.cover}
+										<img src={item.meta.cover} alt="" />
+									{/if}
+									<span>
+										<b>{item.meta.title}</b>
+										<em>{item.meta.up || item.meta.bvid} · {clock(item.meta.duration)}</em>
+									</span>
+								</button>
+								<button
+									class="vd-lib-del"
+									type="button"
+									title="从这台设备删掉"
+									onclick={(event) => forget(item.meta.bvid, event)}
+								>
+									删除
+								</button>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
+		</section>
 	{/if}
 
-	<div class="vd-body" class:empty={!result}>
+	{#if result}
+	<div class="vd-body">
 		<aside class="vd-lib">
 			<div class="vd-lib-h">历史</div>
 			{#if library.length}
@@ -439,27 +553,6 @@ function fileStem(note: VideoDigestResult): string {
 				<p class="vd-empty">总结过的片子会留在这台设备上，可随时删。</p>
 			{/if}
 		</aside>
-
-		{#if !result}
-			<section class="vd-idle">
-				{#if busy}
-					<p class="vd-wait">正在听片子、按时间轴写笔记。长一点的片子要多等一会儿。</p>
-				{:else}
-					<header>
-						<h1>贴一条片子，变成能跳转的笔记</h1>
-						<p>速览判断值不值得看，大纲和导图点一下跳播放器，原文对照，还能追问。B 站没字幕会语音识别。</p>
-					</header>
-					<ul class="vd-idle-feats">
-						<li><b>速览</b>先看值不值得点开</li>
-						<li><b>大纲</b>点章节跳播放器</li>
-						<li><b>导图</b>点节点跳时间点</li>
-						<li><b>笔记</b>按时间把要点写清</li>
-						<li><b>原文</b>对着逐字稿核对</li>
-						<li><b>追问</b>只根据这期回答</li>
-					</ul>
-				{/if}
-			</section>
-		{:else}
 			<section class="vd-stage">
 				<div class="vd-player">
 					<iframe
@@ -698,8 +791,8 @@ function fileStem(note: VideoDigestResult): string {
 					<a class="vd-btn-ghost" href={jump(result, clock(seek))} target="_blank" rel="noopener">原片</a>
 				</div>
 			</section>
-		{/if}
 	</div>
+	{/if}
 </div>
 
 {#if presenting && result?.slides?.length}
@@ -735,16 +828,70 @@ function fileStem(note: VideoDigestResult): string {
 		--vd-mute: #b39aaa;
 		--vd-accent: var(--primary);
 		--vd-glow: color-mix(in oklch, var(--primary) 18%, transparent);
-		max-width: 1480px;
+		max-width: 1180px;
 		margin: 0 auto;
-		padding: 0.4rem 0.8rem 0;
+		padding: 1.2rem 1rem 0;
 		color: var(--vd-text);
 	}
-	.vd-cmd {
+	.vd-app.work { max-width: 1480px; padding-top: 0.4rem; }
+	.vd-eyebrow {
+		margin: 0 0 10px;
+		font-size: 12px;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: color-mix(in oklch, var(--primary) 62%, white);
+		font-weight: 700;
+	}
+	.vd-hero, .vd-progress {
+		text-align: center;
+		padding: 2.4rem 0 1.2rem;
+	}
+	.vd-hero h1, .vd-progress h1 {
+		margin: 0 0 12px;
+		font-size: clamp(2rem, 4.6vw, 3.4rem);
+		letter-spacing: -0.045em;
+		line-height: 1.12;
+		font-weight: 750;
+	}
+	.vd-hero h1 em {
+		font-style: normal;
+		background: linear-gradient(180deg, color-mix(in oklch, var(--primary) 70%, white), var(--primary));
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+	.vd-lead {
+		margin: 0 auto 22px;
+		max-width: 38rem;
+		color: var(--vd-mute);
+		line-height: 1.75;
+		font-size: 15px;
+	}
+	.vd-progress h1 {
+		font-size: 18px;
+		letter-spacing: -0.02em;
+		word-break: break-all;
+		max-width: 52rem;
+		margin: 0 auto 22px;
+		color: var(--vd-mute);
+		font-weight: 500;
+	}
+	.vd-hero-form, .vd-cmd {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 8px;
 		align-items: center;
+	}
+	.vd-hero-form {
+		max-width: 720px;
+		margin: 0 auto;
+		padding: 8px 8px 8px 16px;
+		background: color-mix(in oklch, var(--primary) 10%, #161018);
+		border: 1px solid var(--vd-line);
+		border-radius: 999px;
+		box-shadow: 0 18px 50px color-mix(in oklch, var(--primary) 16%, transparent);
+	}
+	.vd-cmd {
 		padding: 10px 12px;
 		margin-bottom: 12px;
 		background: var(--vd-panel);
@@ -758,18 +905,133 @@ function fileStem(note: VideoDigestResult): string {
 	}
 	.vd-brand strong { font-size: 14px; letter-spacing: -0.02em; }
 	.vd-brand span { font-size: 11px; color: var(--vd-mute); }
-	.vd-cmd input {
+	.vd-hero-form input, .vd-cmd input {
 		flex: 1;
-		min-width: 220px;
+		min-width: 180px;
+		height: 44px;
+		border: 0;
+		border-radius: 10px;
+		background: transparent;
+		color: var(--vd-text);
+		padding: 0 8px;
+		font-size: 15px;
+		outline: none;
+	}
+	.vd-cmd input {
 		height: 40px;
 		border: 1px solid var(--vd-line);
-		border-radius: 10px;
 		background: var(--vd-ink);
-		color: var(--vd-text);
 		padding: 0 12px;
 		font-size: 13.5px;
 	}
-	.vd-cmd em { font-style: normal; font-size: 12px; color: var(--vd-mute); }
+	.vd-plats, .vd-pills {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 8px;
+		margin: 18px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.vd-plats span, .vd-pills li {
+		padding: 6px 12px;
+		border-radius: 999px;
+		border: 1px solid var(--vd-line);
+		background: color-mix(in oklch, var(--primary) 8%, #120c12);
+		font-size: 12.5px;
+		color: var(--vd-mute);
+	}
+	.vd-pills { margin-top: 22px; gap: 8px; }
+	.vd-pills li { color: var(--vd-text); }
+	.vd-preview {
+		display: grid;
+		grid-template-columns: 0.9fr 1.1fr;
+		gap: 0;
+		margin: 28px auto 0;
+		max-width: 880px;
+		min-height: 280px;
+		border: 1px solid var(--vd-line);
+		border-radius: 22px;
+		overflow: hidden;
+		background: var(--vd-panel);
+		text-align: left;
+		box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+	}
+	.vd-preview-player {
+		display: grid;
+		place-content: center;
+		gap: 6px;
+		background:
+			radial-gradient(420px 180px at 50% 40%, color-mix(in oklch, var(--primary) 28%, transparent), transparent 70%),
+			#0a070c;
+		color: var(--vd-mute);
+		font-size: 14px;
+		text-align: center;
+	}
+	.vd-preview-player span { font-size: 18px; color: #fff; font-weight: 650; }
+	.vd-preview-notes { padding: 16px 18px 20px; }
+	.vd-preview-notes nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin-bottom: 14px;
+		font-size: 12.5px;
+		color: var(--vd-mute);
+	}
+	.vd-preview-notes nav b {
+		color: #fff;
+		background: color-mix(in oklch, var(--primary) 28%, transparent);
+		padding: 4px 8px;
+		border-radius: 8px;
+		font-weight: 650;
+	}
+	.vd-preview-notes p { margin: 0; color: #d5c6d2; line-height: 1.75; font-size: 14px; }
+	.vd-bar {
+		height: 8px;
+		max-width: 520px;
+		margin: 0 auto 18px;
+		border-radius: 999px;
+		background: #1a1218;
+		border: 1px solid var(--vd-line);
+		overflow: hidden;
+	}
+	.vd-bar i {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: linear-gradient(90deg, color-mix(in oklch, var(--primary) 70%, white), var(--primary));
+		transition: width 0.35s ease;
+	}
+	.vd-progress ol {
+		display: flex;
+		justify-content: center;
+		gap: 10px;
+		margin: 0 0 16px;
+		padding: 0;
+		list-style: none;
+	}
+	.vd-progress li {
+		padding: 6px 12px;
+		border-radius: 999px;
+		border: 1px solid var(--vd-line);
+		color: var(--vd-mute);
+		font-size: 13px;
+	}
+	.vd-progress li.on, .vd-progress li.done {
+		color: #fff;
+		border-color: color-mix(in oklch, var(--primary) 45%, transparent);
+		background: color-mix(in oklch, var(--primary) 22%, transparent);
+	}
+	.vd-recent {
+		margin: 28px auto 0;
+		max-width: 880px;
+		text-align: left;
+		padding: 12px;
+		border: 1px solid var(--vd-line);
+		border-radius: 16px;
+		background: var(--vd-panel);
+	}
+	.vd-recent-list { display: grid; gap: 4px; }
 	.vd-error {
 		color: #f0a8b8;
 		background: rgba(240, 168, 184, 0.08);
@@ -777,15 +1039,18 @@ function fileStem(note: VideoDigestResult): string {
 		border-radius: 12px;
 		padding: 10px 14px;
 		font-size: 14px;
+		max-width: 720px;
+		margin: 16px auto 0;
+		text-align: left;
 	}
+	.vd-app.work .vd-error { margin: 0 0 12px; max-width: none; }
 	.vd-body {
 		display: grid;
 		grid-template-columns: 220px minmax(280px, 0.92fr) minmax(0, 1.28fr);
 		gap: 12px;
 		align-items: start;
 	}
-	.vd-body.empty { grid-template-columns: 220px minmax(0, 1fr); }
-	.vd-lib, .vd-stage, .vd-board, .vd-idle {
+	.vd-lib, .vd-stage, .vd-board {
 		background: var(--vd-panel);
 		border: 1px solid var(--vd-line);
 		border-radius: 16px;
@@ -830,28 +1095,6 @@ function fileStem(note: VideoDigestResult): string {
 		border-radius: 8px;
 	}
 	.vd-lib-del:hover { color: #fff; background: color-mix(in oklch, var(--primary) 22%, transparent); }
-	.vd-idle { padding: 28px 28px 32px; }
-	.vd-idle h1 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.03em; }
-	.vd-idle header p { margin: 0 0 22px; color: var(--vd-mute); max-width: 52rem; line-height: 1.7; }
-	.vd-idle-feats {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 10px;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-	.vd-idle-feats li {
-		padding: 14px 16px;
-		border: 1px solid var(--vd-line);
-		border-radius: 14px;
-		background: var(--vd-ink);
-		font-size: 13px;
-		color: var(--vd-mute);
-		line-height: 1.65;
-	}
-	.vd-idle-feats b { display: block; color: var(--vd-text); font-size: 14px; margin-bottom: 4px; }
-	.vd-wait { margin: 8px; color: var(--vd-mute); }
 	.vd-stage { position: sticky; top: 5.6rem; }
 	.vd-player { aspect-ratio: 16 / 9; background: #0a070c; }
 	.vd-player iframe { width: 100%; height: 100%; border: 0; display: block; }
@@ -1012,13 +1255,17 @@ function fileStem(note: VideoDigestResult): string {
 	.vd-present-card p, .vd-present-card li { font-size: 18px; line-height: 1.7; color: #d5d8e4; }
 	.vd-present-x { position: absolute; top: 16px; right: 16px; }
 	@media (max-width: 1100px) {
-		.vd-body, .vd-body.empty { grid-template-columns: 1fr; }
+		.vd-body { grid-template-columns: 1fr; }
 		.vd-lib, .vd-stage { position: static; max-height: none; }
-		.vd-idle-feats, .vd-flash, .vd-know { grid-template-columns: 1fr 1fr; }
+		.vd-flash, .vd-know { grid-template-columns: 1fr 1fr; }
+		.vd-preview { grid-template-columns: 1fr; min-height: 0; }
+		.vd-preview-player { min-height: 160px; }
 	}
 	@media (max-width: 720px) {
-		.vd-idle-feats, .vd-flash, .vd-know { grid-template-columns: 1fr; }
+		.vd-flash, .vd-know { grid-template-columns: 1fr; }
 		.vd-board { min-height: 0; }
-		.vd-app { padding: 0.3rem 0.55rem 0; }
+		.vd-app { padding: 0.6rem 0.7rem 0; }
+		.vd-hero { padding-top: 1.2rem; }
+		.vd-hero-form { border-radius: 18px; }
 	}
 </style>

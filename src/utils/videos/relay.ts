@@ -104,6 +104,11 @@ export async function readRemoteText(
 		if (got.status) last = got.status;
 		if (got.ok && got.text.trim() && !looksBlocked(got.text)) return got.text;
 	}
+	if (last === 403 || last === 412 || last === 522) {
+		throw new Error(
+			"片子这边被拦了。刷新后再贴一次；还不行就换一条还能打开的。",
+		);
+	}
 	throw new Error(`中转接口 ${last}`);
 }
 
