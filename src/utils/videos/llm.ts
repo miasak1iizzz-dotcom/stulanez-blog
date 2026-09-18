@@ -4,8 +4,10 @@ import {
 	bvidOf,
 	fetchOfficialSummary,
 	fetchSubtitles,
+	formatClock,
 	peelBilibili,
 } from "./bilibili";
+import { asCards, asPoints, ensureChapters } from "./cover";
 import type {
 	VideoCard,
 	VideoChapter,
@@ -60,15 +62,16 @@ function llmTarget(): LlmTarget {
 	);
 }
 
-const SYSTEM = `你是 B 站知识笔记编辑。用户会给你带时间戳的字幕，字幕可能是 AI 识别，有错别字、同音字、术语错误。先结合标题和上下文把工具名、模型名、按钮文案修正清楚，再写成可扫读的中文笔记。禁止编造字幕里没有的步骤、数字、功能。
+const SYSTEM = `你是专业的中文视频知识编辑，对标 BibiGPT / BiliSummary：左边看片，右边是能跳转的知识笔记。
+字幕可能是语音识别，有错别字；先结合标题把游戏名、英雄、装备、机制、数字纠正清楚，再写笔记。禁止编造字幕里没有的数字、步骤、结论。
 输出 JSON：
-{"tldr":"不超过60字，讲清这期到底在教什么、看完能干什么","points":["5到8条高密度要点"],"cards":[{"title":"卡片名","body":"80字内讲清一个概念、结论、配置或坑"}],"chapters":[{"time":"mm:ss","title":"小节标题","summary":"这段在讲什么、要注意什么"}]}
-要求：
-- 删除口语、重复、无意义过渡。
-- points 每条一句，带关键名词，不要空话。
-- cards 3到6张，像知识卡片，适合扫读。
-- chapters 按时间顺序覆盖全片，time 必须来自字幕里出现过的时间戳。
-- 小节标题短、具体，不要「第一部分」这种空标题。`;
+{"tldr":"不超过80字，先给结论：这期最重要的发现/方法/结果","points":[{"time":"mm:ss","text":"一条可执行结论或关键数字"}],"cards":[{"title":"词条名","time":"mm:ss","body":"80到120字讲清机制、数值、用法或坑"}],"chapters":[{"time":"mm:ss","title":"小节标题","summary":"100到180字：这段发生了什么、关键数字、结论"}]}
+硬性要求：
+- points 6到10条，每条必须带 time，不要空话（「值得关注」「需要注意」）。
+- cards 4到8张，标题像词条（机制名、数值、阵容、坑），不要「第一部分」。
+- chapters 必须从 00:00 覆盖到片尾。最后一条 time 不得早于片长的 85%。大约每 40 到 50 秒一段；6 分钟片子至少 8 段。
+- time 必须来自字幕里出现过的时间戳。
+- 删除口语、重复、无意义过渡。`;
 
 export async function summarizeTranscript(
 	meta: VideoMeta,
@@ -84,12 +87,13 @@ export async function summarizeTranscript(
 		body: JSON.stringify({
 			model: llm.model,
 			temperature: 0.2,
+			max_tokens: 4096,
 			response_format: { type: "json_object" },
 			messages: [
 				{ role: "system", content: SYSTEM },
 				{
 					role: "user",
-					content: `标题：${meta.title}\nUP：${meta.up}\nBV：${meta.bvid}\n时长：${meta.duration}秒\n字幕：\n${transcript.slice(0, 24000)}`,
+					content: `标题：${meta.title}\nUP：${meta.up}\nBV：${meta.bvid}\n片长：${formatClock(meta.duration)}（${meta.duration}秒）\n章节最后一条时间必须接近 ${formatClock(meta.duration)}，禁止只写前两分钟。\n字幕：\n${transcript.slice(0, 32000)}`,
 				},
 			],
 		}),
@@ -105,8 +109,8 @@ export async function summarizeTranscript(
 	if (fenced) raw = fenced[1];
 	let parsed: {
 		tldr?: string;
-		points?: string[];
-		cards?: Array<{ title?: string; body?: string }>;
+		points?: unknown;
+		cards?: unknown;
 		chapters?: Array<{ time?: string; title?: string; summary?: string }>;
 	} = {};
 	try {
@@ -114,20 +118,17 @@ export async function summarizeTranscript(
 	} catch {
 		parsed = { tldr: raw.slice(0, 200), points: [], cards: [], chapters: [] };
 	}
-	const chapters: VideoChapter[] = (parsed.chapters || []).map((row) => ({
-		time: row.time || "00:00",
-		title: row.title || "",
-		summary: row.summary || "",
-	}));
-	const cards: VideoCard[] = (parsed.cards || [])
-		.map((row) => ({
-			title: String(row.title || "").trim(),
-			body: String(row.body || "").trim(),
-		}))
-		.filter((row) => row.title && row.body);
-	const points = (parsed.points || [])
-		.map((row) => String(row))
-		.filter(Boolean);
+	const chapters: VideoChapter[] = ensureChapters(
+		meta,
+		transcript,
+		(parsed.chapters || []).map((row) => ({
+			time: row.time || "00:00",
+			title: row.title || "",
+			summary: row.summary || "",
+		})),
+	);
+	const cards: VideoCard[] = asCards(parsed.cards);
+	const points = asPoints(parsed.points);
 	const tldr = parsed.tldr || meta.title;
 	const markdown = [
 		`# ${meta.title}`,
