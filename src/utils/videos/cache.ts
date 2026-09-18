@@ -20,5 +20,5 @@ export function cachedDigest(input: string): VideoDigestResult | null {
 }
 
 function asNote(row: VideoDigestResult): VideoDigestResult {
-	return { ...row, cards: row.cards || [] };
+	return { ...row, cards: row.cards || [], transcript: row.transcript || "" };
 }
