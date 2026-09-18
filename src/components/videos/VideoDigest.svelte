@@ -1,15 +1,10 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import { isOwnerDevice } from "@/utils/owner";
-import {
-	createLocalEngineTask,
-	localEngineAlive,
-	publicApiBlocked,
-	readLocalEngineTask,
-} from "@/utils/videos/local-engine";
 import type { VideoDigestResult, VideoJob } from "@/utils/videos/types";
 
 const SAMPLE = "https://www.bilibili.com/video/BV14Utf6QEnB/";
+const EXAMPLE = "https://www.bilibili.com/video/BV1fFtc6uEHL/";
 
 let url = $state("");
 let busy = $state(false);
@@ -17,6 +12,7 @@ let message = $state("");
 let error = $state("");
 let result = $state<VideoDigestResult | null>(null);
 let copied = $state(false);
+let seek = $state(0);
 
 onMount(() => {
 	const q = new URLSearchParams(location.search).get("u");
@@ -26,6 +22,27 @@ onMount(() => {
 function clock(seconds: number): string {
 	const s = Math.max(0, Math.floor(seconds));
 	return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+
+function secondsOf(time: string): number {
+	const parts = time.split(":").map((part) => Number(part) || 0);
+	if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+	if (parts.length === 2) return parts[0] * 60 + parts[1];
+	return 0;
+}
+
+function jump(videoUrl: string, time: string): string {
+	const base = videoUrl.replace(/\?.*$/, "").replace(/\/?$/, "/");
+	return `${base}?t=${secondsOf(time)}`;
+}
+
+function embedSrc(bvid: string, time: number): string {
+	const t = time > 0 ? `&t=${time}` : "";
+	return `https://player.bilibili.com/player.html?bvid=${encodeURIComponent(bvid)}&high_quality=1&danmaku=0${t}`;
+}
+
+function seekTo(time: string) {
+	seek = secondsOf(time);
 }
 
 async function run(pasted: string) {
@@ -38,7 +55,7 @@ async function run(pasted: string) {
 	}
 	url = pasted;
 	busy = true;
-	message = "正在拆…";
+	message = "正在听片子、写笔记…";
 	try {
 		const created = (await (
 			await fetch("/api/videos/summarize/", {
@@ -48,11 +65,6 @@ async function run(pasted: string) {
 			})
 		).json()) as VideoJob;
 		if (!created.ok) {
-			if (publicApiBlocked(created.error) && (await localEngineAlive())) {
-				message = "公网被拦，改走本机引擎…";
-				await runLocal(pasted);
-				return;
-			}
 			error = created.error || "没做成。";
 			busy = false;
 			message = "";
@@ -60,60 +72,22 @@ async function run(pasted: string) {
 		}
 		if (created.result) {
 			result = created.result;
+			seek = 0;
 			message = created.message || "做好了";
 			busy = false;
 			return;
 		}
 		if (!created.id) {
-			error = "引擎没回任务号。";
+			error = "没有任务号。";
 			busy = false;
 			return;
 		}
 		await poll(created.id, created.bvid || "");
 	} catch (err) {
-		if (await localEngineAlive()) {
-			message = "公网没通，改走本机引擎…";
-			await runLocal(pasted);
-			return;
-		}
 		error = err instanceof Error ? err.message : "请求失败。";
 		busy = false;
 		message = "";
 	}
-}
-
-async function runLocal(pasted: string) {
-	try {
-		const id = await createLocalEngineTask(pasted);
-		await pollLocal(id, pasted);
-	} catch (err) {
-		error = err instanceof Error ? err.message : "本机引擎没接上。";
-		busy = false;
-		message = "";
-	}
-}
-
-async function pollLocal(id: string, pasted: string) {
-	for (let i = 0; i < 180; i++) {
-		const job = await readLocalEngineTask(id, pasted);
-		if (job.error && job.status !== "running" && job.status !== "queued") {
-			error = job.error;
-			busy = false;
-			message = "";
-			return;
-		}
-		message =
-			job.message || (job.status === "queued" ? "排队中" : "本机正在拆…");
-		if (job.result) {
-			result = job.result;
-			busy = false;
-			message = "做好了";
-			return;
-		}
-		await new Promise((resolve) => setTimeout(resolve, 1500));
-	}
-	error = "等得太久了。引擎可能还在转写，过一会儿再贴一次。";
-	busy = false;
 }
 
 function submit(event: Event) {
@@ -129,21 +103,22 @@ async function poll(id: string, bvid: string) {
 			await fetch(`/api/videos/summarize/?${query}`)
 		).json()) as VideoJob;
 		if (!job.ok && job.status !== "running" && job.status !== "queued") {
-			error = job.error || "引擎没做成。";
+			error = job.error || "没做成。";
 			busy = false;
 			message = "";
 			return;
 		}
-		message = job.message || (job.status === "queued" ? "排队中" : "正在拆…");
+		message = job.message || (job.status === "queued" ? "排队中" : "正在听…");
 		if (job.result) {
 			result = job.result;
+			seek = 0;
 			busy = false;
 			message = "做好了";
 			return;
 		}
 		await new Promise((resolve) => setTimeout(resolve, 1500));
 	}
-	error = "等得太久了。引擎可能还在转写，过一会儿再贴一次。";
+	error = "等得太久了。还在听的话，过一会儿再贴一次。";
 	busy = false;
 }
 
@@ -163,7 +138,7 @@ async function copyMarkdown() {
 		<div class="vd-mast-row">
 			<h1>视频总结</h1>
 		</div>
-		<p>贴一条 B 站链接，当场拆成带时间轴的图文笔记。跟取图一样，用完即走。</p>
+		<p>贴一条 B 站链接，拆成知识卡片和时间轴。点时间就能跳到那一段。</p>
 	</header>
 
 	<form class="vd-card vd-form" onsubmit={submit}>
@@ -177,10 +152,13 @@ async function copyMarkdown() {
 		></textarea>
 		<div class="vd-form-row">
 			<button class="vd-btn-main" type="submit" disabled={busy}>
-				{busy ? "正在拆…" : "开始总结"}
+				{busy ? "正在写…" : "开始总结"}
 			</button>
 			<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void run(SAMPLE)}>
 				填入试看
+			</button>
+			<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void run(EXAMPLE)}>
+				填入例片
 			</button>
 			{#if busy}
 				<span class="vd-actions-hint">{message}</span>
@@ -194,7 +172,13 @@ async function copyMarkdown() {
 
 	{#if result}
 		<section class="vd-card vd-hero">
-			<div class="vd-cover" style={result.meta.cover ? `background-image:url('${result.meta.cover}')` : ""}>
+			<div class="vd-player">
+				<iframe
+					title={result.meta.title}
+					src={embedSrc(result.meta.bvid, seek)}
+					allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+					allowfullscreen
+				></iframe>
 				<span class="vd-len">{clock(result.meta.duration)}</span>
 			</div>
 			<div class="vd-hero-body">
@@ -210,6 +194,18 @@ async function copyMarkdown() {
 			<span class="vd-kicker">一句话总结</span>
 			<p>{result.tldr}</p>
 		</section>
+
+		{#if result.cards?.length}
+			<div class="vd-sect"><h2>知识卡片</h2><span>CARDS</span></div>
+			<section class="vd-cards">
+				{#each result.cards as card}
+					<article class="vd-knowledge">
+						<h3>{card.title}</h3>
+						<p>{card.body}</p>
+					</article>
+				{/each}
+			</section>
+		{/if}
 
 		{#if result.points.length}
 			<div class="vd-sect"><h2>要点</h2><span>KEY POINTS</span></div>
@@ -228,7 +224,9 @@ async function copyMarkdown() {
 						<div class="vd-term-head">
 							<span class="vd-num">{String(i + 1).padStart(2, "0")}</span>
 							<h3>{chapter.title}</h3>
-							<span class="vd-time">{chapter.time}</span>
+							<button class="vd-time" type="button" onclick={() => seekTo(chapter.time)}>
+								{chapter.time}
+							</button>
 						</div>
 						<p class="vd-demo">{chapter.summary}</p>
 					</article>
@@ -240,7 +238,7 @@ async function copyMarkdown() {
 			<button class="vd-btn-main" type="button" onclick={copyMarkdown}>
 				{copied ? "已复制" : "复制 Markdown"}
 			</button>
-			<a class="vd-btn-ghost" href={result.meta.url} target="_blank" rel="noopener">到 B 站看原片</a>
+			<a class="vd-btn-ghost" href={jump(result.meta.url, clock(seek))} target="_blank" rel="noopener">到 B 站看原片</a>
 		</div>
 	{/if}
 </div>
@@ -279,6 +277,17 @@ async function copyMarkdown() {
 	}
 	.vd-kicker { font-size: 11px; letter-spacing: 0.2em; color: #6d6a7c; text-transform: uppercase; }
 	.vd-hero { overflow: hidden; }
+	.vd-player {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		background: #09070e;
+	}
+	.vd-player iframe {
+		width: 100%;
+		height: 100%;
+		border: 0;
+		display: block;
+	}
 	.vd-cover {
 		height: 220px; position: relative;
 		background:
@@ -302,7 +311,17 @@ async function copyMarkdown() {
 	.vd-bvid { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
 	.vd-tldr { border-left: 3px solid var(--primary); padding: 20px 26px; }
 	.vd-tldr .vd-kicker { display: block; margin-bottom: 7px; }
-	.vd-tldr p { margin: 0; font-size: 16px; color: #e4e1ec; }
+	.vd-tldr p { margin: 0; font-size: 16px; color: #e4e1ec; line-height: 1.7; }
+	.vd-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-bottom: 8px; }
+	@media (max-width: 980px) { .vd-cards { grid-template-columns: repeat(2, 1fr); } }
+	@media (max-width: 640px) { .vd-cards { grid-template-columns: 1fr; } }
+	.vd-knowledge {
+		background: linear-gradient(180deg, rgba(225, 138, 210, 0.08), rgba(255, 255, 255, 0.02));
+		border: 1px solid rgba(225, 138, 210, 0.18);
+		border-radius: 15px; padding: 16px 18px 15px;
+	}
+	.vd-knowledge h3 { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: #eceaf2; }
+	.vd-knowledge p { margin: 0; font-size: 13px; line-height: 1.65; color: #c4bfd0; }
 	.vd-sect { display: flex; align-items: baseline; gap: 14px; margin: 38px 0 16px; }
 	.vd-sect h2 {
 		font-family: Georgia, "Noto Serif SC", serif; font-size: 21px; font-weight: 600; margin: 0;
@@ -326,7 +345,12 @@ async function copyMarkdown() {
 		background: linear-gradient(135deg, var(--primary), #a78bfa);
 	}
 	.vd-term-head h3 { margin: 0; font-size: 15px; font-weight: 600; color: #eceaf2; }
-	.vd-time { margin-left: auto; font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: #6d6a7c; }
+	.vd-time {
+		margin-left: auto; font-family: ui-monospace, Consolas, monospace; font-size: 11px;
+		color: #c4a6e0; text-decoration: none; border: 0; background: transparent;
+		padding: 0; cursor: pointer; border-bottom: 1px dashed rgba(225, 138, 210, 0.4);
+	}
+	.vd-time:hover { color: #eceaf2; }
 	.vd-demo { margin: 0; font-size: 13px; color: #9b97a9; }
 	.vd-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 36px; }
 	.vd-btn-main {
