@@ -34,8 +34,8 @@ onMount(() => {
 		const last = localStorage.getItem(LAST_KEY) || "";
 		const note = last ? readNotes()[last] : null;
 		if (note?.meta?.bvid) {
-			result = note;
 			url = note.meta.url;
+			if (usableNote(note)) result = note;
 		}
 	} catch {
 		/* ignore broken cache */
@@ -66,6 +66,14 @@ function remember(note: VideoDigestResult) {
 
 function bvidFrom(input: string): string {
 	return /BV[0-9A-Za-z]+/.exec(input)?.[0] || "";
+}
+
+function usableNote(note: VideoDigestResult): boolean {
+	if (!note?.tldr) return false;
+	const last = secondsOf(note.chapters?.at(-1)?.time || "00:00");
+	const duration = note.meta?.duration || 0;
+	if (duration && last < duration * 0.75) return false;
+	return Boolean(note.cards?.length || (note.transcript || "").trim());
 }
 
 function stampParts(text: string): StampPart[] {
@@ -123,6 +131,11 @@ function cueLines(text: string): Array<{ time: string; text: string }> {
 		});
 }
 
+function splitPoint(point: string): { time: string; text: string } {
+	const hit = /^(\d{1,2}:\d{2}(?::\d{2})?)\s+(.+)$/.exec(point.trim());
+	return hit ? { time: hit[1], text: hit[2] } : { time: "", text: point };
+}
+
 function askContext(note: VideoDigestResult): string {
 	return [note.markdown, note.transcript || ""].filter(Boolean).join("\n\n");
 }
@@ -153,7 +166,7 @@ async function run(pasted: string, refresh = false) {
 	const bvid = bvidFrom(pasted);
 	if (!refresh && bvid) {
 		const local = readNotes()[bvid];
-		if (local?.tldr && (local.transcript || "").trim()) {
+		if (local && usableNote(local)) {
 			openNote(local, "用的是这台设备上次写的笔记");
 			return;
 		}
@@ -279,38 +292,30 @@ async function ask(event: Event) {
 
 <div class="vd-shell">
 	<header class="vd-mast">
-		<span class="vd-eyebrow">STULANEZ / VIDEO DIGEST</span>
-		<div class="vd-mast-row">
-			<h1>视频总结</h1>
-		</div>
-		<p>左边看片，右边看笔记。点时间跳过去，还能对着这期追问。</p>
+		<span class="vd-eyebrow">VIDEO DIGEST</span>
+		<h1>视频总结</h1>
+		<p>贴链接，出带时间戳的知识笔记。点时间跳播放器，还能追问。</p>
 	</header>
 
-	<form class="vd-card vd-form" onsubmit={submit}>
-		<label for="vd-url">B 站链接</label>
-		<textarea
+	<form class="vd-bar" class:slim={Boolean(result)} onsubmit={submit}>
+		<input
 			id="vd-url"
 			bind:value={url}
-			rows="2"
-			placeholder="把分享口令整段贴进来，或只贴 https://www.bilibili.com/video/BV…"
+			placeholder="粘贴 B 站链接或分享口令"
 			disabled={busy}
-		></textarea>
-		<div class="vd-form-row">
-			<button class="vd-btn-main" type="submit" disabled={busy}>
-				{busy ? "正在写…" : "开始总结"}
-			</button>
-			<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void run(SAMPLE)}>
-				填入试看
-			</button>
-			<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void run(EXAMPLE)}>
-				填入例片
-			</button>
-			{#if busy}
-				<span class="vd-actions-hint">{message}</span>
-			{:else if message}
-				<span class="vd-actions-hint">{message}</span>
-			{/if}
-		</div>
+		/>
+		<button class="vd-btn-main" type="submit" disabled={busy}>
+			{busy ? "正在写…" : "总结"}
+		</button>
+		<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void run(SAMPLE)}>
+			试看
+		</button>
+		<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void run(EXAMPLE)}>
+			例片
+		</button>
+		{#if message}
+			<span class="vd-actions-hint">{message}</span>
+		{/if}
 	</form>
 
 	{#if error}
@@ -320,7 +325,7 @@ async function ask(event: Event) {
 	{#if result}
 		<div class="vd-work">
 			<section class="vd-left">
-				<div class="vd-card vd-hero">
+				<div class="vd-hero">
 					<div class="vd-player">
 						<iframe
 							title={result.meta.title}
@@ -328,39 +333,35 @@ async function ask(event: Event) {
 							allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 							allowfullscreen
 						></iframe>
-						<span class="vd-len">{clock(result.meta.duration)}</span>
 					</div>
 					<div class="vd-hero-body">
 						<h2 class="vd-vtitle">{result.meta.title}</h2>
 						<div class="vd-meta">
-							{#if result.meta.up}<span>UP · {result.meta.up}</span>{/if}
+							{#if result.meta.up}<span>{result.meta.up}</span>{/if}
 							<span class="vd-bvid">{result.meta.bvid}</span>
+							<span>{clock(result.meta.duration)}</span>
 						</div>
 					</div>
 				</div>
 				{#if result.chapters.length}
-					<section class="vd-card vd-chapters">
-						<div class="vd-chapters-head">时间轴</div>
+					<nav class="vd-toc">
 						{#each result.chapters as chapter, i}
 							<button
-								class="vd-chapter"
+								class="vd-toc-row"
 								class:on={seek === secondsOf(chapter.time)}
 								type="button"
 								onclick={() => seekTo(chapter.time)}
 							>
-								<span class="vd-num">{String(i + 1).padStart(2, "0")}</span>
-								<span class="vd-chapter-body">
-									<strong>{chapter.title}</strong>
-									<em>{chapter.summary}</em>
-								</span>
+								<span class="vd-toc-i">{String(i + 1).padStart(2, "0")}</span>
+								<span class="vd-toc-t">{chapter.title}</span>
 								<span class="vd-time">{chapter.time}</span>
 							</button>
 						{/each}
-					</section>
+					</nav>
 				{/if}
 			</section>
 
-			<section class="vd-right vd-card">
+			<section class="vd-right">
 				<div class="vd-tabs">
 					<button class:on={tab === "note"} type="button" onclick={() => (tab = "note")}>笔记</button>
 					<button class:on={tab === "cues"} type="button" onclick={() => (tab = "cues")}>
@@ -371,11 +372,11 @@ async function ask(event: Event) {
 				<div class="vd-pane">
 					{#if tab === "note"}
 						<section class="vd-tldr">
-							<span class="vd-kicker">一句话总结</span>
+							<span class="vd-kicker">摘要</span>
 							<p>{@render stamped(result.tldr)}</p>
 						</section>
 						{#if result.cards?.length}
-							<div class="vd-sect"><h2>知识卡片</h2></div>
+							<div class="vd-kicker vd-kicker-row">知识卡片</div>
 							<div class="vd-cards">
 								{#each result.cards as card}
 									<article class="vd-knowledge">
@@ -386,12 +387,30 @@ async function ask(event: Event) {
 							</div>
 						{/if}
 						{#if result.points.length}
-							<div class="vd-sect"><h2>要点</h2></div>
-							<ul class="vd-points">
+							<div class="vd-kicker vd-kicker-row">要点</div>
+							<div class="vd-take">
 								{#each result.points as point}
-									<li>{@render stamped(point)}</li>
+									{@const row = splitPoint(point)}
+									<button class="vd-take-row" type="button" onclick={() => row.time && seekTo(row.time)}>
+										{#if row.time}<span class="vd-time">{row.time}</span>{/if}
+										<p>{@render stamped(row.text)}</p>
+									</button>
 								{/each}
-							</ul>
+							</div>
+						{/if}
+						{#if result.chapters.length}
+							<div class="vd-kicker vd-kicker-row">章节笔记</div>
+							<div class="vd-blocks">
+								{#each result.chapters as chapter, i}
+									<article class="vd-block" class:on={seek === secondsOf(chapter.time)}>
+										<button type="button" onclick={() => seekTo(chapter.time)}>
+											<span class="vd-time">{chapter.time}</span>
+											<strong>{String(i + 1).padStart(2, "0")} {chapter.title}</strong>
+										</button>
+										<p>{@render stamped(chapter.summary)}</p>
+									</article>
+								{/each}
+							</div>
 						{/if}
 					{:else if tab === "cues"}
 						{#if result.transcript}
@@ -403,7 +422,7 @@ async function ask(event: Event) {
 										type="button"
 										onclick={() => seekTo(cue.time)}
 									>
-										{#if cue.time}<span>{cue.time}</span>{/if}
+										{#if cue.time}<span class="vd-time">{cue.time}</span>{/if}
 										<p>{cue.text}</p>
 									</button>
 								{/each}
@@ -414,7 +433,7 @@ async function ask(event: Event) {
 					{:else}
 						<div class="vd-chat">
 							{#if !chat.length}
-								<p class="vd-empty">问这期里出现过的概念、步骤、配置。答案只根据笔记和字幕。</p>
+								<p class="vd-empty">问这期里的机制、数字、步骤。答案只根据笔记和字幕，时间可点。</p>
 							{/if}
 							{#each chat as turn}
 								<article class="vd-bubble me"><p>{turn.q}</p></article>
@@ -434,13 +453,13 @@ async function ask(event: Event) {
 					{/if}
 				</div>
 				<div class="vd-actions">
-					<button class="vd-btn-main" type="button" onclick={copyMarkdown}>
+					<button class="vd-btn-ghost" type="button" onclick={copyMarkdown}>
 						{copied ? "已复制" : "复制 Markdown"}
 					</button>
 					<button class="vd-btn-ghost" type="button" disabled={busy} onclick={() => void run(result.meta.url, true)}>
 						重新写
 					</button>
-					<a class="vd-btn-ghost" href={jump(result.meta.url, clock(seek))} target="_blank" rel="noopener">到 B 站看原片</a>
+					<a class="vd-btn-ghost" href={jump(result.meta.url, clock(seek))} target="_blank" rel="noopener">原片</a>
 				</div>
 			</section>
 		</div>
@@ -448,31 +467,27 @@ async function ask(event: Event) {
 </div>
 
 <style>
-	.vd-shell { max-width: 1280px; margin: 0 auto; padding: 1.6rem 1.1rem 0; }
-	.vd-mast { margin-bottom: 1.2rem; }
-	.vd-eyebrow { font-size: 11px; letter-spacing: 0.22em; color: #6d6a7c; }
-	.vd-mast-row { display: flex; align-items: baseline; gap: 14px; margin: 6px 0 4px; }
+	.vd-shell { max-width: 1360px; margin: 0 auto; padding: 1.1rem 1rem 0; }
+	.vd-mast { margin-bottom: 0.85rem; }
+	.vd-eyebrow { font-size: 11px; letter-spacing: 0.18em; color: #7a7688; font-weight: 600; }
 	.vd-mast h1 {
-		font-family: Georgia, "Noto Serif SC", serif;
-		font-size: clamp(26px, 3.6vw, 38px); font-weight: 600; margin: 0;
-		background: linear-gradient(100deg, #eceaf2 35%, var(--primary));
-		-webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+		font-size: 22px; font-weight: 650; margin: 6px 0 4px; color: #f3f1f7;
+		letter-spacing: -0.02em;
 	}
-	.vd-mast > p { margin: 0; font-size: 14px; color: #9b97a9; }
-	.vd-card {
-		background: rgba(255, 255, 255, 0.028);
-		border: 1px solid rgba(255, 255, 255, 0.075);
-		border-radius: 18px;
+	.vd-mast > p { margin: 0; font-size: 13.5px; color: #9b97a9; }
+	.vd-bar {
+		display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+		padding: 10px; margin-bottom: 14px;
+		background: rgba(16, 14, 22, 0.72);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 14px;
 	}
-	.vd-form { padding: 16px 18px 14px; display: grid; gap: 10px; margin-bottom: 16px; }
-	.vd-form label { font-size: 12px; letter-spacing: 0.12em; color: #6d6a7c; }
-	.vd-form textarea {
-		width: 100%; resize: vertical; min-height: 64px;
-		background: rgba(0, 0, 0, 0.25); color: #eceaf2;
-		border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px;
-		padding: 10px 12px; font-size: 14px; line-height: 1.55;
+	.vd-bar input {
+		flex: 1; min-width: 220px; height: 40px;
+		background: rgba(0, 0, 0, 0.28); color: #eceaf2;
+		border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;
+		padding: 0 12px; font-size: 13.5px;
 	}
-	.vd-form-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 	.vd-error {
 		color: #f0a8c4; background: rgba(225, 138, 210, 0.08);
 		border: 1px solid rgba(225, 138, 210, 0.28);
@@ -480,100 +495,104 @@ async function ask(event: Event) {
 	}
 	.vd-work {
 		display: grid;
-		grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-		gap: 16px;
+		grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.2fr);
+		gap: 14px;
 		align-items: start;
 	}
-	.vd-left { display: grid; gap: 14px; position: sticky; top: 5.8rem; }
-	.vd-hero { overflow: hidden; }
-	.vd-player {
-		position: relative;
-		aspect-ratio: 16 / 9;
-		background: #09070e;
+	.vd-left { display: grid; gap: 10px; position: sticky; top: 5.6rem; }
+	.vd-hero, .vd-toc, .vd-right {
+		background: rgba(16, 14, 22, 0.78);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 16px;
+		overflow: hidden;
 	}
+	.vd-player { aspect-ratio: 16 / 9; background: #09070e; }
 	.vd-player iframe { width: 100%; height: 100%; border: 0; display: block; }
-	.vd-len {
-		position: absolute; right: 14px; bottom: 12px;
-		font-family: ui-monospace, Consolas, monospace; font-size: 11.5px;
-		color: rgba(255, 255, 255, 0.85); background: rgba(0, 0, 0, 0.45);
-		padding: 3px 9px; border-radius: 7px;
-	}
-	.vd-hero-body { padding: 16px 18px 18px; }
+	.vd-hero-body { padding: 12px 14px 14px; }
 	.vd-vtitle {
-		font-family: Georgia, "Noto Serif SC", serif;
-		font-size: 18px; font-weight: 600; line-height: 1.5; margin: 0 0 8px; color: #eceaf2;
+		font-size: 15px; font-weight: 650; line-height: 1.45; margin: 0 0 6px; color: #f3f1f7;
 	}
-	.vd-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: #9b97a9; }
-	.vd-bvid { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
-	.vd-chapters { padding: 8px; max-height: 42vh; overflow: auto; }
-	.vd-chapters-head {
-		font-size: 11px; letter-spacing: 0.18em; color: #6d6a7c;
-		padding: 8px 10px 6px;
+	.vd-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12.5px; color: #9b97a9; }
+	.vd-bvid { font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; }
+	.vd-toc { padding: 6px; max-height: min(38vh, 360px); overflow: auto; }
+	.vd-toc-row {
+		width: 100%; display: grid; grid-template-columns: 28px 1fr auto;
+		gap: 8px; align-items: center; text-align: left;
+		background: transparent; border: 0; color: inherit;
+		padding: 7px 8px; border-radius: 9px; cursor: pointer;
 	}
-	.vd-chapter {
-		width: 100%; display: flex; gap: 10px; align-items: flex-start;
-		text-align: left; background: transparent; border: 0; color: inherit;
-		padding: 9px 10px; border-radius: 12px; cursor: pointer;
+	.vd-toc-row:hover, .vd-toc-row.on { background: rgba(255, 255, 255, 0.05); }
+	.vd-toc-row.on { box-shadow: inset 2px 0 0 var(--primary); }
+	.vd-toc-i {
+		font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: #8b8698;
 	}
-	.vd-chapter:hover, .vd-chapter.on { background: rgba(255, 255, 255, 0.04); }
-	.vd-chapter.on { outline: 1px solid rgba(225, 138, 210, 0.28); }
-	.vd-chapter-body { min-width: 0; flex: 1; display: grid; gap: 3px; }
-	.vd-chapter-body strong { font-size: 13.5px; color: #eceaf2; }
-	.vd-chapter-body em { font-style: normal; font-size: 12px; color: #9b97a9; line-height: 1.5; }
-	.vd-num {
-		flex: none; width: 28px; height: 28px; border-radius: 9px;
-		display: grid; place-items: center; margin-top: 1px;
-		font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: #fff;
-		background: linear-gradient(135deg, var(--primary), #a78bfa);
-	}
+	.vd-toc-t { font-size: 13px; color: #e8e5ef; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.vd-time {
 		flex: none; font-family: ui-monospace, Consolas, monospace; font-size: 11px;
-		color: #c4a6e0; margin-top: 4px;
+		color: #d4a6ea; margin: 0;
 	}
-	.vd-right { display: flex; flex-direction: column; min-height: 640px; }
+	.vd-right { display: flex; flex-direction: column; min-height: 720px; }
 	.vd-tabs {
-		display: flex; gap: 4px; padding: 10px 12px 0;
+		display: flex; gap: 4px; padding: 8px;
+		background: rgba(255, 255, 255, 0.03);
 		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 	}
 	.vd-tabs button {
 		border: 0; background: transparent; color: #9b97a9;
-		padding: 8px 14px; border-radius: 10px 10px 0 0; cursor: pointer; font-size: 14px;
+		padding: 7px 12px; border-radius: 9px; cursor: pointer; font-size: 13.5px; font-weight: 600;
 	}
+	.vd-tabs button.on { color: #fff; background: rgba(225, 138, 210, 0.16); }
 	.vd-tabs button i { font-style: normal; margin-left: 6px; font-size: 11px; color: #c4a6e0; }
-	.vd-pane { flex: 1; padding: 18px 18px 8px; overflow: auto; }
-	.vd-kicker { font-size: 11px; letter-spacing: 0.2em; color: #6d6a7c; text-transform: uppercase; }
-	.vd-tldr { border-left: 3px solid var(--primary); padding: 4px 0 4px 14px; margin-bottom: 18px; }
-	.vd-tldr .vd-kicker { display: block; margin-bottom: 7px; }
-	.vd-tldr p { margin: 0; font-size: 15.5px; color: #e4e1ec; line-height: 1.7; }
-	.vd-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+	.vd-pane { flex: 1; padding: 16px 16px 10px; overflow: auto; }
+	.vd-kicker {
+		font-size: 11px; letter-spacing: 0.14em; color: #8a8698; font-weight: 700;
+	}
+	.vd-kicker-row { margin: 18px 0 8px; }
+	.vd-tldr {
+		background: rgba(225, 138, 210, 0.07);
+		border: 1px solid rgba(225, 138, 210, 0.16);
+		border-radius: 12px; padding: 12px 14px;
+	}
+	.vd-tldr .vd-kicker { display: block; margin-bottom: 6px; }
+	.vd-tldr p { margin: 0; font-size: 14.5px; color: #f0edf6; line-height: 1.7; }
+	.vd-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 	.vd-knowledge {
-		background: linear-gradient(180deg, rgba(225, 138, 210, 0.08), rgba(255, 255, 255, 0.02));
-		border: 1px solid rgba(225, 138, 210, 0.18);
-		border-radius: 14px; padding: 14px 15px 13px;
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 12px; padding: 12px 13px 11px;
+		border-top: 2px solid rgba(225, 138, 210, 0.55);
 	}
-	.vd-knowledge h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: #eceaf2; }
-	.vd-knowledge p { margin: 0; font-size: 12.5px; line-height: 1.65; color: #c4bfd0; }
-	.vd-sect { margin: 22px 0 10px; }
-	.vd-sect h2 {
-		font-family: Georgia, "Noto Serif SC", serif; font-size: 18px; font-weight: 600; margin: 0;
-		background: linear-gradient(100deg, #eceaf2 30%, var(--primary));
-		-webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+	.vd-knowledge h3 { margin: 0 0 6px; font-size: 13.5px; font-weight: 700; color: #f3f1f7; }
+	.vd-knowledge p { margin: 0; font-size: 12.5px; line-height: 1.65; color: #c8c3d4; }
+	.vd-take, .vd-blocks, .vd-cues { display: grid; gap: 6px; }
+	.vd-take-row, .vd-cue {
+		display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: start;
+		width: 100%; text-align: left; border: 0; cursor: pointer;
+		background: rgba(255, 255, 255, 0.025);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+		color: inherit; padding: 8px 10px; border-radius: 10px;
 	}
-	.vd-points { margin: 0; padding-left: 1.15em; color: #ddd9e6; line-height: 1.7; font-size: 14px; }
-	.vd-cues { display: grid; gap: 2px; }
-	.vd-cue {
-		display: grid; grid-template-columns: 52px 1fr; gap: 10px;
-		width: 100%; text-align: left; border: 0; background: transparent;
-		color: inherit; padding: 7px 8px; border-radius: 10px; cursor: pointer;
+	.vd-take-row:hover, .vd-cue:hover, .vd-cue.on, .vd-block.on {
+		background: rgba(255, 255, 255, 0.05);
 	}
-	.vd-cue:hover, .vd-cue.on { background: rgba(255, 255, 255, 0.04); }
+	.vd-take-row p, .vd-cue p { margin: 0; font-size: 13.5px; line-height: 1.6; color: #ddd9e6; }
+	.vd-block {
+		padding: 10px 12px 12px; border-radius: 12px;
+		background: rgba(255, 255, 255, 0.025);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+	}
+	.vd-block button {
+		display: flex; gap: 10px; align-items: baseline; width: 100%;
+		border: 0; background: transparent; color: inherit; cursor: pointer;
+		padding: 0 0 6px; text-align: left;
+	}
+	.vd-block strong { font-size: 14.5px; color: #f3f1f7; }
+	.vd-block p { margin: 0; font-size: 13.5px; line-height: 1.7; color: #cfcbd8; }
 	.vd-stamp {
 		display: inline; padding: 0 5px; margin: 0 1px; border: 0; border-radius: 6px;
 		cursor: pointer; font: inherit; font-family: ui-monospace, Consolas, monospace;
 		font-size: 0.92em; color: #e8c4f0; background: rgba(225, 138, 210, 0.16);
 	}
-	.vd-cue span { font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: #c4a6e0; }
-	.vd-cue p { margin: 0; font-size: 13px; line-height: 1.55; color: #d8d4e2; }
 	.vd-empty { margin: 12px 0; color: #9b97a9; font-size: 14px; line-height: 1.65; }
 	.vd-chat { display: grid; gap: 10px; margin-bottom: 14px; }
 	.vd-bubble { padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 1.65; }
@@ -582,32 +601,33 @@ async function ask(event: Event) {
 	.vd-bubble.ai { background: rgba(255, 255, 255, 0.04); color: #d8d4e2; }
 	.vd-ask { display: flex; gap: 8px; }
 	.vd-ask input {
-		flex: 1; min-width: 0; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.12);
-		background: rgba(0, 0, 0, 0.25); color: #eceaf2; padding: 10px 12px; font-size: 14px;
+		flex: 1; min-width: 0; height: 40px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.12);
+		background: rgba(0, 0, 0, 0.25); color: #eceaf2; padding: 0 12px; font-size: 14px;
 	}
-	.vd-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 16px 16px; }
+	.vd-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px 12px; }
 	.vd-btn-main {
-		display: inline-flex; align-items: center; gap: 8px;
-		padding: 10px 18px; border-radius: 12px; border: 0; cursor: pointer;
-		font-size: 14px; font-weight: 600; color: #fff;
+		display: inline-flex; align-items: center; height: 40px;
+		padding: 0 16px; border-radius: 10px; border: 0; cursor: pointer;
+		font-size: 13.5px; font-weight: 650; color: #fff;
 		background: linear-gradient(120deg, var(--primary), #a78bfa);
 	}
 	.vd-btn-main:disabled { opacity: 0.6; cursor: wait; }
 	.vd-btn-ghost {
-		display: inline-flex; align-items: center; gap: 8px;
-		padding: 10px 18px; border-radius: 12px; cursor: pointer;
-		font-size: 14px; color: #9b97a9; background: transparent;
+		display: inline-flex; align-items: center; height: 40px;
+		padding: 0 14px; border-radius: 10px; cursor: pointer;
+		font-size: 13.5px; color: #b7b3c2; background: transparent;
 		border: 1px solid rgba(255, 255, 255, 0.12);
 	}
-	.vd-actions-hint { font-size: 12.5px; color: #6d6a7c; }
+	.vd-actions-hint { font-size: 12.5px; color: #7a7688; }
 	@media (max-width: 980px) {
 		.vd-work { grid-template-columns: 1fr; }
 		.vd-left { position: static; }
 		.vd-cards { grid-template-columns: 1fr; }
 		.vd-right { min-height: 0; }
+		.vd-toc { max-height: 220px; }
 	}
 	@media (max-width: 640px) {
-		.vd-shell { padding: 1.2rem 0.8rem 0; }
-		.vd-hero-body { padding: 14px 14px 16px; }
+		.vd-shell { padding: 1rem 0.7rem 0; }
+		.vd-hero-body { padding: 12px; }
 	}
 </style>
