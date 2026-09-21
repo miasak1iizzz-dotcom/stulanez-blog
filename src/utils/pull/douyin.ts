@@ -7,7 +7,6 @@ import {
 	normalizeImageUrl,
 	scriptJson,
 	uniqueUrls,
-	walkImageUrls,
 } from "./parse";
 import type { PullResult } from "./types";
 import { CRAWLER_UA, IPHONE_UA } from "./types";
@@ -171,12 +170,21 @@ function picsFromLd(html: string): string[] {
 		if (!block[1]) continue;
 		try {
 			const data: unknown = JSON.parse(block[1]);
-			walkImageUrls(data, pics);
+			// 图文笔记的 image 是 URL 数组；共用的 walkImageUrls 会只留最后一张。
+			walkDouyinPics(data, pics);
 		} catch {
 			/* ignore */
 		}
 	}
 	return pics;
+}
+
+function picsFromSeoHtml(html: string): string[] {
+	return uniqueNotePics(
+		collectHttpUrls(html).filter(
+			(url) => /biz_tag=aweme_images/i.test(url) && keepDouyinPic(url),
+		),
+	);
 }
 
 function pickMeta(html: string): { title: string; author?: string } {
@@ -285,13 +293,16 @@ function collectFromHtml(html: string, id?: string | null): string[] {
 		if (aweme) pics.push(...picsFromAwemeDetail(aweme));
 	}
 	if (!pics.length && render) pics.push(...walkDouyinPics(render));
+
+	const seo = uniqueNotePics([...picsFromLd(html), ...picsFromSeoHtml(html)]);
+	if (seo.length > pics.length) return seo;
+
 	if (!pics.length) {
-		pics.push(...picsFromLd(html));
 		pics.push(...collectHttpUrls(html).filter(keepDouyinPic));
 		const og = metaContent(html, "og:image");
 		if (og) pics.push(og);
 	}
-	return pics;
+	return uniqueNotePics(pics);
 }
 
 const BINGBOT_UA =
@@ -330,8 +341,10 @@ async function readOneNotePage(
 
 async function readNotePage(
 	id: string,
+	extraPages: string[] = [],
 ): Promise<{ pics: string[]; title: string; author?: string }> {
 	const pages = [
+		...extraPages.filter((url) => /^https?:\/\//i.test(url)),
 		`https://www.douyin.com/note/${id}`,
 		`https://www.iesdouyin.com/share/slides/${id}`,
 		`https://www.iesdouyin.com/share/note/${id}/`,
@@ -450,7 +463,7 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 	let warning: string | undefined;
 
 	if (id) {
-		const page = await readNotePage(id);
+		const page = await readNotePage(id, working ? [working] : []);
 		pics = page.pics;
 		title = page.title;
 		author = page.author;
