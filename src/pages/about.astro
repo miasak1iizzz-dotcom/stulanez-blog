@@ -66,8 +66,8 @@ const pageLinks = [
 
 <MainGridLayout title={i18n(I18nKey.about)} description={i18n(I18nKey.about)}>
 	<script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-	<div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
-		<div class="card-base z-10 px-9 py-6 relative w-full">
+	<div class="about-page flex w-full relative min-h-32" data-about-page>
+		<div class="card-base about-card z-10 px-9 py-6 relative w-full">
 			<div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start pb-6 mb-6 border-b border-(--line-divider)">
 				<div class="w-28 h-28 shrink-0 overflow-hidden rounded-2xl ring-2 ring-(--primary)/20">
 					<ImageWrapper
@@ -81,10 +81,10 @@ const pageLinks = [
 					/>
 				</div>
 				<div class="flex-1 text-center sm:text-left min-w-0">
-					<p class="text-3xl font-bold text-neutral-900 dark:text-neutral-100 m-0">
+					<p class="about-name m-0">
 						{profileConfig.name}
 					</p>
-					<p class="mt-2 mb-0 text-neutral-500 dark:text-neutral-400">
+					<p class="about-bio mt-2 mb-0">
 						{profileConfig.bio}
 					</p>
 					<div class="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
@@ -120,9 +120,95 @@ const pageLinks = [
 				))}
 			</nav>
 
-			<Markdown class="mt-2">
+			<Markdown class="about-copy mt-2">
 				<Content />
 			</Markdown>
 		</div>
 	</div>
 </MainGridLayout>
+
+<style>
+	/* 进场动画结束后不要把整页钉在 GPU 合成层上，
+	   Windows 缩放下 transform + overflow 裁切会把字糊掉。 */
+	:global(body:has([data-about-page]) #content-wrapper.onload-animation),
+	:global(body:has([data-about-page]) #swup-container.transition-main) {
+		animation: none;
+		transform: none;
+		opacity: 1;
+		will-change: auto;
+		filter: none;
+	}
+
+	.about-page :global(.about-card) {
+		overflow: visible;
+		transform: none;
+		filter: none;
+		-webkit-font-smoothing: auto;
+		-moz-osx-font-smoothing: auto;
+		text-rendering: auto;
+		font-synthesis: none;
+		font-family:
+			"Microsoft YaHei UI",
+			"Microsoft YaHei",
+			"PingFang SC",
+			"Hiragino Sans GB",
+			system-ui,
+			sans-serif;
+	}
+
+	.about-name {
+		margin: 0;
+		color: var(--deep-text);
+		font-size: 1.875rem;
+		font-weight: 700;
+		line-height: 1.25;
+		letter-spacing: 0;
+	}
+
+	:global(.dark) .about-name {
+		color: oklch(0.95 0.01 var(--hue));
+	}
+
+	.about-bio {
+		margin: 0.5rem 0 0;
+		color: var(--content-meta);
+		font-size: 1rem;
+		font-weight: 400;
+		line-height: 1.6;
+	}
+
+	:global(.dark) .about-bio {
+		color: oklch(0.82 0.02 var(--hue));
+	}
+
+	/* Markdown 根节点同时带 about-copy 和 prose，选择器不能写成子孙关系 */
+	:global(.about-copy.prose),
+	:global(.about-copy.prose :where(p, li, h2, h3)) {
+		color: var(--deep-text);
+		-webkit-font-smoothing: auto;
+		-moz-osx-font-smoothing: auto;
+	}
+
+	:global(.about-copy.prose :where(h2, h3, strong)) {
+		font-weight: 700;
+	}
+
+	:global(.dark .about-copy.prose),
+	:global(.dark .about-copy.prose :where(p, li, h2, h3)) {
+		color: oklch(0.92 0.015 var(--hue));
+	}
+
+	:global(body:has([data-about-page]) .banner-page-title),
+	:global(body:has([data-about-page]) .banner-page-title-text) {
+		font-family:
+			"Microsoft YaHei UI",
+			"Microsoft YaHei",
+			"PingFang SC",
+			"Hiragino Sans GB",
+			system-ui,
+			sans-serif;
+		font-synthesis: none;
+		-webkit-font-smoothing: auto;
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.32);
+	}
+</style>

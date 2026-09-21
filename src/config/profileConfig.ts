@@ -15,7 +15,7 @@ export const profileConfig: ProfileConfig = {
 	badge: "站长",
 
 	// 个人签名
-	bio: "慢慢写，也算在往前走。",
+	bio: "一位 ARMY 和 FEARNOT。",
 
 	// 链接配置
 	// 已经预装的图标集：fa7-brands，fa7-regular，fa7-solid，material-symbols，simple-icons
