@@ -21,7 +21,7 @@ export const galleryConfig: GalleryConfig = {
 			description: "LE SSERAFIM",
 			date: "2026-09-22",
 			tags: ["LE SSERAFIM", "K-pop"],
-			cover: "/gallery/sakura/cover-stage.jpg",
+			cover: "/gallery/sakura/cover-lessera.jpg",
 		},
 		{
 			id: "eunchae",
@@ -29,6 +29,7 @@ export const galleryConfig: GalleryConfig = {
 			description: "LE SSERAFIM",
 			date: "2026-09-22",
 			tags: ["LE SSERAFIM", "K-pop"],
+			cover: "/gallery/eunchae/cover-lessera.jpg",
 		},
 		{
 			id: "asa",
