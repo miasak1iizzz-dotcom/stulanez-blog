@@ -97,6 +97,8 @@ const defaultLayout = siteConfig.postListLayout.defaultMode;
 const mobileDefaultLayout =
 	siteConfig.postListLayout.mobileDefaultMode || defaultLayout;
 let mounted = $state(false);
+// 设置面板关着时只是透明，预览图仍在视口里；等打开再挂图，避免进站先下几十张。
+let pickerAssetsReady = $state(false);
 let isSmallScreen = $state(
 	typeof window !== "undefined" ? window.innerWidth < 1200 : false,
 );
@@ -652,8 +654,22 @@ onMount(() => {
 	refreshAllRangeProgress();
 	panel.addEventListener("input", handleRangeInput);
 
+	const revealPickerAssets = () => {
+		if (pickerAssetsReady) return;
+		if (!panel.classList.contains("float-panel-closed")) {
+			pickerAssetsReady = true;
+		}
+	};
+	revealPickerAssets();
+	const pickerObserver = new MutationObserver(revealPickerAssets);
+	pickerObserver.observe(panel, {
+		attributes: true,
+		attributeFilter: ["class"],
+	});
+
 	return () => {
 		panel.removeEventListener("input", handleRangeInput);
+		pickerObserver.disconnect();
 	};
 });
 
@@ -744,6 +760,7 @@ $effect(() => {
 				</button>
 			</div>
 			<SplashPicker
+				catalogReady={pickerAssetsReady}
 				enabled={splashEnabled}
 				random={splashRandom}
 				portrait={splashPortrait}

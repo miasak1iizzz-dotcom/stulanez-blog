@@ -259,14 +259,10 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                 return true;
             }
 
-            // 预取下一张，避免切换时闪一帧黑
+            // 只预取下一张，避免进站空闲窗口把整组壁纸一起拉下来
             function materializeAhead(slides, index) {
                 if (slides.length < 2) return;
                 materialize(slides[(index + 1) % slides.length], false);
-            }
-
-            function materializeRest(slides) {
-                for (var i = 0; i < slides.length; i++) materialize(slides[i], false);
             }
 
             // 获取当前设备可见的 slide-item
@@ -448,6 +444,7 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                 else slides[k].classList.remove('active');
             }
             materialize(firstSlide, true);
+            if (isCarouselEnabled()) materializeAhead(slides, startIdx);
             if (firstSlide) {
                 // 下一帧再放开，后续轮播切换的交叉淡入照旧。双 rAF 是为了确保
                 // opacity:1 已经 flush 成新的 before-change style，恢复时不会倒着跑一遍
@@ -473,16 +470,6 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                 };
                 if (lgQuery.addEventListener) lgQuery.addEventListener('change', onBreakpointChange, { signal: signal });
                 else if (lgQuery.addListener) lgQuery.addListener(onBreakpointChange);
-            }
-
-            // 空闲时把当前设备其余壁纸也实例化，避免一轮里只有一两张真正显示
-            if (isCarouselEnabled()) {
-                var schedulePrefetch = function () {
-                    var idle = window.requestIdleCallback || function (cb) { return setTimeout(cb, 1500); };
-                    idle(function () { materializeRest(getVisibleSlides()); });
-                };
-                if (document.readyState === 'complete') schedulePrefetch();
-                else window.addEventListener('load', schedulePrefetch, { once: true, signal: signal });
             }
 
             // 启动

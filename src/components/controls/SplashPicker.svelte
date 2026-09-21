@@ -9,6 +9,7 @@ import {
 } from "@/utils/splash-catalog-utils";
 
 type Props = {
+	catalogReady?: boolean;
 	enabled: boolean;
 	random: boolean;
 	portrait: string;
@@ -22,6 +23,7 @@ type Props = {
 };
 
 let {
+	catalogReady = false,
 	enabled,
 	random,
 	portrait,
@@ -72,6 +74,7 @@ const lowerBanners = getSplashLowerBanners();
 </button>
 <p class="settings-hint">{random ? i18n(I18nKey.splashRandomHint) : i18n(I18nKey.splashPreviewHint)}</p>
 
+{#if catalogReady}
 <div class="splash-pickers" class:is-random={random}>
 	<p class="splash-subhead">{i18n(I18nKey.splashSelectCharacter)}</p>
 	<div class="splash-portrait-grid" role="listbox" aria-label={i18n(I18nKey.splashSelectCharacter)}>
@@ -137,3 +140,4 @@ const lowerBanners = getSplashLowerBanners();
 		{/each}
 	</div>
 </div>
+{/if}

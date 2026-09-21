@@ -26,7 +26,12 @@ export function scanAlbumPhotos(albumId: string): string[] {
 	if (!fs.existsSync(dir)) return [];
 	const files = fs
 		.readdirSync(dir)
-		.filter((f) => /\.(jpe?g|png|webp|avif|gif)$/i.test(f))
+		.filter(
+			(f) =>
+				f !== "thumbs" &&
+				!f.startsWith(".") &&
+				/\.(jpe?g|png|webp|avif|gif)$/i.test(f),
+		)
 		.sort();
 	// 将 cover.* 排到第一位
 	const coverIdx = files.findIndex((f) => /^cover\./i.test(f));
@@ -58,4 +63,21 @@ export function getAlbumCover(album: GalleryAlbum, photos: string[]): string {
 	if (album.cover) return withBase(album.cover);
 	const coverFile = photos.find((p) => /\/cover\./i.test(p));
 	return coverFile || photos[0] || "";
+}
+
+/**
+ * 瀑布流用缩略图（构建期 generate-gallery-thumbs 产出）。
+ * 没有缩略图时退回原图，lightbox 仍走原图。
+ */
+export function getGalleryGridSrc(src: string): string {
+	if (/^(https?:)?\/\//i.test(src) || /^(data|blob):/i.test(src)) {
+		return src;
+	}
+	const match = src.match(/^(.*\/gallery\/[^/]+)\/([^/?#]+)\.([a-z0-9]+)$/i);
+	if (!match) return src;
+	const [, dir, stem] = match;
+	const thumbRel = `${dir}/thumbs/${stem}.webp`;
+	const publicRel = thumbRel.replace(/^\//, "");
+	const fsPath = path.join(process.cwd(), "public", publicRel);
+	return fs.existsSync(fsPath) ? thumbRel : src;
 }
