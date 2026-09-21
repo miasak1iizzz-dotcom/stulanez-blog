@@ -22,6 +22,25 @@ export const galleryConfig: GalleryConfig = {
 			date: "2026-09-22",
 			tags: ["LE SSERAFIM", "K-pop"],
 		},
+		{
+			id: "eunchae",
+			name: "洪恩採",
+			description: "LE SSERAFIM",
+			date: "2026-09-22",
+			tags: ["LE SSERAFIM", "K-pop"],
+		},
+		{
+			id: "asa",
+			name: "ASA",
+			description: "BABYMONSTER",
+			date: "2026-09-22",
+			tags: ["BABYMONSTER", "K-pop"],
+		},
+		{
+			id: "tomie",
+			name: "川上富江",
+			date: "2026-09-22",
+		},
 	],
 
 	// 瀑布流最小列宽(px)，浏览器根据容器宽度自动计算列数，默认 240

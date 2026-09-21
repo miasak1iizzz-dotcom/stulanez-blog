@@ -30,6 +30,7 @@ export function scanAlbumPhotos(albumId: string): string[] {
 			(f) =>
 				f !== "thumbs" &&
 				!f.startsWith(".") &&
+				!/^cover\./i.test(f) &&
 				/\.(jpe?g|png|webp|avif|gif)$/i.test(f),
 		)
 		.sort();
@@ -61,6 +62,13 @@ export function scanAlbumPhotos(albumId: string): string[] {
  */
 export function getAlbumCover(album: GalleryAlbum, photos: string[]): string {
 	if (album.cover) return withBase(album.cover);
+	const dir = path.join(process.cwd(), "public", "gallery", album.id);
+	if (fs.existsSync(dir)) {
+		const coverName = fs
+			.readdirSync(dir)
+			.find((f) => /^cover\.(jpe?g|png|webp|avif|gif)$/i.test(f));
+		if (coverName) return withBase(`/gallery/${album.id}/${coverName}`);
+	}
 	const coverFile = photos.find((p) => /\/cover\./i.test(p));
 	return coverFile || photos[0] || "";
 }
