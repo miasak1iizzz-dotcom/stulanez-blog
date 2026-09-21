@@ -15,15 +15,13 @@ export const galleryConfig: GalleryConfig = {
 	// passwordHint: 密码提示，设置后在输入密码错误时显示（可选，需配合password使用）
 	// 每添加一个数组项就相当于添加了一个相册，记得在 public/gallery/ 目录下创建对应的子目录并放入图片
 	albums: [
-		// TODO: 在这里添加你的相册，例如：
-		// {
-		// 	id: "my-album",
-		// 	name: "我的相册",
-		// 	description: "相册描述",
-		// 	location: "拍摄地点",
-		// 	date: "2026-01-01",
-		// 	tags: ["标签"],
-		// },
+		{
+			id: "sakura",
+			name: "宫脇咲良",
+			description: "LE SSERAFIM",
+			date: "2026-09-22",
+			tags: ["LE SSERAFIM", "K-pop"],
+		},
 	],
 
 	// 瀑布流最小列宽(px)，浏览器根据容器宽度自动计算列数，默认 240
