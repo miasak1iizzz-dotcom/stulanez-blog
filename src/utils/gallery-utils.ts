@@ -30,7 +30,7 @@ export function scanAlbumPhotos(albumId: string): string[] {
 			(f) =>
 				f !== "thumbs" &&
 				!f.startsWith(".") &&
-				!/^cover\./i.test(f) &&
+				!/^cover/i.test(f) &&
 				/\.(jpe?g|png|webp|avif|gif)$/i.test(f),
 		)
 		.sort();
