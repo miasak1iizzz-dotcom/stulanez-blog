@@ -1,5 +1,5 @@
 /**
- * 工具页（取图 / 艺术馆 / TFT）与主页 MainGrid 壳结构不同。
+ * 工具页（取图 / TFT）与主页 MainGrid 壳结构不同。
  * 跨壳不能只换内层 6 个容器（会半截拆样式、闪裸文字），改为替换 `#page-shell`：
  * 整页视觉换新，但 body 上的音频节点和 `window.__fireflyMusic` 还在，歌接着放。
  * 遮罩仍在替换期间盖住，避免换壳那一帧露馅。
@@ -39,10 +39,6 @@ export function resolvePageShell(pathname: string): PageShell {
 	if (
 		path === "/pull" ||
 		path.startsWith("/pull/") ||
-		path === "/art" ||
-		path.startsWith("/art/") ||
-		path === "/videos" ||
-		path.startsWith("/videos/") ||
 		path === "/tft" ||
 		path.startsWith("/tft/") ||
 		path === "/library" ||

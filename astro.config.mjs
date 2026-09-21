@@ -151,7 +151,7 @@ export default defineConfig({
 			updateHead: true,
 			updateBodyClass: false,
 			globalInstance: true,
-			// 评论 iframe 不是整站壳；跨壳（取图/艺术馆等）由 shell-nav 改换 #page-shell，不在这里忽略
+			// 评论 iframe 不是整站壳；跨壳（取图等）由 shell-nav 改换 #page-shell，不在这里忽略
 			ignore: (url) => {
 				const path = String(url || "").split(/[?#]/)[0] || "/";
 				return (

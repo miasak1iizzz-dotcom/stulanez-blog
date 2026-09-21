@@ -19,9 +19,6 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 	// 取图
 	links.push(LinkPresets.Pull);
 
-	// 视频总结
-	links.push(LinkPresets.Videos);
-
 	// 文章及其子菜单
 	links.push({
 		name: "文章",
@@ -116,11 +113,6 @@ export const LinkPresets: Record<string, NavBarLink> = {
 				icon: "fa7-brands:weibo",
 			},
 		],
-	},
-	Videos: {
-		name: "视频总结",
-		url: "/videos/",
-		icon: "material-symbols:movie-outline",
 	},
 	Archive: {
 		name: "归档",

@@ -168,10 +168,6 @@ const siteLogo = await getSiteLogo();
           return (
             path === "/pull" ||
             path.indexOf("/pull/") === 0 ||
-            path === "/art" ||
-            path.indexOf("/art/") === 0 ||
-            path === "/videos" ||
-            path.indexOf("/videos/") === 0 ||
             path === "/tft" ||
             path.indexOf("/tft/") === 0 ||
             path === "/library" ||
@@ -663,7 +659,7 @@ const siteLogo = await getSiteLogo();
   initLayout();
 </script>
 
-<!-- 站长设备识别（含 /art/ 等无侧栏页面），认领规程见 AGENTS.md -->
+<!-- 站长设备识别，认领规程见 AGENTS.md -->
 <script>
   import { watchOwnerDevice } from "@/utils/owner";
   watchOwnerDevice();
