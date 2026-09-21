@@ -58,5 +58,10 @@ scripts/_wallpaper-sizes.json
 
 # T-014 douyin roster local thumbs + boss prefs
 public/assets/images/douyin-roster/
-.ai-work/douyin-roster-prefs.json
+
+# local AI work area, cookies, models, never commit
+.ai-work/
+
+# editor CMS helper
+_frontmatter.json
 
