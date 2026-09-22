@@ -19,7 +19,6 @@ import {
 	syncBannerHomeTextVisibility,
 	updateNavbarTransparency,
 } from "@/utils/setting-utils";
-import { visitNeedsPageShell } from "@/utils/shell-nav";
 import { pathsEqual, url } from "@/utils/url-utils";
 
 const stickyNavbar = siteConfig.navbar.stickyNavbar ?? false;
@@ -160,38 +159,9 @@ function registerSwupHooks(): void {
 			// Start progress bar（WAAPI 合成线程动画，不强制回流）
 			startProgressBar();
 
-			const swappingShell = visitNeedsPageShell(visit);
-
-			// 更新首页状态（body.is-home 驱动 CSS --content-top 等）
 			const bodyElement = document.querySelector("body") as HTMLElement;
 			const isHomePage = pathsEqual(visit.to.url, url("/"));
-			const wasHome = bodyElement.classList.contains("is-home");
-			const contentPanel = document.querySelector(
-				".content-panel",
-			) as HTMLElement | null;
-			// 跨壳会拆掉 .content-panel，FLIP 没有意义。同壳只在 is-home 变化时做。
-			if (!swappingShell && isHomePage !== wasHome && contentPanel) {
-				const oldTop = contentPanel.getBoundingClientRect().top; // 类切换前读
-				bodyElement.classList.toggle("is-home", isHomePage);
-				const newTop = contentPanel.getBoundingClientRect().top; // 类切换后读
-				const delta = oldTop - newTop;
-				// 超大位移（>75% 视口，如全屏首页→非首页）不做 FLIP：新页内容重排叠加会抖动，直接到位由 swup 淡入掩盖
-				if (delta !== 0 && Math.abs(delta) <= window.innerHeight * 0.75) {
-					// 标准 FLIP：禁用过渡→设 invert transform→回流提交→启用过渡→移除 transform（触发合成动画）
-					contentPanel.style.willChange = "transform";
-					contentPanel.style.transition = "none";
-					contentPanel.style.transform = `translateY(${delta}px)`;
-					void contentPanel.offsetWidth;
-					contentPanel.style.transition = "";
-					contentPanel.style.transform = "";
-					window.setTimeout(
-						() => contentPanel.style.removeProperty("will-change"),
-						260,
-					);
-				}
-			} else {
-				bodyElement.classList.toggle("is-home", isHomePage);
-			}
+			bodyElement.classList.toggle("is-home", isHomePage);
 
 			// Control navbar transparency based on page
 			const navbar = document.getElementById("navbar");

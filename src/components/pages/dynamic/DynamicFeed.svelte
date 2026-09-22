@@ -38,6 +38,7 @@ interface Props {
 	allYearsText: string;
 	timezone: string;
 	memos?: MemosConfig;
+	initialEntries?: DynamicData[];
 }
 
 const {
@@ -50,12 +51,13 @@ const {
 	allYearsText,
 	timezone,
 	memos,
+	initialEntries = [],
 }: Props = $props();
 
-let entries = $state<DynamicData[]>([]);
-let filtered = $state<DynamicData[]>([]);
+let entries = $state<DynamicData[]>(initialEntries);
+let filtered = $state<DynamicData[]>(initialEntries);
 let currentPage = $state(1);
-let loading = $state(true);
+let loading = $state(initialEntries.length === 0);
 let failed = $state(false);
 let templateReady = $state(false);
 let list: HTMLElement;
@@ -283,6 +285,14 @@ onMount(() => {
 	searchInput?.addEventListener("input", filter);
 	yearSelect?.addEventListener("change", filter);
 
+	if (entries.length) {
+		const countEl = document.querySelector("[data-dynamic-page-count]");
+		if (countEl) countEl.textContent = String(entries.length);
+		populateYears();
+		currentPage = pageFromUrl();
+		applyFilters(false);
+	}
+
 	const load = async () => {
 		try {
 			if (memos?.enable) {
@@ -312,7 +322,7 @@ onMount(() => {
 			}
 		} catch (error) {
 			console.error("Failed to load dynamics", error);
-			failed = true;
+			if (entries.length === 0) failed = true;
 		} finally {
 			loading = false;
 		}

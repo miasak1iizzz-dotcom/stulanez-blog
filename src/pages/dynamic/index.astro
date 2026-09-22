@@ -7,6 +7,7 @@ import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import "@/styles/dynamic.css";
+import { loadDynamicFeedEntries } from "@/utils/dynamic-feed";
 import { url } from "@/utils/url-utils";
 
 if (!siteConfig.pages.dynamic) {
@@ -26,6 +27,7 @@ const dataUrl = dynamicConfig.apiUrl?.startsWith("http")
 	? dynamicConfig.apiUrl
 	: url(dynamicConfig.apiUrl || "/api/dynamic.json");
 const memos = dynamicConfig.memos;
+const initialEntries = await loadDynamicFeedEntries();
 ---
 
 <MainGridLayout title={title} description={description}>
@@ -79,6 +81,7 @@ const memos = dynamicConfig.memos;
 				allYearsText={i18n(I18nKey.dynamicAllYears)}
 				timezone={siteConfig.timezone || "UTC"}
 				{memos}
+				{initialEntries}
 			/>
 
 			<DynamicItemTemplate />

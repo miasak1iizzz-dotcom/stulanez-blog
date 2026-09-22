@@ -51,7 +51,16 @@
       ]
     },
     {
-      "source": "/gallery/(.*)",
+      "source": "/gallery/:album/:file.:ext(jpg|jpeg|png|webp|avif|gif)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, stale-while-revalidate=2592000"
+        }
+      ]
+    },
+    {
+      "source": "/gallery/:album/thumbs/:file.:ext(jpg|jpeg|png|webp|avif|gif)",
       "headers": [
         {
           "key": "Cache-Control",

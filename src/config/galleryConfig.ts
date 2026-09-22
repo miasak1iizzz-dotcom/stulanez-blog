@@ -22,6 +22,7 @@ export const galleryConfig: GalleryConfig = {
 			date: "2026-09-22",
 			tags: ["LE SSERAFIM", "K-pop"],
 			cover: "/gallery/sakura/cover-lessera.jpg",
+			cardCover: "/gallery/sakura/card.jpg",
 		},
 		{
 			id: "eunchae",
@@ -30,6 +31,7 @@ export const galleryConfig: GalleryConfig = {
 			date: "2026-09-22",
 			tags: ["LE SSERAFIM", "K-pop"],
 			cover: "/gallery/eunchae/cover-lessera.jpg",
+			cardCover: "/gallery/eunchae/card.jpg",
 		},
 		{
 			id: "asa",
@@ -37,11 +39,15 @@ export const galleryConfig: GalleryConfig = {
 			description: "BABYMONSTER",
 			date: "2026-09-22",
 			tags: ["BABYMONSTER", "K-pop"],
+			cover: "/gallery/asa/cover-wide.jpg",
+			cardCover: "/gallery/asa/card.jpg",
 		},
 		{
 			id: "tomie",
 			name: "川上富江",
 			date: "2026-09-22",
+			cover: "/gallery/tomie/cover-wide.jpg",
+			cardCover: "/gallery/tomie/card.jpg",
 		},
 	],
 

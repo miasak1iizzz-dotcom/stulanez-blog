@@ -31,6 +31,7 @@ export function scanAlbumPhotos(albumId: string): string[] {
 				f !== "thumbs" &&
 				!f.startsWith(".") &&
 				!/^cover/i.test(f) &&
+				!/^card\./i.test(f) &&
 				/\.(jpe?g|png|webp|avif|gif)$/i.test(f),
 		)
 		.sort();
@@ -71,6 +72,14 @@ export function getAlbumCover(album: GalleryAlbum, photos: string[]): string {
 	}
 	const coverFile = photos.find((p) => /\/cover\./i.test(p));
 	return coverFile || photos[0] || "";
+}
+
+/**
+ * 列表卡片封面。3:1 横幅塞进 4:3 卡片会被裁成一张大脸，所以单独给。
+ */
+export function getAlbumCardCover(album: GalleryAlbum, photos: string[]): string {
+	if (album.cardCover) return withBase(album.cardCover);
+	return getAlbumCover(album, photos);
 }
 
 /**
