@@ -199,6 +199,7 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
             var defaultEnabled = container.dataset.carouselEnabled === 'true';
             var effect = container.dataset.carouselEffect || 'fade';
             var transitioning = false;
+            var switchToken = 0;
 
             function isCarouselEnabled() {
                 if (!switchable) return defaultEnabled;
@@ -238,20 +239,18 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                 var tpl = slideEl.querySelector('template');
                 if (!tpl) return false;
                 var frag = tpl.content.cloneNode(true);
-                if (high) {
-                    var img = frag.querySelector('img');
-                    // 必须在插入前写，插入即发起请求
-                    if (img) {
-                        img.setAttribute('fetchpriority', 'high');
-                        // 这张是 LCP 元素，不做淡入：图片没下完时 <img> 本来就不画东西，
-                        // 那 500ms 过渡只是把已经能看的画面又藏半秒，Chrome 会把 LCP 往后记。
-                        img.classList.remove('opacity-0', 'transition-opacity', 'duration-500', 'ease-out');
-                        img.style.opacity = '1';
-                    }
-                    // LQIP 占位层是 absolute + z-index:0，盖在 img 上面，
-                    // 它那 0.5s 淡出同样会挡住 LCP
-                    var ph = frag.querySelector('.lqip-placeholder');
-                    if (ph) ph.style.transition = 'none';
+                var img = frag.querySelector('img');
+                if (img && high) {
+                    img.setAttribute('fetchpriority', 'high');
+                    // 这张是 LCP 元素，不做淡入：图片没下完时 <img> 本来就不画东西，
+                    // 那 500ms 过渡只是把已经能看的画面又藏半秒，Chrome 会把 LCP 往后记。
+                    img.classList.remove('opacity-0', 'transition-opacity', 'duration-500', 'ease-out');
+                    img.style.opacity = '1';
+                    var phHigh = frag.querySelector('.lqip-placeholder');
+                    if (phHigh) phHigh.style.transition = 'none';
+                } else if (img) {
+                    img.setAttribute('loading', 'eager');
+                    img.setAttribute('fetchpriority', 'low');
                 }
                 slideEl.appendChild(frag);
                 tpl.remove();
@@ -259,10 +258,34 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                 return true;
             }
 
-            // 只预取下一张，避免进站空闲窗口把整组壁纸一起拉下来
+            // 下一张立刻拉，再空闲热一张。只热 2 张，不把整组 32 张一起灌进来。
             function materializeAhead(slides, index) {
                 if (slides.length < 2) return;
                 materialize(slides[(index + 1) % slides.length], false);
+                if (slides.length < 3) return;
+                var plus2 = slides[(index + 2) % slides.length];
+                var warm = function () { materialize(plus2, false); };
+                if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 2500 });
+                else setTimeout(warm, 800);
+            }
+
+            function whenSlideReady(slideEl, done) {
+                if (!slideEl) { done(); return; }
+                var img = slideEl.querySelector('img');
+                if (!img) { done(); return; }
+                var settled = false;
+                function finishReady() {
+                    if (settled) return;
+                    settled = true;
+                    done();
+                }
+                if (img.complete && img.naturalWidth > 0) {
+                    finishReady();
+                    return;
+                }
+                img.addEventListener('load', finishReady, { once: true });
+                img.addEventListener('error', finishReady, { once: true });
+                window.setTimeout(finishReady, 2800);
             }
 
             // 获取当前设备可见的 slide-item
@@ -325,16 +348,37 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                 var currentIndex = getCurrentIndex(slides);
                 if (nextIndex === currentIndex) return;
 
-                // 目标图可能还躺在 <template> 里，先实例化再切
-                materialize(slides[nextIndex], false);
+                var nextSlide = slides[nextIndex];
+                materialize(nextSlide, false);
                 materializeAhead(slides, nextIndex);
 
-                // 直接切换（CSS 处理过渡动画）
-                applySlideChange(slides, nextIndex);
-
-                if (resetProgress !== false && appState.isPlaying) {
-                    startAutoPlay();
+                var token = ++switchToken;
+                var img = nextSlide.querySelector('img');
+                function commit() {
+                    if (token !== switchToken) return;
+                    transitioning = false;
+                    var live = getVisibleSlides();
+                    var idx = live.indexOf(nextSlide);
+                    if (idx < 0) return;
+                    applySlideChange(live, idx);
+                    if (resetProgress !== false && appState.isPlaying) {
+                        startAutoPlay();
+                    }
                 }
+                if (img && img.complete && img.naturalWidth > 0) {
+                    commit();
+                    return;
+                }
+                transitioning = true;
+                whenSlideReady(nextSlide, function () {
+                    if (token !== switchToken) return;
+                    var readyImg = nextSlide.querySelector('img');
+                    if (readyImg && !readyImg.naturalWidth) {
+                        transitioning = false;
+                        return;
+                    }
+                    commit();
+                });
             }
 
             var appState = {
@@ -415,6 +459,7 @@ const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
                     idx = slidesForSelect.length > 1 ? Math.floor(Math.random() * slidesForSelect.length) : 0;
                 }
                 transitioning = false;
+                switchToken += 1;
                 if (getCurrentIndex(slidesForSelect) === idx) {
                     materialize(slidesForSelect[idx], false);
                     return;

@@ -430,6 +430,9 @@ const siteLogo = await getSiteLogo();
           displaySettingsConfig.wallpaperModeSwitchable,
         isHomePage: isHomePageCheck,
         defaultSplashEnabled: atmosphereConfig.splash.enable,
+        defaultSplashPortrait: atmosphereConfig.splash.defaultPortrait,
+        defaultSplashUpper: atmosphereConfig.splash.defaultUpper,
+        defaultSplashLower: atmosphereConfig.splash.defaultLower,
         darkTheme: expressiveCodeConfig.darkTheme,
         lightTheme: expressiveCodeConfig.lightTheme,
         baseUrl: import.meta.env.BASE_URL,
@@ -547,6 +550,24 @@ const siteLogo = await getSiteLogo();
           const enabled = stored === null ? defaultSplashEnabled : stored === "true";
           if (!enabled) return;
           document.documentElement.setAttribute("data-splash-pending", "true");
+          // 随机场次事先不知道哪三张，不预载。固定场次把头像+上下条提前拉，
+          // 开屏脚本就不用干等，也不至于 480ms 一到就对着空图开演。
+          if (localStorage.getItem("splashRandom") === "true") return;
+          const root = (typeof baseUrl === "string" ? baseUrl : "/").replace(/\/$/, "");
+          const portrait = localStorage.getItem("splashPortrait") || defaultSplashPortrait;
+          const upper = localStorage.getItem("splashUpper") || defaultSplashUpper;
+          const lower = localStorage.getItem("splashLower") || defaultSplashLower;
+          [
+            "/assets/images/splash/portraits/" + portrait + ".webp",
+            "/assets/images/splash/banners/" + upper + ".webp",
+            "/assets/images/splash/banners/" + lower + ".webp",
+          ].forEach(function (path) {
+            const link = document.createElement("link");
+            link.rel = "preload";
+            link.as = "image";
+            link.href = (root || "") + path;
+            document.head.appendChild(link);
+          });
         } catch (e) {}
       })();
     </script>

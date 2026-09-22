@@ -1,6 +1,5 @@
-/* 开屏：立绘先出，半幅左右切入，漫画斜切横条砸出台词 */
-
-@import url("https://fonts.bunny.net/css?family=noto-sans-sc:900");
+/* 开屏：立绘先出，半幅左右切入，漫画斜切横条砸出台词。
+   标题用站内 CJK 栈，不靠外网 webfont，避免演到一半才换成 Noto。 */
 
 html[data-splash-pending] {
 	overflow: hidden;
@@ -132,11 +131,12 @@ html[data-splash-pending] #canvas_sakura {
 .splash-title {
 	margin: 0;
 	font-family:
+		"Microsoft YaHei UI",
+		"Microsoft YaHei",
+		"PingFang SC",
+		"Hiragino Sans GB",
 		"Noto Sans SC",
 		"Source Han Sans SC",
-		"Hiragino Kaku Gothic ProN",
-		"PingFang SC",
-		"Microsoft YaHei",
 		Impact,
 		sans-serif;
 	font-weight: 900;
