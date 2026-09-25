@@ -52,6 +52,7 @@ export { atmosphereConfig } from "./atmosphereConfig"; // 侧栏一言/时钟/�
 // 样式配置
 export { backgroundWallpaper } from "./backgroundWallpaper"; // 背景壁纸配置
 export { booknavConfig, booknavPageConfig } from "./booknavConfig"; // 书签导航配置
+export { getPublicCdnBase, isOssPublicAsset } from "./cdnConfig";
 // 功能配置
 export { commentConfig } from "./commentConfig"; // 评论系统配置
 export { coverImageConfig } from "./coverImageConfig"; // 封面图配置
@@ -61,8 +62,8 @@ export { sakuraConfig } from "./effectsConfig"; // 动画特效配置（樱花�
 export { expressiveCodeConfig } from "./expressiveCodeConfig"; // 代码高亮配置
 export { fontConfig, fontsList } from "./fontConfig"; // 字体配置
 export { footerConfig } from "./footerConfig"; // 页脚配置
-export { friendsPageConfig, getEnabledFriends } from "./friendsConfig"; // 友链配置
 export { galleryConfig } from "./galleryConfig"; // 相册配置
+export { friendsPageConfig, getEnabledFriends } from "./friendsConfig"; // 友链配置
 export { licenseConfig } from "./licenseConfig"; // 许可证配置
 // 组件配置
 export { mermaidConfig } from "./mermaidConfig"; // Mermaid 图表配置

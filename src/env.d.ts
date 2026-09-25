@@ -6,6 +6,12 @@ declare global {
 		readonly MEILI_MASTER_KEY: string;
 		// 视图设置面板总开关，可在部署平台配置（true / 1 / on / yes 开启）
 		readonly PUBLIC_DISPLAY_SETTINGS?: string;
+		/** 公开大文件云端前缀。私有桶不要配这个。 */
+		readonly PUBLIC_CDN_BASE?: string;
+		readonly OSS_ACCESS_KEY_ID?: string;
+		readonly OSS_ACCESS_KEY_SECRET?: string;
+		readonly OSS_BUCKET?: string;
+		readonly OSS_REGION?: string;
 	}
 
 	interface ITOCManager {

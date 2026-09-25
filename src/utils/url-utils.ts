@@ -1,5 +1,6 @@
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
+import { isOssPublicAsset } from "@/config/cdnConfig";
 
 /**
  * 移除文件扩展名（.md, .mdx, .markdown）
@@ -72,6 +73,41 @@ export function getSearchUrl(query: string): string {
 	return url(`/search/?q=${encodeURIComponent(query.trim())}`);
 }
 
+/** 把站点路径、/api/media 或已签名的云端 URL 收成对象键（不含开头斜杠）。 */
+export function ossObjectKey(src: string): string {
+	try {
+		const parsed =
+			src.startsWith("/") || src.startsWith("http")
+				? new URL(src, "https://stulanez.com")
+				: null;
+		const fromQuery = parsed?.searchParams.get("key");
+		if (fromQuery) return fromQuery.replace(/^\/+/, "").split("?")[0] ?? "";
+		if (parsed) return parsed.pathname.replace(/^\/+/, "");
+	} catch {
+		/* 按普通路径处理 */
+	}
+	const q = src.indexOf("?");
+	const path = q >= 0 ? src.slice(0, q) : src;
+	return path.replace(/^\/+/, "");
+}
+
+/** 把站点路径或已拼好的云端 URL 收成 pathname，供 LQIP / 缩略图对本地文件。 */
+export function assetPathname(src: string): string {
+	if (
+		src.startsWith("http://") ||
+		src.startsWith("https://") ||
+		src.startsWith("//")
+	) {
+		try {
+			return new URL(src, "https://stulanez.com").pathname;
+		} catch {
+			return src;
+		}
+	}
+	const q = src.indexOf("?");
+	return q >= 0 ? src.slice(0, q) : src;
+}
+
 export function url(path: string): string {
 	// 关键修复：如果是网络URL，直接返回原地址
 	if (
@@ -80,6 +116,15 @@ export function url(path: string): string {
 		path.startsWith("//")
 	) {
 		return path;
+	}
+
+	const q = path.indexOf("?");
+	const rawPath = q >= 0 ? path.slice(0, q) : path;
+	const query = q >= 0 ? path.slice(q) : "";
+	const pathname = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+	if (isOssPublicAsset(pathname)) {
+		const key = pathname.replace(/^\//, "");
+		return `/api/media/?key=${encodeURIComponent(key)}`;
 	}
 
 	// 只有本地相对路径才添加BASE_URL

@@ -1,11 +1,26 @@
 // LQIP 方案来源: https://blog.cosine.ren/post/astro-lqip-implementation
 
 import lqipData from "@constants/lqips.json";
+import { assetPathname } from "@/utils/url-utils";
 
 const lqips: Record<string, string> = lqipData as Record<string, string>;
 
 const DEFAULT_GRADIENT =
 	"linear-gradient(135deg, #d6d3d1 0%, #a8a29e 50%, #d6d3d1 100%)";
+
+function publicAssetKey(src: string): string {
+	try {
+		const base = "https://stulanez.com";
+		const parsed = src.startsWith("/") || src.startsWith("http")
+			? new URL(src, base)
+			: null;
+		const key = parsed?.searchParams.get("key");
+		if (key) return key.replace(/^\//, "");
+	} catch {
+		/* 不是可解析的地址时按路径处理 */
+	}
+	return assetPathname(src).replace(/^\//, "");
+}
 
 function normalizePath(p: string): string {
 	return p.replace(/\/\.\//g, "/").replace(/\/+/g, "/");
@@ -21,8 +36,7 @@ export function getLqipGradient(
 	isPublic?: boolean,
 ): string | undefined {
 	if (isPublic) {
-		// public 图片：key 格式为 public:xxx（去掉开头的 /）
-		const relativePath = src.replace(/^\//, "");
+		const relativePath = publicAssetKey(src);
 		const compact = lqips[`public:${relativePath}`] || lqips[relativePath];
 		if (compact?.length !== 18) return undefined;
 		const c1 = `#${compact.slice(0, 6)}`;
@@ -46,6 +60,11 @@ export function getLqipGradient(
 	return `linear-gradient(135deg, ${c1} 0%, ${c2} 50%, ${c3} 100%)`;
 }
 
+function isHostedSiteAsset(src: string): boolean {
+	const pathname = assetPathname(src);
+	return pathname.startsWith("/gallery/") || pathname.startsWith("/assets/");
+}
+
 /** 判断是否为外部图片 */
 export function isExternalImage(src: string): boolean {
 	return (
@@ -61,7 +80,7 @@ export function getLqipStyle(
 	basePath?: string,
 	isPublic?: boolean,
 ): string | undefined {
-	if (isExternalImage(src)) return undefined;
+	if (isExternalImage(src) && !isHostedSiteAsset(src)) return undefined;
 	const gradient = getLqipGradient(src, basePath, isPublic);
 	return gradient ? `background: ${gradient}` : undefined;
 }
@@ -72,8 +91,10 @@ export function getLqipProps(
 	basePath?: string,
 	isPublic?: boolean,
 ): { style: string } {
-	if (isExternalImage(src)) return { style: "background: var(--muted)" };
-	const style = getLqipStyle(src, basePath, isPublic);
+	if (isExternalImage(src) && !isHostedSiteAsset(src)) {
+		return { style: "background: var(--muted)" };
+	}
+	const style = getLqipStyle(src, basePath, isPublic || isHostedSiteAsset(src));
 	return { style: style || `background: ${DEFAULT_GRADIENT}` };
 }
 

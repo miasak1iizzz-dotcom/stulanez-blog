@@ -100,12 +100,12 @@ const managerConfigStr = JSON.stringify({
         audio = document.createElement('audio');
         audio.id = 'firefly-audio';
         audio.setAttribute('aria-hidden', 'true');
-        audio.crossOrigin = 'anonymous';
         audio.style.display = 'none';
         audio.preload = 'none'; // 阻止浏览器预加载和自动恢复播放
         document.body.appendChild(audio);
         audio.pause(); // 确保不自动播放
     }
+    audio.removeAttribute("crossorigin");
 
     // ── State ────────────────────────────────────────────────
     var loadVersion = 0; // incremented on each loadTrack to discard stale play() results

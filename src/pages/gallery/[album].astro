@@ -2,23 +2,26 @@
 import { Icon } from "astro-icon/components";
 import EncryptedContent from "@/components/features/EncryptedContent.astro";
 import PhotoCard from "@/components/pages/gallery/PhotoCard.astro";
-import { galleryConfig, siteConfig } from "@/config";
+import { siteConfig } from "@/config";
+import { galleryConfig } from "@/config/galleryConfig";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { getAlbumCover, scanAlbumPhotos } from "@/utils/gallery-utils";
+import { signOssKey } from "@/server/oss-sign";
+import { getAlbumCover, getGalleryGridSrc, scanAlbumPhotos } from "@/utils/gallery-utils";
 import { getLqipProps } from "@/utils/lqip-utils";
-import { url } from "@/utils/url-utils";
+import { ossObjectKey, url } from "@/utils/url-utils";
+
+export const prerender = false;
 
 // 检查页面是否启用
 if (!siteConfig.pages.gallery) {
 	return Astro.redirect("/404/");
 }
 
-export function getStaticPaths() {
-	return galleryConfig.albums.map((album) => ({
-		params: { album: album.id },
-	}));
+function present(src: string): string {
+	const key = ossObjectKey(src);
+	return (key && signOssKey(key)) || src;
 }
 
 const { album: albumId } = Astro.params;
@@ -28,13 +31,20 @@ if (!albumMeta) {
 	return Astro.redirect("/404/");
 }
 
-const photos = scanAlbumPhotos(albumMeta.id);
-const cover = getAlbumCover(albumMeta, photos);
+const rawPhotos = scanAlbumPhotos(albumMeta.id);
+const photos = rawPhotos.map((photo) => ({
+	full: present(photo),
+	grid: present(getGalleryGridSrc(photo)),
+	lqip: photo,
+}));
+const coverPath = getAlbumCover(albumMeta, rawPhotos);
+const cover = coverPath ? present(coverPath) : "";
 const columnWidth = galleryConfig.columnWidth || 240;
+Astro.response.headers.set("Cache-Control", "public, max-age=120, s-maxage=120");
 
 // LQIP 渐变占位
-const coverLqipProps = cover
-	? getLqipProps(cover, undefined, true)
+const coverLqipProps = coverPath
+	? getLqipProps(coverPath, undefined, true)
 	: { style: "" };
 ---
 
@@ -139,7 +149,7 @@ const coverLqipProps = cover
               style={`column-count: 2; column-gap: 0.75rem; --col-width: ${columnWidth}px;`}
             >
               {photos.map((photo) => (
-                <PhotoCard src={photo} albumId={albumMeta.id} />
+                <PhotoCard src={photo.full} gridSrc={photo.grid} lqipSrc={photo.lqip} albumId={albumMeta.id} />
               ))}
             </div>
           </EncryptedContent>
@@ -149,7 +159,7 @@ const coverLqipProps = cover
             style={`column-count: 2; column-gap: 0.75rem; --col-width: ${columnWidth}px;`}
           >
             {photos.map((photo) => (
-              <PhotoCard src={photo} albumId={albumMeta.id} />
+              <PhotoCard src={photo.full} gridSrc={photo.grid} lqipSrc={photo.lqip} albumId={albumMeta.id} />
             ))}
           </div>
         )

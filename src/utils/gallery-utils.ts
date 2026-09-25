@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import mediaManifest from "@/data/media-manifest.json";
 import type { GalleryAlbum } from "@/types/config";
-import { url } from "@/utils/url-utils";
+import { ossObjectKey, url } from "@/utils/url-utils";
+
+const manifestKeys = new Set(mediaManifest as string[]);
 
 function withBase(assetPath: string): string {
 	if (!assetPath) return "";
@@ -21,20 +24,36 @@ function withBase(assetPath: string): string {
 /**
  * 扫描相册目录中的所有图片文件
  */
+function isPhotoName(name: string): boolean {
+	return (
+		!name.startsWith(".") &&
+		!/^cover/i.test(name) &&
+		!/^card\./i.test(name) &&
+		/\.(jpe?g|png|webp|avif|gif)$/i.test(name)
+	);
+}
+
+function albumFileNames(albumId: string): string[] {
+	const dir = path.join(process.cwd(), "public", "gallery", albumId);
+	if (fs.existsSync(dir)) {
+		return fs
+			.readdirSync(dir)
+			.filter((f) => f !== "thumbs" && isPhotoName(f))
+			.sort();
+	}
+	const prefix = `gallery/${albumId}/`;
+	return [...manifestKeys]
+		.filter((key) => {
+			if (!key.startsWith(prefix) || key.includes("/thumbs/")) return false;
+			return isPhotoName(key.slice(prefix.length));
+		})
+		.map((key) => key.slice(prefix.length))
+		.sort();
+}
+
 export function scanAlbumPhotos(albumId: string): string[] {
 	const dir = path.join(process.cwd(), "public", "gallery", albumId);
-	if (!fs.existsSync(dir)) return [];
-	const files = fs
-		.readdirSync(dir)
-		.filter(
-			(f) =>
-				f !== "thumbs" &&
-				!f.startsWith(".") &&
-				!/^cover/i.test(f) &&
-				!/^card\./i.test(f) &&
-				/\.(jpe?g|png|webp|avif|gif)$/i.test(f),
-		)
-		.sort();
+	const files = albumFileNames(albumId);
 	// 将 cover.* 排到第一位
 	const coverIdx = files.findIndex((f) => /^cover\./i.test(f));
 	if (coverIdx > 0) {
@@ -64,12 +83,15 @@ export function scanAlbumPhotos(albumId: string): string[] {
 export function getAlbumCover(album: GalleryAlbum, photos: string[]): string {
 	if (album.cover) return withBase(album.cover);
 	const dir = path.join(process.cwd(), "public", "gallery", album.id);
-	if (fs.existsSync(dir)) {
-		const coverName = fs
-			.readdirSync(dir)
-			.find((f) => /^cover\.(jpe?g|png|webp|avif|gif)$/i.test(f));
-		if (coverName) return withBase(`/gallery/${album.id}/${coverName}`);
-	}
+	const coverName = fs.existsSync(dir)
+		? fs.readdirSync(dir).find((f) => /^cover\.(jpe?g|png|webp|avif|gif)$/i.test(f))
+		: [...manifestKeys]
+				.find((key) =>
+					new RegExp(`^gallery/${album.id}/cover\\.(jpe?g|png|webp|avif|gif)$`, "i").test(key),
+				)
+				?.split("/")
+				.pop();
+	if (coverName) return withBase(`/gallery/${album.id}/${coverName}`);
 	const coverFile = photos.find((p) => /\/cover\./i.test(p));
 	return coverFile || photos[0] || "";
 }
@@ -77,7 +99,10 @@ export function getAlbumCover(album: GalleryAlbum, photos: string[]): string {
 /**
  * 列表卡片封面。3:1 横幅塞进 4:3 卡片会被裁成一张大脸，所以单独给。
  */
-export function getAlbumCardCover(album: GalleryAlbum, photos: string[]): string {
+export function getAlbumCardCover(
+	album: GalleryAlbum,
+	photos: string[],
+): string {
 	if (album.cardCover) return withBase(album.cardCover);
 	return getAlbumCover(album, photos);
 }
@@ -87,14 +112,17 @@ export function getAlbumCardCover(album: GalleryAlbum, photos: string[]): string
  * 没有缩略图时退回原图，lightbox 仍走原图。
  */
 export function getGalleryGridSrc(src: string): string {
-	if (/^(https?:)?\/\//i.test(src) || /^(data|blob):/i.test(src)) {
+	if (/^(data|blob):/i.test(src)) {
 		return src;
 	}
-	const match = src.match(/^(.*\/gallery\/[^/]+)\/([^/?#]+)\.([a-z0-9]+)$/i);
-	if (!match) return src;
+	const key = ossObjectKey(src);
+	const match = key.match(/^(gallery\/[^/]+)\/([^/]+)\.([a-z0-9]+)$/i);
+	if (!match || key.includes("/thumbs/")) return src;
 	const [, dir, stem] = match;
-	const thumbRel = `${dir}/thumbs/${stem}.webp`;
-	const publicRel = thumbRel.replace(/^\//, "");
-	const fsPath = path.join(process.cwd(), "public", publicRel);
-	return fs.existsSync(fsPath) ? thumbRel : src;
+	const thumbKey = `${dir}/thumbs/${stem}.webp`;
+	const fsPath = path.join(process.cwd(), "public", thumbKey);
+	if (fs.existsSync(fsPath) || manifestKeys.has(thumbKey)) {
+		return withBase(`/${thumbKey}`);
+	}
+	return src;
 }

@@ -90,9 +90,13 @@ async function main() {
 
 	// 移除已不存在的图片数据
 	const currentKeys = new Set(files.map((file) => filePathToKey(file)));
-	const removedKeys = Object.keys(existingLqips).filter(
-		(key) => !currentKeys.has(key),
-	);
+	const removedKeys = Object.keys(existingLqips).filter((key) => {
+		if (currentKeys.has(key)) return false;
+		// 相册、音乐封面、壁纸已在私有桶，本地删掉后仍保留占位色
+		return !/^public:(gallery\/|assets\/images\/wallpaper\/|assets\/music\/)/.test(
+			key,
+		);
+	});
 	for (const key of removedKeys) {
 		delete existingLqips[key];
 	}
