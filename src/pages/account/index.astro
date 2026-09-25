@@ -1,0 +1,93 @@
+---
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { currentAccount } from "@/server/accounts";
+
+export const prerender = false;
+
+const account = await currentAccount(Astro.cookies);
+const error = Astro.url.searchParams.get("error");
+---
+
+<MainGridLayout title="账号" description="登录或注册">
+	<div class="card-base px-8 py-6">
+		{
+			account ? (
+				<div>
+					<div class="text-2xl font-bold text-(--primary) mb-2">已登录</div>
+					<p class="text-sm text-neutral-500 dark:text-neutral-400 mb-6">{account.email}</p>
+					<form method="post" action="/api/auth/logout/">
+						<button
+							type="submit"
+							class="px-4 py-2 rounded-lg bg-(--primary) text-white dark:text-black/80 text-sm"
+						>
+							退出
+						</button>
+					</form>
+				</div>
+			) : (
+				<div class="grid gap-8 md:grid-cols-2">
+					<form method="post" action="/api/auth/login/" class="flex flex-col gap-3">
+						<div class="text-xl font-bold">登录</div>
+						<label class="text-sm">
+							邮箱
+							<input
+								name="email"
+								type="email"
+								required
+								autocomplete="username"
+								class="mt-1 w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent px-3 py-2"
+							/>
+						</label>
+						<label class="text-sm">
+							密码
+							<input
+								name="password"
+								type="password"
+								required
+								autocomplete="current-password"
+								class="mt-1 w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent px-3 py-2"
+							/>
+						</label>
+						<button
+							type="submit"
+							class="mt-2 px-4 py-2 rounded-lg bg-(--primary) text-white dark:text-black/80 text-sm w-fit"
+						>
+							登录
+						</button>
+					</form>
+					<form method="post" action="/api/auth/register/" class="flex flex-col gap-3">
+						<div class="text-xl font-bold">注册</div>
+						<label class="text-sm">
+							邮箱
+							<input
+								name="email"
+								type="email"
+								required
+								autocomplete="username"
+								class="mt-1 w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent px-3 py-2"
+							/>
+						</label>
+						<label class="text-sm">
+							密码
+							<input
+								name="password"
+								type="password"
+								required
+								minlength="8"
+								autocomplete="new-password"
+								class="mt-1 w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent px-3 py-2"
+							/>
+						</label>
+						<button
+							type="submit"
+							class="mt-2 px-4 py-2 rounded-lg bg-(--primary) text-white dark:text-black/80 text-sm w-fit"
+						>
+							注册
+						</button>
+					</form>
+				</div>
+			)
+		}
+		{error && <p class="mt-4 text-sm text-red-500">{error}</p>}
+	</div>
+</MainGridLayout>

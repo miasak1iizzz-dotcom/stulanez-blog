@@ -70,7 +70,7 @@ hideCoverInPost: true
 
 ## 七、图库和资产
 
-Serpent 本机数字资源库与站点 `/library` 页已下线。公开展示走站内相册。相册原图、音乐、壁纸放在私有 OSS 桶里（`pnpm oss:sync`），桶不公开。页面只向 `/api/media/` 要短时签名，钥匙只在本机 `.env` 和部署环境变量里，不进仓库。文件清单是 `src/data/media-manifest.json`。桶里分两类：`gallery/`、`assets/music/`、`assets/images/wallpaper/` 是网站正在用的；`archive/rollback/` 里是从 git 拿掉大图之前的整本历史，要回到那一版就下载对应的 `.bundle` 再 `git clone`。对外的规则只有一条：站上展示的资产要干净、有来源意识，个人素材和未授权的私货不上站。
+Serpent 本机数字资源库与站点 `/library` 页已下线。公开展示走站内相册。相册原图、音乐、壁纸放在私有 OSS 桶里（`pnpm oss:sync`），桶不公开。页面只向 `/api/media/` 要短时签名，钥匙只在本机 `.env` 和部署环境变量里，不进仓库。文件清单是 `src/data/media-manifest.json`。桶里分两类：`gallery/`、`assets/music/`、`assets/images/wallpaper/` 是网站正在用的；`archive/rollback/` 里是从 git 拿掉大图之前的整本历史，要回到那一版就下载对应的 `.bundle` 再 `git clone`。账号在 `/account/`，用邮箱和密码，存在阿里云杭州的 MySQL 里，连接串只在 `.env` 和部署环境变量。付款还没接。对外的规则只有一条：站上展示的资产要干净、有来源意识，个人素材和未授权的私货不上站。
 
 ## 更新记录
 
@@ -81,3 +81,4 @@ Serpent 本机数字资源库与站点 `/library` 页已下线。公开展示走
 - **2026-09-22**：公开大文件可同步阿里云 OSS；未配置时仍走站点自身。
 - **2026-09-25**：相册、音乐、壁纸改从私有桶读取。页面不拿永久地址，服务器签发短时链接；这些文件不再进 git。
 - **2026-09-25**：旧历史备份放在私有桶 `archive/rollback/`，网站正在用的文件仍在 `gallery/`、`assets/music/`、`assets/images/wallpaper/`。
+- **2026-09-25**：账号库开在阿里云 MySQL。`/account/` 可以注册和登录，付款未接。

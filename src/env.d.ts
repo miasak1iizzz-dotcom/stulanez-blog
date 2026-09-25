@@ -12,6 +12,7 @@ declare global {
 		readonly OSS_ACCESS_KEY_SECRET?: string;
 		readonly OSS_BUCKET?: string;
 		readonly OSS_REGION?: string;
+		readonly DATABASE_URL?: string;
 	}
 
 	interface ITOCManager {
