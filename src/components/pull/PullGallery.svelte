@@ -1,4 +1,5 @@
 <script lang="ts">
+import { logActivity } from "@/utils/activity";
 import { pullFileUrl, safePullName } from "@/utils/pull/fileUrl";
 import type { PullImage, PullSuccess } from "@/utils/pull/types";
 import { buildZip, type ZipEntry } from "@/utils/pull/zip";
@@ -368,6 +369,7 @@ async function runDownload(): Promise<void> {
 				await waitMs(360, signal);
 			}
 			note = signal.aborted ? "已取消下载。" : "";
+			if (!signal.aborted) logActivity("pull", `逐张存了 ${list.length} 张图`, result.channel);
 		} finally {
 			if (downloadCtl === ac) downloadCtl = null;
 			busy = "";
@@ -424,6 +426,7 @@ async function runDownload(): Promise<void> {
 			note = "已取消打包。";
 			return;
 		}
+		logActivity("pull", `打包了 ${entries.length} 张图`, result.channel);
 		const a = document.createElement("a");
 		a.href = URL.createObjectURL(blob);
 		a.download = `${result.channel}-${entries.length}p.zip`;
@@ -606,7 +609,10 @@ async function runDownload(): Promise<void> {
 			</button>
 			<footer>
 				<span>{String(index + 1).padStart(2, "0")}</span>
-				<button type="button" onclick={() => void saveOne(image)}>下载</button>
+				<button type="button" onclick={() => {
+							void saveOne(image);
+							logActivity("pull", "存了 1 张图", result.channel);
+						}}>下载</button>
 			</footer>
 		</div>
 	{/snippet}

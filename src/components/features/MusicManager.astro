@@ -438,6 +438,10 @@ const managerConfigStr = JSON.stringify({
                 state.isPlaying = true;
                 state.error = null;
                 emit('fm:play-state', { isPlaying: true });
+                try {
+                    var _t = state.playlist[state.currentIndex];
+                    if (_t && window.__logActivity) window.__logActivity('music', _t.name || '未知曲目');
+                } catch (err) { /* 记录失败不影响播放 */ }
             }).catch(function (e) {
                 if (ver !== loadVersion) return; // stale, discard
                 if (e.name === 'AbortError') return; // interrupted by new load

@@ -681,3 +681,8 @@ const siteLogo = await getSiteLogo();
   import { watchOwnerDevice } from "@/utils/owner";
   watchOwnerDevice();
 </script>
+
+<!-- 站长活动流水（/today 的原料）：只在本机记录，顺带把 logActivity 挂到 window 供 inline 脚本用 -->
+<script>
+  import "@/utils/activity";
+</script>

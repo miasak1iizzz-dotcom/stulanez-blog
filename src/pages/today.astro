@@ -1,0 +1,357 @@
+---
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+---
+
+<MainGridLayout title="今天">
+  <!-- 游客看到的：一句话，别的什么都没有（协议：维护类界面只对站长设备出现） -->
+  <section data-guest-only class="today-guest">
+    <h1 class="text-base font-bold">今天</h1>
+    <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-2">
+      这一页是站长的每日操作台，只有站长设备能看到内容。
+    </p>
+  </section>
+
+  <section data-owner-only class="today-page">
+    <header class="today-head">
+      <h1 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+        今天
+        <span id="today-date" class="text-sm font-normal text-neutral-500 dark:text-neutral-400"></span>
+      </h1>
+      <span class="today-quiet">只存在这台设备上 · 不上传</span>
+    </header>
+
+    <div class="today-stats">
+      <div class="today-stat">
+        <b id="stat-pull">0</b><span>次取图</span>
+      </div>
+      <div class="today-stat">
+        <b id="stat-music">0</b><span>首歌</span>
+      </div>
+      <div class="today-stat">
+        <b id="stat-total">0</b><span>条流水</span>
+      </div>
+    </div>
+
+    <div class="today-card">
+      <label class="today-label" for="draft">动态草稿</label>
+      <textarea
+        id="draft"
+        rows="4"
+        class="today-textarea"
+        placeholder="今天还没在站里做什么。"></textarea>
+      <div class="today-actions">
+        <button id="btn-regen" class="today-btn" type="button">重新生成</button>
+        <button id="btn-copy" class="today-btn" type="button">复制草稿</button>
+        <button id="btn-publish" class="today-btn today-btn-primary" type="button">
+          发布到动态
+        </button>
+        <span id="publish-msg" class="today-msg"></span>
+      </div>
+    </div>
+
+    <div class="today-card">
+      <input
+        id="note-input"
+        class="today-input"
+        type="text"
+        placeholder="记一笔（回车保存）—— 想到什么写什么，不要求成篇" />
+    </div>
+
+    <ol id="timeline" class="today-timeline"></ol>
+
+    <div class="today-foot">
+      <button id="btn-clear" class="today-btn today-btn-danger" type="button">
+        清空今天的流水
+      </button>
+    </div>
+  </section>
+</MainGridLayout>
+
+<style is:global>
+  /* 站长/游客两套视角：默认游客，只有 .is-owner 才露出操作台 */
+  html:not(.is-owner) [data-owner-only] {
+    display: none !important;
+  }
+  html.is-owner [data-guest-only] {
+    display: none !important;
+  }
+</style>
+
+<style>
+  .today-page {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .today-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .today-quiet {
+    font-size: 0.72rem;
+    color: var(--text-secondary, #8a8a92);
+  }
+  .today-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .today-stat {
+    border: 1px solid var(--line-divider, #e6e6ea);
+    border-radius: 1rem;
+    padding: 0.7rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .today-stat b {
+    font-size: 1.35rem;
+    line-height: 1.1;
+    color: var(--primary, #d2678f);
+  }
+  .today-stat span {
+    font-size: 0.72rem;
+    color: var(--text-secondary, #8a8a92);
+  }
+  .today-card {
+    border: 1px solid var(--line-divider, #e6e6ea);
+    border-radius: 1rem;
+    padding: 0.85rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .today-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary, #8a8a92);
+  }
+  .today-textarea,
+  .today-input {
+    width: 100%;
+    border: 1px solid var(--line-divider, #e6e6ea);
+    border-radius: 0.7rem;
+    padding: 0.6rem 0.7rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    background: transparent;
+    color: inherit;
+    resize: vertical;
+  }
+  .today-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .today-btn {
+    border: 1px solid var(--line-divider, #e6e6ea);
+    border-radius: 0.7rem;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: transparent;
+    color: inherit;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .today-btn:hover {
+    border-color: var(--primary, #d2678f);
+    color: var(--primary, #d2678f);
+  }
+  .today-btn-primary {
+    border-color: color-mix(in srgb, var(--primary, #d2678f) 55%, transparent);
+    background: color-mix(in srgb, var(--primary, #d2678f) 14%, transparent);
+    color: var(--primary, #d2678f);
+  }
+  .today-btn-danger:hover {
+    border-color: #d9534f;
+    color: #d9534f;
+  }
+  .today-msg {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #8a8a92);
+  }
+  .today-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line-divider, #e6e6ea);
+  }
+  .today-timeline li {
+    display: flex;
+    gap: 0.7rem;
+    align-items: baseline;
+    padding: 0.45rem 0.15rem;
+    border-bottom: 1px solid var(--line-divider, #e6e6ea);
+    font-size: 0.84rem;
+  }
+  .today-time {
+    flex: none;
+    width: 3.6rem;
+    color: var(--text-secondary, #8a8a92);
+    font-variant-numeric: tabular-nums;
+  }
+  .today-kind {
+    flex: none;
+    font-size: 0.7rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary, #d2678f) 12%, transparent);
+    color: var(--primary, #d2678f);
+  }
+  .today-empty {
+    color: var(--text-secondary, #8a8a92);
+    font-size: 0.84rem;
+    padding: 0.6rem 0.15rem;
+  }
+  .today-foot {
+    display: flex;
+    justify-content: flex-end;
+  }
+</style>
+
+<script>
+  import {
+    activityOfDay,
+    clearActivity,
+    logActivity,
+    summarizeDay,
+    type Activity,
+  } from "@/utils/activity";
+
+  const byId = (id: string): HTMLElement | null => document.getElementById(id);
+
+  const KIND_LABEL: Record<string, string> = {
+    pull: "取图",
+    music: "音乐",
+    note: "记录",
+    dynamic: "动态",
+    tool: "工具",
+  };
+
+  function setText(id: string, value: string): void {
+    const el = byId(id);
+    if (el) el.textContent = value;
+  }
+
+  function render(): void {
+    const events = activityOfDay();
+    const summary = summarizeDay(events);
+
+    const d = new Date();
+    const p = (n: number): string => String(n).padStart(2, "0");
+    setText(
+      "today-date",
+      `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}（${summary.total} 条流水）`,
+    );
+    setText("stat-pull", String(summary.pull));
+    setText("stat-music", String(summary.musicCount));
+    setText("stat-total", String(summary.total));
+
+    const draft = byId("draft") as HTMLTextAreaElement | null;
+    if (draft && !draft.value.trim()) draft.value = summary.draft;
+
+    const timeline = byId("timeline");
+    if (timeline) {
+      timeline.innerHTML = "";
+      if (events.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "today-empty";
+        empty.textContent = "今天还没有流水。用一次取图、听一首歌，这里就会长出来。";
+        timeline.appendChild(empty);
+      } else {
+        for (const a of [...events].reverse()) {
+          const li = document.createElement("li");
+          const t = new Date(a.t);
+          const hh = p(t.getHours());
+          const mm = p(t.getMinutes());
+          const kind = document.createElement("span");
+          kind.className = "today-kind";
+          kind.textContent = KIND_LABEL[a.kind] ?? a.kind;
+          const time = document.createElement("span");
+          time.className = "today-time";
+          time.textContent = `${hh}:${mm}`;
+          const text = document.createElement("span");
+          text.textContent = a.label + (a.detail ? ` · ${a.detail}` : "");
+          li.append(time, kind, text);
+          timeline.appendChild(li);
+        }
+      }
+    }
+  }
+
+  async function copyDraft(): Promise<void> {
+    const draft = byId("draft") as HTMLTextAreaElement | null;
+    const msg = byId("publish-msg");
+    if (!draft) return;
+    try {
+      await navigator.clipboard.writeText(draft.value);
+      if (msg) msg.textContent = "已复制，可以贴到任何地方。";
+    } catch {
+      if (msg) msg.textContent = "复制失败：手动选中复制吧。";
+    }
+  }
+
+  async function publish(): Promise<void> {
+    const draft = byId("draft") as HTMLTextAreaElement | null;
+    const msg = byId("publish-msg");
+    if (!draft || !draft.value.trim()) {
+      if (msg) msg.textContent = "草稿是空的。";
+      return;
+    }
+    if (msg) msg.textContent = "发布中…";
+    try {
+      const payload = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: draft.value }),
+      };
+      // 站点开着 trailingSlash: "always"，两种写法都试一遍，哪种环境都不掉链子
+      let res = await fetch("/api/today/publish/", payload);
+      if (res.status === 404) res = await fetch("/api/today/publish", payload);
+      const data = (await res.json()) as { ok?: boolean; file?: string; error?: string };
+      if (res.ok && data.ok) {
+        logActivity("dynamic", "发了一条动态", data.file ?? "");
+        if (msg) msg.textContent = `已写入 ${data.file}（记得让 AI 提交并推送）`;
+        draft.value = "";
+        render();
+      } else {
+        if (msg) msg.textContent = data.error ?? "发布失败。";
+      }
+    } catch {
+      if (msg) msg.textContent = "发布失败：网络出错。";
+    }
+  }
+
+  byId("btn-regen")?.addEventListener("click", () => {
+    const draft = byId("draft") as HTMLTextAreaElement | null;
+    if (draft) draft.value = summarizeDay(activityOfDay()).draft;
+  });
+  byId("btn-copy")?.addEventListener("click", () => void copyDraft());
+  byId("btn-publish")?.addEventListener("click", () => void publish());
+  byId("btn-clear")?.addEventListener("click", () => {
+    clearActivity();
+    const draft = byId("draft") as HTMLTextAreaElement | null;
+    if (draft) draft.value = "";
+    const msg = byId("publish-msg");
+    if (msg) msg.textContent = "今天的流水已清空。";
+    render();
+  });
+
+  const noteInput = byId("note-input") as HTMLInputElement | null;
+  noteInput?.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key !== "Enter") return;
+    const text = noteInput.value.trim();
+    if (!text) return;
+    logActivity("note", text);
+    noteInput.value = "";
+    render();
+  });
+
+  render();
+  // 页面停在 today 时，别的标签页/组件记的流水也能即时刷新
+  window.addEventListener("stulanez:activity", () => render());
+</script>
