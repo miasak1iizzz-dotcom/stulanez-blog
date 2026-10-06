@@ -5,7 +5,7 @@ description: 站点刚挂到 stulanez.com。这里会慢慢写下代码、生活
 tags: [站点, 开始]
 category: 随笔
 image: /assets/images/posts/hello-stulanez-grok-cover.jpg
-pinned: true
+pinned: false
 draft: false
 slug: hello-stulanez
 ---

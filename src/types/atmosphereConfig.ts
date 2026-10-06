@@ -1,8 +1,3 @@
-export type HitokotoQuote = {
-	text: string;
-	author?: string;
-};
-
 export type TimeProgressMilestone = {
 	name: string;
 	date: string; // YYYY-MM-DD
@@ -24,9 +19,6 @@ export type SplashBanner = {
 };
 
 export type AtmosphereConfig = {
-	hitokoto: {
-		quotes: HitokotoQuote[];
-	};
 	timeProgress: {
 		milestones: TimeProgressMilestone[];
 	};

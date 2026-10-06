@@ -1,35 +1,16 @@
 ---
-// 首页卡片质感增强：让卡片"用料丰富但克制高级"，替代之前的卡通贴纸方案。
-// 全在组件内全局样式，作用域 body.is-home，主题色联动 var(--primary)。
+// 全站卡片统一质感：让所有 .card-base 卡片（文章卡 + 侧栏全部 widget：
+// 头像/公告/音乐/在看/统计/信息/日历/时间进度）都有一层"用料丰富但克制高级"的质感。
+// 作用域为全局 .card-base（不算入 body.is-home，全站生效）。
+// 用 --primary 主题联动，亮/暗色自适应；不影响 .card-base-transparent（壁纸半透明模式）。
 ---
 
 <style is:global>
 	/* ============================================================
-	 * 首页背景：极浅主题色氛围 + 柔和光晕（多背景层，不碍内容）
+	 * 全站卡片统一质感层：细腻主题渐变底 + 顶部玻璃高光 + 角部氛围 + 细网格材质
+	 * 只在有 card-base 的卡片生效；淡色、不遮挡内容。
 	 * ============================================================ */
-	body.is-home {
-		background-color: var(--page-bg);
-		background-image:
-			radial-gradient(
-				54% 44% at 18% 10%,
-				color-mix(in oklch, var(--primary) 12%, transparent),
-				transparent 55%
-			),
-			radial-gradient(
-				48% 42% at 86% 84%,
-				color-mix(in oklch, var(--primary) 9%, transparent),
-				transparent 60%
-			);
-		background-repeat: no-repeat, no-repeat;
-		background-size: 100% 100%, 100% 100%;
-		background-attachment: scroll, scroll;
-	}
-
-	/* ============================================================
-	 * 首页卡片（文章列表 + 侧栏块）：统一的高级质感
-	 * 层：顶部玻璃高光 + 细腻主题渐变底 + 角部氛围光 + 细腻噪点网格
-	 * ============================================================ */
-	body.is-home :is(.post-card-wrapper, widget-layout).card-base {
+	.card-base {
 		position: relative;
 		overflow: hidden;
 		background:
@@ -41,32 +22,32 @@
 			);
 		box-shadow:
 			0 1px 2px rgba(0, 0, 0, 0.04),
-			0 8px 24px -12px color-mix(in oklch, var(--primary) 18%, transparent);
-		border: 1px solid color-mix(in oklch, var(--line-divider) 90%, var(--primary) 4%);
+			0 10px 28px -16px color-mix(in oklch, var(--primary) 20%, transparent);
+		border: 1px solid color-mix(in oklch, var(--line-divider) 88%, var(--primary) 4%);
 	}
 
-	/* 顶部玻璃高光 */
-	body.is-home :is(.post-card-wrapper, widget-layout).card-base::before {
+	/* 顶部玻璃高光 + 底部微氛围 */
+	.card-base::before {
 		content: "";
 		position: absolute;
 		inset: 0;
 		pointer-events: none;
+		z-index: 0;
 		background:
 			linear-gradient(
 				180deg,
 				color-mix(in oklch, var(--primary) 9%, transparent) 0%,
-				transparent 38%
+				transparent 36%
 			),
 			linear-gradient(
 				0deg,
 				color-mix(in oklch, var(--primary) 4%, transparent) 0%,
-				transparent 30%
+				transparent 28%
 			);
-		z-index: 0;
 	}
 
-	/* 细网格材质（极浅，只在 hover 时明显一点） */
-	body.is-home :is(.post-card-wrapper, widget-layout).card-base::after {
+	/* 细网格材质（左上到中衰减，hover 时增强） */
+	.card-base::after {
 		content: "";
 		position: absolute;
 		inset: 0;
@@ -77,39 +58,68 @@
 			transparent 1px
 		);
 		background-size: 22px 22px;
-		-mask-image: radial-gradient(120% 120% at 20% 0%, black 0%, transparent 58%);
-		-webkit-mask-image: radial-gradient(120% 120% at 20% 0%, black 0%, transparent 58%);
-		opacity: 0.5;
+		-webkit-mask-image: radial-gradient(130% 130% at 18% 0%, #000 0%, transparent 60%);
+		mask-image: radial-gradient(130% 130% at 18% 0%, #000 0%, transparent 60%);
+		opacity: 0.45;
 		transition: opacity 0.3s ease;
 	}
 
 	/* 卡片内容提升到纹理之上 */
-	body.is-home :is(.post-card-wrapper, widget-layout).card-base > * {
+	.card-base > * {
 		position: relative;
 		z-index: 1;
 	}
 
-	/* hover 轻微提亮 + 顶部高光更明显 */
-	body.is-home :is(.post-card-wrapper, widget-layout).card-base:hover {
+	/* hover 轻微提亮 */
+	.card-base:hover {
 		box-shadow:
 			0 2px 4px rgba(0, 0, 0, 0.05),
-			0 20px 40px -20px color-mix(in oklch, var(--primary) 30%, transparent);
+			0 22px 44px -22px color-mix(in oklch, var(--primary) 32%, transparent);
 	}
-	body.is-home :is(.post-card-wrapper, widget-layout).card-base:hover::before {
+	.card-base:hover::before {
 		background:
 			linear-gradient(
 				180deg,
 				color-mix(in oklch, var(--primary) 13%, transparent) 0%,
-				transparent 44%
+				transparent 42%
 			),
 			linear-gradient(
 				0deg,
 				color-mix(in oklch, var(--primary) 5%, transparent) 0%,
-				transparent 30%
+				transparent 28%
 			);
 	}
-	body.is-home :is(.post-card-wrapper, widget-layout).card-base:hover::after {
+	.card-base:hover::after {
 		opacity: 0.8;
+	}
+
+	/* ============================================================
+	 * 全站页面背景：极浅主题色氛围光晕（body.is-home 之外的页面同样受益）
+	 * ============================================================ */
+	body {
+		background-color: var(--page-bg);
+		background-image:
+			radial-gradient(
+				54% 44% at 18% 10%,
+				color-mix(in oklch, var(--primary) 10%, transparent),
+				transparent 55%
+			),
+			radial-gradient(
+				48% 42% at 86% 84%,
+				color-mix(in oklch, var(--primary) 8%, transparent),
+				transparent 60%
+			);
+		background-repeat: no-repeat, no-repeat;
+		background-size: 100% 100%, 100% 100%;
+		background-attachment: scroll, scroll;
+	}
+
+	/* 壁纸半透明 / banner 全屏模式下的透明卡片：不叠加渐变，避免糊 */
+	.card-base-transparent,
+	.wallpaper-transparent .card-base {
+		background-color: var(--card-bg-transparent) !important;
+		background-image: none;
+		box-shadow: none;
 	}
 </style>
 

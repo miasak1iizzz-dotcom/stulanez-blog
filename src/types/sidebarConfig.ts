@@ -11,7 +11,6 @@ export type WidgetComponentType =
 	| "music"
 	| "siteInfo"
 	| "dynamic"
-	| "hitokoto"
 	| "clock"
 	| "timeProgress";
 

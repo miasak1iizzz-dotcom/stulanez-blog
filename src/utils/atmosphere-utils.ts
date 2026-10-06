@@ -1,7 +1,4 @@
-import type {
-	HitokotoQuote,
-	TimeProgressMilestone,
-} from "../types/atmosphereConfig";
+import type { TimeProgressMilestone } from "../types/atmosphereConfig";
 
 export type ZonedDateParts = {
 	year: number;
@@ -118,21 +115,6 @@ export function getZonedDateKey(date: Date, timeZone: string): string {
 	const month = String(parts.month).padStart(2, "0");
 	const day = String(parts.day).padStart(2, "0");
 	return `${parts.year}-${month}-${day}`;
-}
-
-export function pickDailyQuote(
-	quotes: HitokotoQuote[],
-	date: Date,
-	timeZone: string,
-): HitokotoQuote | null {
-	if (quotes.length === 0) {
-		return null;
-	}
-	const parts = getZonedDateParts(date, timeZone);
-	const start = zonedLocalToDate(parts.year, 1, 1, 0, 0, 0, timeZone);
-	const dayOfYear = Math.floor((date.getTime() - start.getTime()) / 86_400_000);
-	const index = ((dayOfYear % quotes.length) + quotes.length) % quotes.length;
-	return quotes[index] ?? quotes[0];
 }
 
 function clampPercent(value: number): number {
