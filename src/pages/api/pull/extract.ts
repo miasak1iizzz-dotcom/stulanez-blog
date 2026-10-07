@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
+import { readCachedPull, writeCachedPull } from "@/server/pull-cache";
 import { extractPull } from "@/utils/pull";
+import { pullCacheKey } from "@/utils/pull/cacheKey";
 import type { PullChannelId, PullResult, PullSuccess } from "@/utils/pull/types";
 
 export const prerender = false;
@@ -81,15 +83,36 @@ async function extractWithRetry(
 		await sleep(RETRY_DELAYS_MS[attempt - 1] ?? 2_000);
 	}
 
-	if (best) {
-		return best.images.length > 1 ? best : withThinWarning(best);
+	if (best && best.images.length > 1) {
+		// 抽到全量就记到服务端：下次这条帖子再遇到风控，还能拿出全量
+		void writeCachedPull(pullCacheKey(input), best);
+		return best;
 	}
+
+	// 没抽到好的：看看服务端有没有这条帖子以前成功过的结果
+	const cached = await readCachedPull(pullCacheKey(input));
+	if (cached) {
+		return {
+			...cached.result,
+			warning: `渠道现在可能在风控（这次只抽到 ${best ? best.images.length : 0} 张）。下面这 ${cached.result.images.length} 张是 ${ageText(cached.ts)}抽到的全量，先给你；再点一次「提取图片」可以重新抽。`,
+		};
+	}
+
+	if (best) return withThinWarning(best);
 	return (
 		firstFailure ?? {
 			ok: false,
 			error: "提取失败。链接失效、要登录，或渠道改了页面。",
 		}
 	);
+}
+
+/** 「3 分钟前 / 2 小时前 / 5 天前」 */
+function ageText(ts: number): string {
+	const age = Date.now() - ts;
+	if (age < 3_600_000) return `${Math.max(1, Math.round(age / 60_000))} 分钟前`;
+	if (age < 86_400_000) return `${Math.round(age / 3_600_000)} 小时前`;
+	return `${Math.round(age / 86_400_000)} 天前`;
 }
 
 export const POST: APIRoute = async ({ request }) => {

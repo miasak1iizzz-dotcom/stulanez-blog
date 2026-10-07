@@ -40,6 +40,11 @@ function stableExpires(): number {
 	return end - now;
 }
 
+/** 其它服务端模块（如 pull-cache）复用同一个客户端与同一套环境变量解析 */
+export function getOssClient(): OSS | null {
+	return ossClient();
+}
+
 export function isAllowedOssKey(key: string): boolean {
 	const clean = key.replace(/^\/+/, "").replace(/\.\./g, "");
 	return ALLOWED.test(clean);

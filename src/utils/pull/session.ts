@@ -1,3 +1,4 @@
+import { pullCacheKey } from "@/utils/pull/cacheKey";
 import type { PullSuccess } from "@/utils/pull/types";
 
 const KEY = "pull-browse-session";
@@ -39,6 +40,9 @@ export function clearPullSession(): void {
  * 抽取结果的持久缓存：同一帖子的链接再点一次，直接用上次抽好的结果，
  * 不再跟抖音风控赌运气。
  *
+ * 键用 `pullCacheKey()` 归一化（帖子 id），所以网页链接、短链、App 口令
+ * 只要指向同一条帖子就命中同一条缓存——按原始 URL 存的话，链接形态一变就落空。
+ *
  * 两种保鲜期：
  *  - ≥2 张的多图结果 → 7 天（基本可以确定是好的）
  *  - 只有 1 张的结果 → 30 分钟。单图**可能**是被风控打残的残次品，也可能是
@@ -52,7 +56,7 @@ const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 /** 单图结果的短保鲜期 */
 const CACHE_THIN_MAX_AGE_MS = 30 * 60 * 1000;
 
-type PullCacheEntry = { url: string; result: PullSuccess; ts: number };
+type PullCacheEntry = { key: string; result: PullSuccess; ts: number };
 
 function readPullCache(): PullCacheEntry[] {
 	try {
@@ -63,7 +67,7 @@ function readPullCache(): PullCacheEntry[] {
 		return list.filter(
 			(e) =>
 				e &&
-				typeof e.url === "string" &&
+				typeof e.key === "string" &&
 				e.result?.ok &&
 				Array.isArray(e.result.images) &&
 				e.result.images.length >= 1,
@@ -86,15 +90,19 @@ function writePullCache(list: PullCacheEntry[]): void {
 
 export function savePullCache(url: string, result: PullSuccess): void {
 	if (!result?.ok || !result.images?.length) return;
-	const list = readPullCache().filter((entry) => entry.url !== url);
-	list.unshift({ url, result, ts: Date.now() });
+	const key = pullCacheKey(url);
+	if (!key) return;
+	const list = readPullCache().filter((entry) => entry.key !== key);
+	list.unshift({ key, result, ts: Date.now() });
 	writePullCache(list);
 }
 
 export function loadPullCache(
 	url: string,
 ): { result: PullSuccess; ts: number } | null {
-	const hit = readPullCache().find((entry) => entry.url === url);
+	const key = pullCacheKey(url);
+	if (!key) return null;
+	const hit = readPullCache().find((entry) => entry.key === key);
 	if (!hit) return null;
 	const ttl =
 		hit.result.images.length >= 2 ? CACHE_MAX_AGE_MS : CACHE_THIN_MAX_AGE_MS;
