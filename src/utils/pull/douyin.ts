@@ -1,3 +1,4 @@
+import { assetKeywordHit } from "./hosts";
 import { fetchJson, fetchText } from "./http";
 import {
 	collectHttpUrls,
@@ -23,16 +24,22 @@ function awemeId(url: string): string | null {
 
 function keepDouyinPic(url: string): boolean {
 	if (!/douyinpic\.com/i.test(url)) return false;
-	if (/avatar|aweme-avatar|emoji|forum|pwa/i.test(url)) return false;
 	// Comment / related-card thumbs leak in via page HTML (biz_tag=aweme_comment).
 	if (/biz_tag=aweme_comment/i.test(url)) return false;
 	if (/[?&]sc=thumb(?:&|$)/i.test(url)) return false;
 	if (/tplv-p14lwwcsbr/i.test(url)) return false;
-	return true;
+	// Avatar/emoji/PWA assets, matched per path segment — the old whole-URL scan
+	// dropped album images whose object id merely contains "pwa" (e.g. …B8PwA5…).
+	return !assetKeywordHit(url);
 }
 
 function picObjectId(url: string): string {
-	return /\/(o[A-Za-z0-9_-]{8,})~/.exec(url)?.[1] || url.split("?")[0] || url;
+	const hit = /\/(o[A-Za-z0-9_-]{8,})~/.exec(url)?.[1];
+	if (hit) return hit;
+	// No object id in the URL (video covers, image-cut-tos-priv files): use the
+	// path without host so p3/p9 CDN mirrors dedupe to a single entry.
+	const path = url.split(/[?#]/)[0] ?? url;
+	return path.replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]+/i, "") || path;
 }
 
 /** Higher = cleaner. Display/SEO templates bake in the 抖音号 overlay. */
@@ -253,14 +260,12 @@ async function resolveShare(
 
 function awemeIdOf(value: Record<string, unknown>): string | null {
 	const raw = value.aweme_id ?? value.awemeId ?? value.itemId ?? value.item_id;
-	return typeof raw === "string" || typeof raw === "number" ? String(raw) : null;
+	return typeof raw === "string" || typeof raw === "number"
+		? String(raw)
+		: null;
 }
 
-function findAweme(
-	value: unknown,
-	id: string,
-	depth = 0,
-): AwemeDetail | null {
+function findAweme(value: unknown, id: string, depth = 0): AwemeDetail | null {
 	if (depth > 14 || value == null) return null;
 	if (Array.isArray(value)) {
 		for (const item of value) {
@@ -307,6 +312,29 @@ function collectFromHtml(html: string, id?: string | null): string[] {
 
 const BINGBOT_UA =
 	"Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)";
+
+/**
+ * The detail API sits behind Douyin's WAF, which flaps per bot UA: Bingbot
+ * gets 403 "Uifid Not Found" while Googlebot passes (and vice versa). Rotate
+ * across attempts and remember which UA last worked.
+ */
+const DETAIL_BOT_UAS = [CRAWLER_UA, BINGBOT_UA];
+let lastGoodDetailUa: string | null = null;
+
+function detailUaSequence(attempts: number): string[] {
+	const pool = lastGoodDetailUa
+		? [
+				lastGoodDetailUa,
+				...DETAIL_BOT_UAS.filter((ua) => ua !== lastGoodDetailUa),
+			]
+		: [...DETAIL_BOT_UAS];
+	const out: string[] = [];
+	for (let i = 0; i < attempts; i++) {
+		const ua = pool[i % pool.length];
+		if (ua) out.push(ua);
+	}
+	return out;
+}
 
 function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -421,11 +449,12 @@ async function fetchAwemeDetail(
 	attempts = 3,
 ): Promise<AwemeDetail | null> {
 	const detailUrl = `https://www.douyin.com/aweme/v1/web/aweme/detail/?aweme_id=${encodeURIComponent(id)}&aid=6383&device_platform=webapp`;
-	for (let attempt = 0; attempt < attempts; attempt++) {
+	const uas = detailUaSequence(attempts);
+	for (const ua of uas) {
 		const got = await fetchText(detailUrl, {
 			timeoutMs: 10000,
 			headers: {
-				"User-Agent": BINGBOT_UA,
+				"User-Agent": ua,
 				Referer: "https://www.douyin.com/",
 				Accept: "application/json,text/plain,*/*",
 			},
@@ -435,7 +464,10 @@ async function fetchAwemeDetail(
 				aweme_detail?: AwemeDetail;
 				status_code?: number;
 			};
-			if (payload.aweme_detail) return payload.aweme_detail;
+			if (payload.aweme_detail) {
+				lastGoodDetailUa = ua;
+				return payload.aweme_detail;
+			}
 		} catch {
 			/* retry */
 		}
