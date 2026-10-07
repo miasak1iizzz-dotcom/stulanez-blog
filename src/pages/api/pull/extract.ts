@@ -1,5 +1,9 @@
 import type { APIRoute } from "astro";
-import { readCachedPull, writeCachedPull } from "@/server/pull-cache";
+import {
+	pullCacheDiagnostics,
+	readCachedPull,
+	writeCachedPull,
+} from "@/server/pull-cache";
 import { extractPull } from "@/utils/pull";
 import { pullCacheKey } from "@/utils/pull/cacheKey";
 import type { PullChannelId, PullResult, PullSuccess } from "@/utils/pull/types";
@@ -115,6 +119,12 @@ function ageText(ts: number): string {
 	return `${Math.round(age / 86_400_000)} 天前`;
 }
 
+/** 带 debug 时，把缓存诊断一起回给站长（平时不出现，游客看不到） */
+function withDebug(result: PullResult, debug: boolean): unknown {
+	if (!debug) return result;
+	return { ...result, _cache: pullCacheDiagnostics() };
+}
+
 export const POST: APIRoute = async ({ request }) => {
 	let body: unknown;
 	try {
@@ -125,7 +135,7 @@ export const POST: APIRoute = async ({ request }) => {
 	if (!body || typeof body !== "object") {
 		return json({ ok: false, error: "请求内容不对。" }, 400);
 	}
-	const rec = body as { url?: unknown; channel?: unknown };
+	const rec = body as { url?: unknown; channel?: unknown; debug?: unknown };
 	const url = typeof rec.url === "string" ? rec.url : "";
 	const channel =
 		typeof rec.channel === "string" && CHANNELS.has(rec.channel as PullChannelId)
@@ -133,7 +143,7 @@ export const POST: APIRoute = async ({ request }) => {
 			: undefined;
 	if (!url.trim()) return json({ ok: false, error: "请先贴一条链接。" }, 400);
 	const result = await extractWithRetry(url, channel);
-	return json(result, result.ok ? 200 : 422);
+	return json(withDebug(result, rec.debug === true), result.ok ? 200 : 422);
 };
 
 export const GET: APIRoute = async ({ url }) => {
@@ -144,5 +154,6 @@ export const GET: APIRoute = async ({ url }) => {
 		: undefined;
 	if (!target.trim()) return json({ ok: false, error: "请先贴一条链接。" }, 400);
 	const result = await extractWithRetry(target, channel);
-	return json(result, result.ok ? 200 : 422);
+	const debug = url.searchParams.get("debug") === "1";
+	return json(withDebug(result, debug), result.ok ? 200 : 422);
 };

@@ -15,6 +15,16 @@ import type { PullSuccess } from "@/utils/pull/types";
 const PREFIX = "pull-cache/";
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 天
 
+/** 最近一次缓存操作的错误（只在请求带 debug 时回给站长看，用来诊断线上到底卡在哪） */
+let lastError: string | null = null;
+
+export function pullCacheDiagnostics(): {
+	hasClient: boolean;
+	lastError: string | null;
+} {
+	return { hasClient: getOssClient() !== null, lastError };
+}
+
 function ossClient(): OSS | null {
 	return getOssClient();
 }
@@ -30,16 +40,28 @@ export type CachedPull = { result: PullSuccess; ts: number };
 export async function readCachedPull(key: string): Promise<CachedPull | null> {
 	if (!key) return null;
 	const oss = ossClient();
-	if (!oss) return null;
+	if (!oss) {
+		lastError = "no-oss-client";
+		return null;
+	}
 	try {
 		const got = await oss.get(objectKey(key), { timeout: 5000 });
 		const raw = got.content.toString("utf8");
 		const parsed = JSON.parse(raw) as CachedPull;
-		if (!parsed?.result?.ok || !parsed.result.images?.length) return null;
-		if (Date.now() - parsed.ts > MAX_AGE_MS) return null;
+		if (!parsed?.result?.ok || !parsed.result.images?.length) {
+			lastError = "bad-payload";
+			return null;
+		}
+		if (Date.now() - parsed.ts > MAX_AGE_MS) {
+			lastError = "expired";
+			return null;
+		}
+		lastError = null;
 		return parsed;
-	} catch {
-		return null; // 不存在、超时、解析失败都当作没有缓存
+	} catch (error) {
+		// 不存在、超时、解析失败都当作没有缓存，但要记下原因供 debug 查看
+		lastError = error instanceof Error ? error.message : String(error);
+		return null;
 	}
 }
 
