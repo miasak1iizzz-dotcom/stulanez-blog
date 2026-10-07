@@ -128,6 +128,18 @@ function toggle(url: string): void {
 	selected = { ...selected, [url]: !selected[url] };
 }
 
+// 代理偶发 502/超时会让 <img> 永久裂掉，浏览器不会自己重试——裂了自动重拉一次。
+const retriedSrcs = new Set<string>();
+function retryBrokenImage(event: Event): void {
+	const img = event.currentTarget as HTMLImageElement | null;
+	if (!img) return;
+	const src = img.getAttribute("src") || "";
+	if (!src.includes("/api/pull/file/") || src.includes("&r=")) return;
+	if (retriedSrcs.has(src)) return;
+	retriedSrcs.add(src);
+	img.src = `${src}&r=${Date.now()}`;
+}
+
 function pickAllPage(): void {
 	const next = { ...selected };
 	for (const image of pageImages) next[image.url] = true;
@@ -605,6 +617,7 @@ async function runDownload(): Promise<void> {
 					alt={`图 ${index + 1}`}
 					loading="lazy"
 					draggable="false"
+					onerror={retryBrokenImage}
 				/>
 			</button>
 			<footer>
