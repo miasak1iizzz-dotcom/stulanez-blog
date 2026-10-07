@@ -1,12 +1,13 @@
 ﻿import { defineMiddleware } from "astro:middleware";
+import type { MiddlewareHandler } from "astro";
 
 /**
- * 生产环境把内部 /lab/* 一律 404：抖音下载名单、图库清理监控等属于本地内部工具，
+ * 生产环境把内部 /lab/* 一律 404：抖音下载名单等属于本地内部工具，
  * 老板明确「成熟前留在线下」。本地 dev(import.meta.env.PROD === false)不受影响。
- * 说明：lab 页分两种——SSR(douyin-roster)由服务函数跑，middleware 能拦住；
- * 纯静态页(cleanup-monitor)由构建后 hide-lab-pages.mjs 删掉 dist/lab 兜底。两条一起保证公网 404。
+ * 说明：lab 页（抖音下载名单）由服务函数跑，middleware 能拦住；
+ * 构建后 hide-lab-pages.mjs 再删掉 dist/lab 兜底。两条一起保证公网 404。
  */
-export const onRequest = defineMiddleware((context, next) => {
+export const onRequest: MiddlewareHandler = defineMiddleware((context, next) => {
 	if (import.meta.env.PROD && context.url.pathname.startsWith("/lab/")) {
 		return new Response(null, { status: 404 });
 	}

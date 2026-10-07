@@ -257,10 +257,7 @@ export default defineConfig({
 				const url = new URL(page);
 				const pathname = url.pathname;
 				// 内部实验室面板不进入公开站点地图。
-				if (
-					pathname.startsWith("/lab/douyin-roster") ||
-					pathname.startsWith("/lab/cleanup-monitor")
-				) {
+				if (pathname.startsWith("/lab/douyin-roster")) {
 					return false;
 				}
 				// 根据页面开关配置过滤sitemap
@@ -383,8 +380,6 @@ export default defineConfig({
 					"**/package/**",
 					"**/Firefly-docs/**",
 					"**/.ai-work/**",
-					"**/Serpent/**",
-					"**/资源库/**",
 					"**/素材/**",
 					"**/.wrangler/**",
 					"**/_blog_scan/**",
