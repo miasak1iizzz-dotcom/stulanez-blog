@@ -602,7 +602,8 @@ export async function extractDouyin(input: string): Promise<PullResult> {
 		}
 		return {
 			ok: false,
-			error: "抖音这边没有把图给我。国外节点有时会抽空，再点一次提取通常就行。",
+			error:
+				"抖音这边没有把图给我。先确认帖子还在不在——已被删除或设为仅自己可见的帖子是抽不到的；如果帖子还在，多半是国外节点抽空，再点一次提取通常就行。",
 		};
 	}
 
