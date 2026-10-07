@@ -27,10 +27,12 @@ function json(data: unknown, status = 200): Response {
 	});
 }
 
-/** 抽到的图 ≤1 张时，把话跟用户说清楚（多数是渠道风控） */
+/** 抽到的图 ≤1 张时，把话跟用户说清楚——但别覆盖抽取层更具体的提示 */
 function withThinWarning(result: PullSuccess): PullSuccess {
 	const count = result.images.length;
 	if (count > 1) return result;
+	// 抽取层（如 douyin.ts）往往已经给了更贴切的话，那句留着
+	if (result.warning) return result;
 	return {
 		...result,
 		warning:
