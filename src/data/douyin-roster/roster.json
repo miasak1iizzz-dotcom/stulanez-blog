@@ -7,8 +7,7 @@
 		"orientation": "portrait-wallpaper"
 	},
 	"source": {
-		"memberList": ".ai-work/kpop-member-ig.json",
-		"library": "E:/AI/Serpent/资源库/kpop"
+		"memberList": ".ai-work/kpop-member-ig.json"
 	},
 	"stats": {
 		"groups": 38,
@@ -34,8 +33,7 @@
 					"ig": "sooyaaa__",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Jisoo.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Jisoo.webp"
 				},
 				{
 					"id": "member:BLACKPINK:Jennie",
@@ -45,8 +43,7 @@
 					"ig": "jennierubyjane",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Jennie.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Jennie.webp"
 				},
 				{
 					"id": "member:BLACKPINK:Rose",
@@ -56,8 +53,7 @@
 					"ig": "roses_are_rosie",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Rose.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Rose.webp"
 				},
 				{
 					"id": "member:BLACKPINK:Lisa",
@@ -67,8 +63,7 @@
 					"ig": "lalalalisa_m",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Lisa.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BLACKPINK/Lisa.webp"
 				}
 			]
 		},
@@ -88,8 +83,7 @@
 					"ig": "katarinabluu",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/aespa/Karina2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/aespa/Karina2.webp"
 				},
 				{
 					"id": "member:aespa:giselle",
@@ -99,8 +93,7 @@
 					"ig": "aerichandesu",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/aespa/giselle.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/aespa/giselle.webp"
 				},
 				{
 					"id": "member:aespa:winter",
@@ -110,8 +103,7 @@
 					"ig": "imwinter",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/aespa/winter.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/aespa/winter.webp"
 				},
 				{
 					"id": "member:aespa:ningning",
@@ -121,8 +113,7 @@
 					"ig": "imnotningning",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/aespa/ningning.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/aespa/ningning.webp"
 				}
 			]
 		},
@@ -142,8 +133,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NewJeans:Hanni",
@@ -153,8 +143,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NewJeans:Haerin2",
@@ -164,8 +153,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NewJeans:Hyein4",
@@ -175,8 +163,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NewJeans:Danielle",
@@ -186,8 +173,7 @@
 					"ig": "dazzibelle",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/NewJeans/Danielle.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/NewJeans/Danielle.webp"
 				}
 			]
 		},
@@ -207,8 +193,7 @@
 					"ig": "fallingin__fall",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/IVE/Gaeul5.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Gaeul5.webp"
 				},
 				{
 					"id": "member:IVE:Yujin3",
@@ -218,8 +203,7 @@
 					"ig": "_yujin_an",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/IVE/Yujin3.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Yujin3.webp"
 				},
 				{
 					"id": "member:IVE:Rei2",
@@ -229,8 +213,7 @@
 					"ig": "reinyourheart",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/IVE/Rei2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Rei2.webp"
 				},
 				{
 					"id": "member:IVE:Wonyoung",
@@ -240,8 +223,7 @@
 					"ig": "for_everyoung10",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/IVE/Wonyoung.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Wonyoung.webp"
 				},
 				{
 					"id": "member:IVE:Liz2",
@@ -251,8 +233,7 @@
 					"ig": "liz.yeyo",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/IVE/Liz2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Liz2.webp"
 				},
 				{
 					"id": "member:IVE:Leeseo",
@@ -262,8 +243,7 @@
 					"ig": "eeseooes",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/IVE/Leeseo.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/IVE/Leeseo.webp"
 				}
 			]
 		},
@@ -283,8 +263,7 @@
 					"ig": "39saku_chan",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Sakura.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Sakura.webp"
 				},
 				{
 					"id": "member:LE SSERAFIM:Kim-Chaewon",
@@ -294,8 +273,7 @@
 					"ig": "_chaechae_1",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Kim-Chaewon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Kim-Chaewon.webp"
 				},
 				{
 					"id": "member:LE SSERAFIM:Huh-Yunjin",
@@ -305,8 +283,7 @@
 					"ig": "jenaissante",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Huh-Yunjin.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Huh-Yunjin.webp"
 				},
 				{
 					"id": "member:LE SSERAFIM:Kazuha",
@@ -316,8 +293,7 @@
 					"ig": "zuhazana",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Kazuha.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Kazuha.webp"
 				},
 				{
 					"id": "member:LE SSERAFIM:Hong-Eunchae",
@@ -327,8 +303,7 @@
 					"ig": "hhh.e_c.v",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Hong-Eunchae.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/LE-SSERAFIM/Hong-Eunchae.webp"
 				}
 			]
 		},
@@ -348,8 +323,7 @@
 					"ig": "nayeonyny",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Nayeon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Nayeon.webp"
 				},
 				{
 					"id": "member:TWICE:Jeongyeon",
@@ -359,8 +333,7 @@
 					"ig": "jy_piece",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Jeongyeon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Jeongyeon.webp"
 				},
 				{
 					"id": "member:TWICE:Momo",
@@ -370,8 +343,7 @@
 					"ig": "momo",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Momo.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Momo.webp"
 				},
 				{
 					"id": "member:TWICE:Sana",
@@ -381,8 +353,7 @@
 					"ig": "m.by__sana",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Sana.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Sana.webp"
 				},
 				{
 					"id": "member:TWICE:Jihyo",
@@ -392,8 +363,7 @@
 					"ig": "_zyozyo",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Jihyo.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Jihyo.webp"
 				},
 				{
 					"id": "member:TWICE:Mina2",
@@ -403,8 +373,7 @@
 					"ig": "mina_sr_my",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Mina2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Mina2.webp"
 				},
 				{
 					"id": "member:TWICE:Dahyun",
@@ -414,8 +383,7 @@
 					"ig": "dahhyunnee",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Dahyun.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Dahyun.webp"
 				},
 				{
 					"id": "member:TWICE:Chaeyoung",
@@ -425,8 +393,7 @@
 					"ig": "chaeyo.0",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Chaeyoung.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Chaeyoung.webp"
 				},
 				{
 					"id": "member:TWICE:Tzuyu",
@@ -436,8 +403,7 @@
 					"ig": "thinkaboutzu",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Tzuyu.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/TWICE/Tzuyu.webp"
 				}
 			]
 		},
@@ -457,8 +423,7 @@
 					"ig": "yezyizhere",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Yeji.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Yeji.webp"
 				},
 				{
 					"id": "member:ITZY:Lia",
@@ -468,8 +433,7 @@
 					"ig": "lia_loves___",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Lia.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Lia.webp"
 				},
 				{
 					"id": "member:ITZY:Ryujin",
@@ -479,8 +443,7 @@
 					"ig": "iamfinethankyouandryu",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Ryujin.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Ryujin.webp"
 				},
 				{
 					"id": "member:ITZY:Chaeryeong",
@@ -490,8 +453,7 @@
 					"ig": "chaerrry0",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Chaeryeong.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Chaeryeong.webp"
 				},
 				{
 					"id": "member:ITZY:Yuna3",
@@ -501,8 +463,7 @@
 					"ig": "igotyuandme",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Yuna3.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ITZY/Yuna3.webp"
 				}
 			]
 		},
@@ -522,8 +483,7 @@
 					"ig": "renebaebae",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Irene.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Irene.webp"
 				},
 				{
 					"id": "member:Red Velvet:Seulgi",
@@ -533,8 +493,7 @@
 					"ig": "hi_sseulgi",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Seulgi.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Seulgi.webp"
 				},
 				{
 					"id": "member:Red Velvet:Wendy",
@@ -544,8 +503,7 @@
 					"ig": "todayis_wendy",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Wendy.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Wendy.webp"
 				},
 				{
 					"id": "member:Red Velvet:Joy",
@@ -555,8 +513,7 @@
 					"ig": "_imyour_joy",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Joy.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Joy.webp"
 				},
 				{
 					"id": "member:Red Velvet:Yeri",
@@ -566,8 +523,7 @@
 					"ig": "yerimiese",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Yeri.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Red-Velvet/Yeri.webp"
 				}
 			]
 		},
@@ -587,8 +543,7 @@
 					"ig": "noodle.zip",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Miyeon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Miyeon.webp"
 				},
 				{
 					"id": "member:(G)I-DLE:Minnie",
@@ -598,8 +553,7 @@
 					"ig": "min.nicha",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Minnie.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Minnie.webp"
 				},
 				{
 					"id": "member:(G)I-DLE:Soyeon3",
@@ -609,8 +563,7 @@
 					"ig": "tiny.pretty.j",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Soyeon3.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Soyeon3.webp"
 				},
 				{
 					"id": "member:(G)I-DLE:Yuqi",
@@ -620,8 +573,7 @@
 					"ig": "yuqisong.923",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Yuqi.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Yuqi.webp"
 				},
 				{
 					"id": "member:(G)I-DLE:Shuhua",
@@ -631,8 +583,7 @@
 					"ig": "yeh.shaa_",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Shuhua.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/i-dle/Shuhua.webp"
 				}
 			]
 		},
@@ -652,8 +603,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NMIXX:Haewon2",
@@ -663,8 +613,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NMIXX:Sullyoon",
@@ -674,8 +623,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NMIXX:Bae",
@@ -685,8 +633,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NMIXX:Jiwoo8",
@@ -696,8 +643,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NMIXX:Kyujin",
@@ -707,8 +653,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:NMIXX:Jini4",
@@ -718,8 +663,7 @@
 					"ig": "jiniyxxn",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/NMIXX/Jini4.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/NMIXX/Jini4.webp"
 				}
 			]
 		},
@@ -739,8 +683,7 @@
 					"ig": "baesuminiee",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Sumin4.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Sumin4.webp"
 				},
 				{
 					"id": "member:STAYC:Sieun2",
@@ -750,8 +693,7 @@
 					"ig": "hermesieunn",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Sieun2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Sieun2.webp"
 				},
 				{
 					"id": "member:STAYC:Isa",
@@ -761,8 +703,7 @@
 					"ig": "isamovingon",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Isa.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Isa.webp"
 				},
 				{
 					"id": "member:STAYC:Seeun",
@@ -772,8 +713,7 @@
 					"ig": "i.m.princesseun",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Seeun.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Seeun.webp"
 				},
 				{
 					"id": "member:STAYC:Yoon2",
@@ -783,8 +723,7 @@
 					"ig": "yoon_nxxy",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Yoon2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/Yoon2.webp"
 				},
 				{
 					"id": "member:STAYC:J3",
@@ -794,8 +733,7 @@
 					"ig": "jang.j_2",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/STAYC/J3.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/STAYC/J3.webp"
 				}
 			]
 		},
@@ -815,8 +753,7 @@
 					"ig": "utokki_u",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Yujin.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Yujin.webp"
 				},
 				{
 					"id": "member:Kep1er:Xiaoting",
@@ -826,8 +763,7 @@
 					"ig": "whosxiaoting_",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Xiaoting.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Xiaoting.webp"
 				},
 				{
 					"id": "member:Kep1er:Chaehyun2",
@@ -837,8 +773,7 @@
 					"ig": "iioflhyun",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Chaehyun2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Chaehyun2.webp"
 				},
 				{
 					"id": "member:Kep1er:Dayeon4",
@@ -848,8 +783,7 @@
 					"ig": "ddayyeonii",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Dayeon4.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Dayeon4.webp"
 				},
 				{
 					"id": "member:Kep1er:Hikaru",
@@ -859,8 +793,7 @@
 					"ig": "e__hikaru.xx",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Hikaru.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Hikaru.webp"
 				},
 				{
 					"id": "member:Kep1er:Huening-Bahiyyih",
@@ -870,8 +803,7 @@
 					"ig": "hiyeahhh_",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Huening-Bahiyyih.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Huening-Bahiyyih.webp"
 				},
 				{
 					"id": "member:Kep1er:Youngeun",
@@ -881,8 +813,7 @@
 					"ig": "0.e_na",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Youngeun.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Youngeun.webp"
 				},
 				{
 					"id": "member:Kep1er:Yeseo",
@@ -892,8 +823,7 @@
 					"ig": "yes_e0_0",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Yeseo.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Yeseo.webp"
 				},
 				{
 					"id": "member:Kep1er:Mashiro",
@@ -903,8 +833,7 @@
 					"ig": "shir0._.chann",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Mashiro.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Kep1er/Mashiro.webp"
 				}
 			]
 		},
@@ -924,8 +853,7 @@
 					"ig": "shy9_29",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Hayoung2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Hayoung2.webp"
 				},
 				{
 					"id": "member:fromis_9:Jiwon2",
@@ -935,8 +863,7 @@
 					"ig": "xjiwonparkx",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Jiwon2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Jiwon2.webp"
 				},
 				{
 					"id": "member:fromis_9:Chaeyoung2",
@@ -946,8 +873,7 @@
 					"ig": "chaengrang_",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Chaeyoung2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Chaeyoung2.webp"
 				},
 				{
 					"id": "member:fromis_9:Nagyung",
@@ -957,8 +883,7 @@
 					"ig": "blossomlng_0",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Nagyung.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Nagyung.webp"
 				},
 				{
 					"id": "member:fromis_9:Jiheon",
@@ -968,8 +893,7 @@
 					"ig": "jiheonnibaek",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Jiheon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Jiheon.webp"
 				},
 				{
 					"id": "member:fromis_9:Lee-Saerom",
@@ -979,8 +903,7 @@
 					"ig": "saeromssee",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Lee-Saerom.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Lee-Saerom.webp"
 				},
 				{
 					"id": "member:fromis_9:Yi-Seoyeon",
@@ -990,8 +913,7 @@
 					"ig": "im_theyeon",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Yi-Seoyeon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Yi-Seoyeon.webp"
 				},
 				{
 					"id": "member:fromis_9:Jisun",
@@ -1001,8 +923,7 @@
 					"ig": "rosieline_",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Jisun.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/fromis9/Jisun.webp"
 				}
 			]
 		},
@@ -1022,8 +943,7 @@
 					"ig": "candyz_hyojung",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Hyojung.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Hyojung.webp"
 				},
 				{
 					"id": "member:OH MY GIRL:Mimi2",
@@ -1033,8 +953,7 @@
 					"ig": "mimmiiiya",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Mimi2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Mimi2.webp"
 				},
 				{
 					"id": "member:OH MY GIRL:YooA",
@@ -1044,8 +963,7 @@
 					"ig": "yoo__sha",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/YooA.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/YooA.webp"
 				},
 				{
 					"id": "member:OH MY GIRL:Seunghee2",
@@ -1055,8 +973,7 @@
 					"ig": "hyun_maxiang",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Seunghee2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Seunghee2.webp"
 				},
 				{
 					"id": "member:OH MY GIRL:Yubin3",
@@ -1066,8 +983,7 @@
 					"ig": "baeyu_b",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Yubin3.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Yubin3.webp"
 				},
 				{
 					"id": "member:OH MY GIRL:Arin",
@@ -1077,8 +993,7 @@
 					"ig": "ye._.vely618",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Arin.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Arin.webp"
 				},
 				{
 					"id": "member:OH MY GIRL:Jiho",
@@ -1088,8 +1003,7 @@
 					"ig": "jihoa_f",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Jiho.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/Jiho.webp"
 				},
 				{
 					"id": "member:OH MY GIRL:JinE",
@@ -1099,8 +1013,7 @@
 					"ig": "c_nye.zini",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/JinE.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/OH-MY-GIRL/JinE.webp"
 				}
 			]
 		},
@@ -1120,8 +1033,7 @@
 					"ig": "solarkeem",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Solar.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Solar.webp"
 				},
 				{
 					"id": "member:MAMAMOO:Moonbyul",
@@ -1131,8 +1043,7 @@
 					"ig": "mo_onbyul",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Moonbyul.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Moonbyul.webp"
 				},
 				{
 					"id": "member:MAMAMOO:Wheein",
@@ -1142,8 +1053,7 @@
 					"ig": "whee_inthemood",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Wheein.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Wheein.webp"
 				},
 				{
 					"id": "member:MAMAMOO:Hwasa",
@@ -1153,8 +1063,7 @@
 					"ig": "_mariahwasa",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Hwasa.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/MAMAMOO/Hwasa.webp"
 				}
 			]
 		},
@@ -1174,8 +1083,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ILLIT:Minju6",
@@ -1185,8 +1093,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ILLIT:Moka",
@@ -1196,8 +1103,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ILLIT:Wonhee",
@@ -1207,8 +1113,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ILLIT:Iroha",
@@ -1218,8 +1123,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -1239,8 +1143,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BABYMONSTER:Pharita",
@@ -1250,8 +1153,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BABYMONSTER:Asa",
@@ -1261,8 +1163,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BABYMONSTER:Ahyeon",
@@ -1272,8 +1173,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BABYMONSTER:Rami",
@@ -1283,8 +1183,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BABYMONSTER:Rora2",
@@ -1294,8 +1193,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BABYMONSTER:Chiquita",
@@ -1305,8 +1203,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -1326,8 +1223,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:KISS OF LIFE:Natty",
@@ -1337,8 +1233,7 @@
 					"ig": "natty_0530",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/KISS-OF-LIFE/Natty.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/KISS-OF-LIFE/Natty.webp"
 				},
 				{
 					"id": "member:KISS OF LIFE:Belle",
@@ -1348,8 +1243,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:KISS OF LIFE:Haneul",
@@ -1359,8 +1253,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -1380,8 +1273,7 @@
 					"ig": "rlo.ldl",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:VIVIZ:SinB",
@@ -1391,8 +1283,7 @@
 					"ig": "bscenez",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/VIVIZ/SinB.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/VIVIZ/SinB.webp"
 				},
 				{
 					"id": "member:VIVIZ:Umji",
@@ -1402,8 +1293,7 @@
 					"ig": "ummmmm_j.i",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/VIVIZ/Umji.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/VIVIZ/Umji.webp"
 				}
 			]
 		},
@@ -1423,8 +1313,7 @@
 					"ig": "jin",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BTS/Jin.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/Jin.webp"
 				},
 				{
 					"id": "member:BTS:Suga",
@@ -1434,8 +1323,7 @@
 					"ig": "agustd",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BTS/Suga.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/Suga.webp"
 				},
 				{
 					"id": "member:BTS:j-hope",
@@ -1445,8 +1333,7 @@
 					"ig": "uarmyhope",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BTS/j-hope.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/j-hope.webp"
 				},
 				{
 					"id": "member:BTS:RM",
@@ -1456,8 +1343,7 @@
 					"ig": "rkive",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BTS/RM.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/RM.webp"
 				},
 				{
 					"id": "member:BTS:Jimin2",
@@ -1467,8 +1353,7 @@
 					"ig": "j.m",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BTS/Jimin2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/Jimin2.webp"
 				},
 				{
 					"id": "member:BTS:V",
@@ -1478,8 +1363,7 @@
 					"ig": "thv",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BTS/V.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/V.webp"
 				},
 				{
 					"id": "member:BTS:Jungkook",
@@ -1489,8 +1373,7 @@
 					"ig": "mnijungkook",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/BTS/Jungkook.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/BTS/Jungkook.webp"
 				}
 			]
 		},
@@ -1510,8 +1393,7 @@
 					"ig": "sound_of_coups",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/scoups.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/scoups.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Jeonghan",
@@ -1521,8 +1403,7 @@
 					"ig": "jeonghaniyoo_n",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Jeonghan.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Jeonghan.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Joshua",
@@ -1532,8 +1413,7 @@
 					"ig": "joshu_acoustic",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Joshua.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Joshua.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Jun",
@@ -1543,8 +1423,7 @@
 					"ig": "junhui_moon",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Jun.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Jun.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Hoshi",
@@ -1554,8 +1433,7 @@
 					"ig": "ho5hi_kwon",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Hoshi.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Hoshi.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Wonwoo",
@@ -1565,8 +1443,7 @@
 					"ig": "everyone_woo",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Wonwoo.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Wonwoo.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Woozi",
@@ -1576,8 +1453,7 @@
 					"ig": "woozi_universefactory",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Woozi.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Woozi.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:DK",
@@ -1587,8 +1463,7 @@
 					"ig": "dk_is_dokyeom",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/DK.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/DK.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Mingyu",
@@ -1598,8 +1473,7 @@
 					"ig": "min9yu_k",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Mingyu.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Mingyu.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:the88",
@@ -1609,8 +1483,7 @@
 					"ig": "xuminghao_o",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/the88.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/the88.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Seungkwan",
@@ -1620,8 +1493,7 @@
 					"ig": "pledis_boos",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Seungkwan.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Seungkwan.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Vernon",
@@ -1631,8 +1503,7 @@
 					"ig": "vernonline",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Vernon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Vernon.webp"
 				},
 				{
 					"id": "member:SEVENTEEN:Dino",
@@ -1642,8 +1513,7 @@
 					"ig": "feat.dino",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Dino.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/SEVENTEEN/Dino.webp"
 				}
 			]
 		},
@@ -1663,8 +1533,7 @@
 					"ig": "gnabnahc",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Bang-Chan.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Bang-Chan.webp"
 				},
 				{
 					"id": "member:Stray Kids:Lee-Know",
@@ -1674,8 +1543,7 @@
 					"ig": "t.leeknowsaurus",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Lee-Know.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Lee-Know.webp"
 				},
 				{
 					"id": "member:Stray Kids:Changbin",
@@ -1685,8 +1553,7 @@
 					"ig": "jutdwae",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Changbin.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Changbin.webp"
 				},
 				{
 					"id": "member:Stray Kids:Hyunjin2",
@@ -1696,8 +1563,7 @@
 					"ig": "hynjinnnn",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Hyunjin2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Hyunjin2.webp"
 				},
 				{
 					"id": "member:Stray Kids:Han",
@@ -1707,8 +1573,7 @@
 					"ig": "_doolsetnet",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Han.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Han.webp"
 				},
 				{
 					"id": "member:Stray Kids:Felix",
@@ -1718,8 +1583,7 @@
 					"ig": "yong.lixx",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Felix.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Felix.webp"
 				},
 				{
 					"id": "member:Stray Kids:Seungmin2",
@@ -1729,8 +1593,7 @@
 					"ig": "miniseungkim",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Seungmin2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Seungmin2.webp"
 				},
 				{
 					"id": "member:Stray Kids:in",
@@ -1740,8 +1603,7 @@
 					"ig": "i.2.n.8",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/in.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/in.webp"
 				},
 				{
 					"id": "member:Stray Kids:Kim-Woojin",
@@ -1751,8 +1613,7 @@
 					"ig": "woooojin0408",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Kim-Woojin.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/Stray-Kids/Kim-Woojin.webp"
 				}
 			]
 		},
@@ -1781,8 +1642,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ENHYPEN:Jake",
@@ -1792,8 +1652,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ENHYPEN:Sunghoon3",
@@ -1803,8 +1662,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ENHYPEN:Sunoo",
@@ -1814,8 +1672,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ENHYPEN:Jungwon",
@@ -1825,8 +1682,7 @@
 					"ig": "baby._.maeum",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ENHYPEN/Jungwon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ENHYPEN/Jungwon.webp"
 				},
 				{
 					"id": "member:ENHYPEN:Ni-ki",
@@ -1836,8 +1692,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ENHYPEN:Evan",
@@ -1847,8 +1702,7 @@
 					"ig": "h_evva_n",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ENHYPEN/Evan.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ENHYPEN/Evan.webp"
 				}
 			]
 		},
@@ -1868,8 +1722,7 @@
 					"ig": "yellow_3to3",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Renjun.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Renjun.webp"
 				},
 				{
 					"id": "member:NCT DREAM:Jeno",
@@ -1879,8 +1732,7 @@
 					"ig": "leejen_o_423",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Jeno.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Jeno.webp"
 				},
 				{
 					"id": "member:NCT DREAM:Haechan",
@@ -1890,8 +1742,7 @@
 					"ig": "haechanahceah",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Haechan.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Haechan.webp"
 				},
 				{
 					"id": "member:NCT DREAM:Jaemin",
@@ -1901,8 +1752,7 @@
 					"ig": "na.jaemin0813",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Jaemin.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Jaemin.webp"
 				},
 				{
 					"id": "member:NCT DREAM:Chenle",
@@ -1912,8 +1762,7 @@
 					"ig": "kh1000le",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Chenle.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Chenle.webp"
 				},
 				{
 					"id": "member:NCT DREAM:Jisung2",
@@ -1923,8 +1772,7 @@
 					"ig": "the__and.y",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Jisung2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Jisung2.webp"
 				},
 				{
 					"id": "member:NCT DREAM:Mark2",
@@ -1934,8 +1782,7 @@
 					"ig": "onyourm__ark",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Mark2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/NCT-Dream/Mark2.webp"
 				}
 			]
 		},
@@ -1955,8 +1802,7 @@
 					"ig": "e_xiu_o",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/EXO/Xiumin.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Xiumin.webp"
 				},
 				{
 					"id": "member:EXO:Suho",
@@ -1966,8 +1812,7 @@
 					"ig": "kimjuncotton",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/EXO/Suho.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Suho.webp"
 				},
 				{
 					"id": "member:EXO:Lay",
@@ -1977,8 +1822,7 @@
 					"ig": "layzhang",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/EXO/Lay.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Lay.webp"
 				},
 				{
 					"id": "member:EXO:Baekhyun",
@@ -1988,8 +1832,7 @@
 					"ig": "baekhyunee_exo",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/EXO/Baekhyun.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Baekhyun.webp"
 				},
 				{
 					"id": "member:EXO:Chen",
@@ -1999,8 +1842,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:EXO:Chanyeol",
@@ -2010,8 +1852,7 @@
 					"ig": "real__pcy",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:EXO:do",
@@ -2021,8 +1862,7 @@
 					"ig": "d.o.hkyungsoo",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:EXO:Kai",
@@ -2032,8 +1872,7 @@
 					"ig": "zkdlin",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/EXO/Kai.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Kai.webp"
 				},
 				{
 					"id": "member:EXO:Sehun",
@@ -2043,8 +1882,7 @@
 					"ig": "oohsehun",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/EXO/Sehun.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Sehun.webp"
 				},
 				{
 					"id": "member:EXO:ztao",
@@ -2054,8 +1892,7 @@
 					"ig": "hztttao",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:EXO:Luhan",
@@ -2065,8 +1902,7 @@
 					"ig": "7_luhan_m",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/EXO/Luhan.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/EXO/Luhan.webp"
 				},
 				{
 					"id": "member:EXO:Kris-Wu",
@@ -2076,8 +1912,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -2097,8 +1932,7 @@
 					"ig": "_starhwa_",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Seonghwa.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Seonghwa.webp"
 				},
 				{
 					"id": "member:ATEEZ:Hongjoong",
@@ -2108,8 +1942,7 @@
 					"ig": "no1likeme8_8",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Hongjoong.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Hongjoong.webp"
 				},
 				{
 					"id": "member:ATEEZ:Yunho",
@@ -2119,8 +1952,7 @@
 					"ig": "yunou._.u",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Yunho.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Yunho.webp"
 				},
 				{
 					"id": "member:ATEEZ:Yeosang",
@@ -2130,8 +1962,7 @@
 					"ig": "im_ovation",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Yeosang.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Yeosang.webp"
 				},
 				{
 					"id": "member:ATEEZ:San",
@@ -2141,8 +1972,7 @@
 					"ig": "choi3an",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/San.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/San.webp"
 				},
 				{
 					"id": "member:ATEEZ:Mingi",
@@ -2152,8 +1982,7 @@
 					"ig": "fixon_n_on",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Mingi.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Mingi.webp"
 				},
 				{
 					"id": "member:ATEEZ:Wooyoung3",
@@ -2163,8 +1992,7 @@
 					"ig": "wooyounggg__",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Wooyoung3.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Wooyoung3.webp"
 				},
 				{
 					"id": "member:ATEEZ:Jongho",
@@ -2174,8 +2002,7 @@
 					"ig": "imfinalho_",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Jongho.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ATEEZ/Jongho.webp"
 				}
 			]
 		},
@@ -2195,8 +2022,7 @@
 					"ig": "official_kimjiwoong",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/ZEROBASEONE/Kim-Jiwoong.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/ZEROBASEONE/Kim-Jiwoong.webp"
 				},
 				{
 					"id": "member:ZEROBASEONE:Sung-Hanbin",
@@ -2206,8 +2032,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ZEROBASEONE:Seok-Matthew",
@@ -2217,8 +2042,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ZEROBASEONE:Kim-Tae-Rae",
@@ -2228,8 +2052,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ZEROBASEONE:Park-Gun-Wook",
@@ -2239,8 +2062,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ZEROBASEONE:Zhang-Hao",
@@ -2250,8 +2072,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ZEROBASEONE:Han-Yu-Jin",
@@ -2261,8 +2082,7 @@
 					"ig": "hanyujin788",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ZEROBASEONE:Kim-Gyu-Vin",
@@ -2272,8 +2092,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ZEROBASEONE:Ricky3",
@@ -2283,8 +2102,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -2304,8 +2122,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:RIIZE:Eunseok",
@@ -2315,8 +2132,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:RIIZE:Sungchan",
@@ -2326,8 +2142,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:RIIZE:Wonbin2",
@@ -2337,8 +2152,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:RIIZE:Sohee9",
@@ -2348,8 +2162,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:RIIZE:Anton",
@@ -2359,8 +2172,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:RIIZE:XngHan",
@@ -2370,8 +2182,7 @@
 					"ig": "xnghan",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/RIIZE/XngHan.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/RIIZE/XngHan.webp"
 				}
 			]
 		},
@@ -2391,8 +2202,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BOYNEXTDOOR:Riwoo",
@@ -2402,8 +2212,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BOYNEXTDOOR:Jaehyun5",
@@ -2413,8 +2222,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BOYNEXTDOOR:Taesan",
@@ -2424,8 +2232,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BOYNEXTDOOR:Leehan",
@@ -2435,8 +2242,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:BOYNEXTDOOR:Woonhak",
@@ -2446,8 +2252,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -2467,8 +2272,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:KiiiKiii:Sui6",
@@ -2478,8 +2282,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:KiiiKiii:Jiyu3",
@@ -2489,8 +2292,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:KiiiKiii:Haum",
@@ -2500,8 +2302,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:KiiiKiii:Kya",
@@ -2511,8 +2312,7 @@
 					"ig": "beautyduty_korea",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -2532,8 +2332,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:Rescene:Liv2",
@@ -2543,8 +2342,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:Rescene:Minami",
@@ -2554,8 +2352,7 @@
 					"ig": "namii__nami",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:Rescene:May4",
@@ -2565,8 +2362,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:Rescene:Zena2",
@@ -2576,8 +2372,7 @@
 					"ig": "k.im_g.y_",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -2597,8 +2392,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:TWS:Dohoon",
@@ -2608,8 +2402,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:TWS:Youngjae3",
@@ -2619,8 +2412,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:TWS:Hanjin",
@@ -2630,8 +2422,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:TWS:Jihoon",
@@ -2641,8 +2432,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:TWS:Kyungmin2",
@@ -2652,8 +2442,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -2673,8 +2462,7 @@
 					"ig": "kwoneunbi.official",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/izone/Kwon-Eunbi.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Kwon-Eunbi.webp"
 				},
 				{
 					"id": "member:IZONE:Sakura",
@@ -2684,8 +2472,7 @@
 					"ig": "39saku_chan",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:IZONE:Kang-Hyewon",
@@ -2695,8 +2482,7 @@
 					"ig": "hyemhyemu",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/izone/Kang-Hyewon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Kang-Hyewon.webp"
 				},
 				{
 					"id": "member:IZONE:Yena2",
@@ -2706,8 +2492,7 @@
 					"ig": "yena.jigumina",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:IZONE:Lee-Chae-Yeon",
@@ -2717,8 +2502,7 @@
 					"ig": "chaestival_",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:IZONE:Kim-Chaewon",
@@ -2728,8 +2512,7 @@
 					"ig": "_chaechae_1",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:IZONE:Minju3",
@@ -2739,8 +2522,7 @@
 					"ig": "minn.__.ju",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/izone/Minju3.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Minju3.webp"
 				},
 				{
 					"id": "member:IZONE:Nako",
@@ -2750,8 +2532,7 @@
 					"ig": "75_yabuki",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/izone/Nako.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Nako.webp"
 				},
 				{
 					"id": "member:IZONE:Hitomi",
@@ -2761,8 +2542,7 @@
 					"ig": "10_hitomi_06",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/izone/Hitomi.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Hitomi.webp"
 				},
 				{
 					"id": "member:IZONE:Jo-Yuri",
@@ -2772,8 +2552,7 @@
 					"ig": "zo__glasss",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/izone/Jo-Yuri.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Jo-Yuri.webp"
 				},
 				{
 					"id": "member:IZONE:Yujin3",
@@ -2783,8 +2562,7 @@
 					"ig": "_yujin_an",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/izone/Yujin3.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/izone/Yujin3.webp"
 				},
 				{
 					"id": "member:IZONE:Wonyoung",
@@ -2794,8 +2572,7 @@
 					"ig": "for_everyoung10",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -2815,8 +2592,7 @@
 					"ig": "meretmanon",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Manon.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Manon.webp"
 				},
 				{
 					"id": "member:KATSEYE:Sophia3",
@@ -2826,8 +2602,7 @@
 					"ig": "sophia_laforteza",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Sophia3.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Sophia3.webp"
 				},
 				{
 					"id": "member:KATSEYE:Daniela",
@@ -2837,8 +2612,7 @@
 					"ig": "daniela_avanzini",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Daniela.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Daniela.webp"
 				},
 				{
 					"id": "member:KATSEYE:Lara2",
@@ -2848,8 +2622,7 @@
 					"ig": "lararajj",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Lara2.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Lara2.webp"
 				},
 				{
 					"id": "member:KATSEYE:Megan",
@@ -2859,8 +2632,7 @@
 					"ig": "meganskiendiel",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Megan.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Megan.webp"
 				},
 				{
 					"id": "member:KATSEYE:Yoonchae",
@@ -2870,8 +2642,7 @@
 					"ig": "yoonchae",
 					"enabled": true,
 					"qty": 10,
-					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Yoonchae.webp",
-					"hasLibraryFolder": true
+					"avatar": "/assets/images/douyin-roster/avatars/KATSEYE/Yoonchae.webp"
 				}
 			]
 		},
@@ -2891,8 +2662,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:MEOVV:Gawon",
@@ -2902,8 +2672,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:MEOVV:Anna6",
@@ -2913,8 +2682,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:MEOVV:Narin4",
@@ -2924,8 +2692,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:MEOVV:Ella5",
@@ -2935,8 +2702,7 @@
 					"ig": "ellagross",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -2956,8 +2722,7 @@
 					"ig": "baileysok",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:ADP:Annie3",
@@ -2967,8 +2732,7 @@
 					"ig": "anniesymoon",
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		},
@@ -2988,8 +2752,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:CORTIS:Juhoon",
@@ -2999,8 +2762,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:CORTIS:Martin",
@@ -3010,8 +2772,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:CORTIS:Seonghyeon",
@@ -3021,8 +2782,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				},
 				{
 					"id": "member:CORTIS:Keonho",
@@ -3032,8 +2792,7 @@
 					"ig": null,
 					"enabled": true,
 					"qty": 10,
-					"avatar": null,
-					"hasLibraryFolder": false
+					"avatar": null
 				}
 			]
 		}

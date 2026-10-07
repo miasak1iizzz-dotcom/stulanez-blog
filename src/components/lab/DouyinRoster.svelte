@@ -18,7 +18,6 @@
 		enabled: boolean;
 		qty: number;
 		avatar: string | null;
-		hasLibraryFolder: boolean;
 	};
 
 	type Group = {
@@ -364,9 +363,6 @@
 								{/if}
 								{#if m.ig}
 									· IG @{m.ig}
-								{/if}
-								{#if !m.hasLibraryFolder}
-									· <span class="warn">库无专夹</span>
 								{/if}
 							</div>
 						</div>

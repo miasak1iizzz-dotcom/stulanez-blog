@@ -12,6 +12,7 @@
 		status: "done" | "running" | "partial" | "failed" | "pending";
 		at: string | null;
 		reason: string | null;
+		channels: Record<string, number> | null;
 	};
 
 	type GroupProg = {
@@ -21,6 +22,7 @@
 		finished: number;
 		got: number;
 		wanted: number;
+		channels: Record<string, number>;
 		pct: number;
 	};
 
@@ -47,7 +49,35 @@
 	let query = $state("");
 	let filter = $state<"all" | "running" | "done" | "partial" | "pending" | "failed">("all");
 	let groupFilter = $state("全部");
+	let channel = $state<"all" | "weibo" | "xhs" | "douyin">("all");
 	let tick = $state(0);
+
+	const CHANNELS = [
+		{ k: "weibo", label: "微博", color: "#e6162d", want: 6 },
+		{ k: "xhs", label: "小红书", color: "#ff2442", want: 5 },
+		{ k: "douyin", label: "抖音", color: "#25f4ee", want: 5 },
+	] as const;
+
+	const channelTotals = $derived.by(() => {
+		const t: Record<string, number> = { weibo: 0, xhs: 0, douyin: 0 };
+		for (const m of data?.members ?? []) {
+			const c = m.channels;
+			if (c) for (const k of Object.keys(t)) t[k] += c[k] || 0;
+		}
+		return t;
+	});
+
+	const effWant = $derived(channel === "all" ? 10 : (CHANNELS.find((c) => c.k === channel)?.want ?? 10));
+
+	function effGot(m: MemberProg) {
+		return channel === "all" ? m.got : (m.channels?.[channel] ?? 0);
+	}
+
+	function groupChannelView(g: GroupProg) {
+		if (channel === "all") return { got: g.got, want: g.wanted };
+		const want = g.members * (CHANNELS.find((c) => c.k === channel)?.want ?? 10);
+		return { got: g.channels?.[channel] ?? 0, want };
+	}
 
 	let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -113,7 +143,7 @@
 		<p class="eyebrow">T-014 · 壁纸下载监督</p>
 		<h1>下载进度看板</h1>
 		<p class="lead">
-			每人目标 10 张手机竖屏壁纸。页面每 4 秒自动刷新，你不用问 AI，自己盯这里就行。
+			三渠道（微博 / 小红书 / 抖音）后台并行抓取，身份先审后下。每 4 秒自动刷新，你不用问 AI，自己盯这里就行。
 		</p>
 		{#if data}
 			<div class="overall">
@@ -134,6 +164,14 @@
 					<div><b>{data.totals.failed}</b><span>失败</span></div>
 					<div><b>{data.totals.imagesGot}/{data.totals.imagesWanted}</b><span>已下张数</span></div>
 				</div>
+				<div class="chstats">
+					{#each CHANNELS as c}
+						<div class="chstat" style={`--cc:${c.color}`}>
+							<b>{channelTotals[c.k] ?? 0}</b>
+							<span>{c.label} · 目标{c.want}张/人</span>
+						</div>
+					{/each}
+				</div>
 			</div>
 		{:else if err}
 			<p class="err">读进度失败：{err}（确认本机 dev 服务开着）</p>
@@ -143,54 +181,68 @@
 	</header>
 
 	{#if data}
-		<section class="toolbar card">
-			<input class="search" type="search" placeholder="搜团名 / 艺名" bind:value={query} />
-			<select bind:value={groupFilter}>
-				{#each groups as g}
-					<option value={g}>{g}</option>
-				{/each}
-			</select>
-			<div class="chips">
-				{#each ["all", "running", "done", "partial", "pending", "failed"] as f}
-					<button
-						type="button"
-						class="chip"
-						class:on={filter === f}
-						onclick={() => (filter = f as typeof filter)}
-					>
-						{f === "all"
-							? "全部"
-							: f === "running"
-								? "正在下"
-								: f === "done"
-									? "满员"
-									: f === "partial"
-										? "未满"
-										: f === "pending"
-											? "排队"
-											: "失败"}
+			<section class="toolbar card">
+				<input class="search" type="search" placeholder="搜团名 / 艺名" bind:value={query} />
+				<select bind:value={groupFilter}>
+					{#each groups as g}
+						<option value={g}>{g}</option>
+					{/each}
+				</select>
+				<div class="chips">
+					<button type="button" class="chip" class:on={channel === "all"} onclick={() => (channel = "all")}>
+						全部渠道
 					</button>
-				{/each}
-			</div>
-			<button type="button" class="btn" onclick={refresh}>立即刷新</button>
-		</section>
+					{#each CHANNELS as c}
+						<button type="button" class="chip" class:on={channel === c.k} onclick={() => (channel = c.k)}>
+							<i class="dot" style={`background:${c.color}`}></i>{c.label} · {channelTotals[c.k] ?? 0}张
+						</button>
+					{/each}
+				</div>
+				<div class="chips">
+					{#each ["all", "running", "done", "partial", "pending", "failed"] as f}
+						<button
+							type="button"
+							class="chip"
+							class:on={filter === f}
+							onclick={() => (filter = f as typeof filter)}
+						>
+							{f === "all"
+								? "全部"
+								: f === "running"
+									? "正在下"
+									: f === "done"
+										? "满员"
+										: f === "partial"
+											? "未满"
+											: f === "pending"
+												? "排队"
+												: "失败"}
+						</button>
+					{/each}
+				</div>
+				<button type="button" class="btn" onclick={refresh}>立即刷新</button>
+			</section>
 
 		<section class="groups">
 			{#each data.byGroup as g}
+				{@const gv = groupChannelView(g)}
+				{@const gPct = gv.want ? Math.min(100, Math.round((gv.got / gv.want) * 100)) : 0}
 				<article class="gcard card">
 					<img class="avatar" src={g.avatar || placeholder(g.group)} alt="" width="40" height="40" />
 					<div class="meta">
 						<strong>{g.group}</strong>
-						<span>{g.finished}/{g.members} 人满员 · {g.got}/{g.wanted} 张</span>
+						<span>{g.finished}/{g.members} 人满员 · {gv.got}/{gv.want} 张{channel === "all" ? "" : ` · 仅${CHANNELS.find((c) => c.k === channel)?.label}`}</span>
 					</div>
-					<div class="mini"><i style={`width:${g.pct}%`}></i></div>
-					<em>{g.pct}%</em>
+					<div class="mini"><i style={`width:${gPct}%`}></i></div>
+					<em>{gPct}%</em>
 				</article>
 			{/each}
 		</section>
 
 		<section class="members">
 			{#each filteredMembers as m (m.key)}
+				{@const mGot = effGot(m)}
+				{@const mPct = effWant ? Math.min(100, Math.round((mGot / effWant) * 100)) : 0}
 				<article class="mcard" class:done={m.status === "done"} class:run={m.status === "running"}>
 					<img
 						class="avatar"
@@ -202,10 +254,19 @@
 					/>
 					<div class="meta">
 						<div class="name">{m.stageName} <small>{m.group}</small></div>
-						<div class="sub">{m.got} / {m.wanted} 张 · {statusLabel(m.status)}</div>
+						<div class="sub">{mGot} / {effWant} 张{channel === "all" ? ` · ${statusLabel(m.status)}` : ""}</div>
+						<div class="cchips">
+							{#each CHANNELS as c}
+								<span
+									class="cchip"
+									class:zero={!m.channels?.[c.k]}
+									style={`--cc:${c.color}`}>{c.label}{m.channels?.[c.k] ?? 0}</span
+								>
+							{/each}
+						</div>
 					</div>
 					<span class="pill {m.status}">{statusLabel(m.status)}</span>
-					<div class="mini"><i style={`width:${Math.min(100, Math.round((m.got / m.wanted) * 100))}%`}></i></div>
+					<div class="mini"><i style={`width:${mPct}%`}></i></div>
 				</article>
 			{/each}
 			{#if filteredMembers.length === 0}
@@ -323,6 +384,55 @@
 	.stats span {
 		font-size: 0.68rem;
 		color: var(--muted);
+	}
+	.chstats {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 0.45rem;
+		margin-top: 0.55rem;
+	}
+	.chstat {
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-left: 3px solid var(--cc);
+		border-radius: 10px;
+		padding: 0.45rem 0.5rem;
+		background: rgba(255, 255, 255, 0.03);
+	}
+	.chstat b {
+		display: block;
+		color: var(--cc);
+		font-size: 0.95rem;
+	}
+	.chstat span {
+		font-size: 0.66rem;
+		color: var(--muted);
+	}
+	.dot {
+		display: inline-block;
+		width: 8px;
+		height: 8px;
+		border-radius: 999px;
+		margin-right: 6px;
+		vertical-align: 1px;
+	}
+	.cchips {
+		display: flex;
+		gap: 4px;
+		margin-top: 3px;
+		flex-wrap: wrap;
+	}
+	.cchip {
+		font-size: 0.62rem;
+		color: var(--cc);
+		border: 1px solid color-mix(in srgb, var(--cc) 40%, transparent);
+		border-radius: 999px;
+		padding: 0.05rem 0.4rem;
+		opacity: 0.92;
+		white-space: nowrap;
+	}
+	.cchip.zero {
+		opacity: 0.32;
+		filter: saturate(0.4);
 	}
 	.card {
 		border: 1px solid var(--line);

@@ -16,6 +16,7 @@ type DoneEntry = {
 	folder?: string;
 	at?: string;
 	ok?: boolean;
+	channels?: Record<string, number>;
 };
 
 function readJson<T>(p: string, fallback: T): T {
@@ -111,6 +112,7 @@ export const GET: APIRoute = async () => {
 		at: string | null;
 		reason: string | null;
 		folder: string | null;
+		channels: Record<string, number> | null;
 	};
 
 	const members: MemberRow[] = [];
@@ -141,6 +143,7 @@ export const GET: APIRoute = async () => {
 				at: d?.at ?? f?.at ?? null,
 				reason: f?.reason ?? null,
 				folder: d?.folder ?? null,
+				channels: d?.channels ?? null,
 			});
 		}
 	}
@@ -156,6 +159,10 @@ export const GET: APIRoute = async () => {
 		const got = ms.reduce((n, m) => n + m.got, 0);
 		const wanted = ms.reduce((n, m) => n + m.wanted, 0);
 		const finished = ms.filter((m) => m.status === "done").length;
+		const channels: Record<string, number> = { weibo: 0, xhs: 0, douyin: 0 };
+		for (const m of ms)
+			if (m.channels)
+				for (const k of Object.keys(channels)) channels[k] += m.channels[k] || 0;
 		return {
 			group: g.group,
 			avatar: g.avatar,
@@ -163,6 +170,7 @@ export const GET: APIRoute = async () => {
 			finished,
 			got,
 			wanted,
+			channels,
 			pct: wanted ? Math.round((got / wanted) * 100) : 0,
 		};
 	});
