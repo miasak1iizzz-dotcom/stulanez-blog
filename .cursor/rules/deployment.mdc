@@ -1,8 +1,8 @@
 ---
 description: Vercel、Cloudflare、域名、构建与生产内部页面边界
-globs: ["astro.config.mjs", "vercel.json", "wrangler.jsonc", "src/middleware.ts", "scripts/hide-lab-pages.mjs", ".github/workflows/**"]
+globs: ["astro.config.mjs", "vercel.json", "wrangler.jsonc", ".github/workflows/**"]
 alwaysApply: false
 ---
 
 部署规则见协议文章「提交与部署」一节（https://stulanez.com/posts/site-protocol/）；实际公网状态与 DNS 要核对，不能从旧报告猜。
-保留 /lab/* 内部工具页的生产隐藏（middleware + hide-lab-pages + vercel 路由三层），不把推送成功说成已上线。
+内部工具页（原 /lab/*）已于 2026-10-07 全部下线，三层保护一并拆除；不把推送成功说成已上线。

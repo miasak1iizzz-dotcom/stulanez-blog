@@ -256,10 +256,6 @@ export default defineConfig({
 			filter: (page) => {
 				const url = new URL(page);
 				const pathname = url.pathname;
-				// 内部实验室面板不进入公开站点地图。
-				if (pathname.startsWith("/lab/douyin-roster")) {
-					return false;
-				}
 				// 根据页面开关配置过滤sitemap
 				if (pathname === "/dynamic/" && !siteConfig.pages.dynamic) {
 					return false;
