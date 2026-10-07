@@ -57,7 +57,7 @@ Scroll-linked work in `src/utils/` is rAF-throttled and must stay cheap on mobil
 ### Content Collections
 
 Defined in `src/content.config.ts`:
-- `posts` — blog posts (`.md`/`.mdx`) with frontmatter: title, published, tags, category, draft, pinned, password, comment, etc.
+- `posts` — blog posts (`.md`/`.mdx`) with frontmatter: title, published, tags, category, draft, pinned, password, comment, etc. Ordering is decided by `src/utils/content-utils.ts`: `pinned: true` first, then `pinnedToBottom: true` last, then published date descending (ties broken by id). `pinnedToBottom` exists for 「永恒欲望上线了」, the site's first post, which stays at the bottom of the list.
 - `spec` — special pages (about, guestbook)
 - `dynamic` — microblog entries (`.md`) with frontmatter: published, pinned, location
 
