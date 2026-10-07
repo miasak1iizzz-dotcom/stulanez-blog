@@ -1,92 +1,49 @@
-import type OSS from "ali-oss";
-import { getOssClient } from "@/server/oss-sign";
+import cacheFile from "@/data/pull-cache.json";
 import type { PullSuccess } from "@/utils/pull/types";
 
 /**
- * 抽取结果的服务端缓存（放在已有的私有 OSS 桶里）。
+ * 抽取结果的**构建期缓存**（烤进产物，Vercel 侧零网络依赖）。
  *
- * 为什么需要它：抖音这类渠道对**机房 IP** 的风控时灵时不灵——同一帖子
- * 可能这轮给 69 张、下轮只给 1 张，重试也只能提高命中率。但只要**任何一次**
- * 抽成功过，就把结果记下来；以后再遇到风控，直接把上次的好结果端出去，
- * 用户就不会再看到「只剩一张」。
+ * 为什么不是服务端数据库/OSS：实测 Vercel 的函数**连不上阿里云 OSS**
+ * （ali-oss 报 `Connect timeout for 5000ms`；浏览器直连 OSS 没问题，
+ * 所以 `/api/media` 那种「只签名、浏览器自己去取」的路径一直正常）。
+ * 机房到国内对象存储这条路不通，就不该在请求路径上等它。
  *
- * 客户端跟环境变量解析都复用 `oss-sign.ts`（`/api/media` 用的那套，dev 与线上都验过）。
+ * 所以改成：本机（出口干净、能拿到全量）抽取 → 写 `src/data/pull-cache.json`
+ * → 随构建进产物。这条帖子以后再遇到渠道风控，接口就把烤好的全量端出来。
+ *
+ * 刷新办法（在 Lowkey 目录）：
+ *   npx tsx .ai-work/_seed-pull-cache.ts <帖子id> [更多id...]
+ * 客户端自己那份 localStorage 缓存仍然负责「刚抽过的那次」（7 天）。
  */
-const PREFIX = "pull-cache/";
-const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 天
+const MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000; // 90 天
 
-/** 最近一次缓存操作的错误（只在请求带 debug 时回给站长看，用来诊断线上到底卡在哪） */
-let lastError: string | null = null;
+type CacheFile = Record<string, { result: PullSuccess; ts: number }>;
 
-export function pullCacheDiagnostics(): {
-	hasClient: boolean;
-	lastError: string | null;
-} {
-	return { hasClient: getOssClient() !== null, lastError };
-}
-
-function ossClient(): OSS | null {
-	return getOssClient();
-}
-
-function objectKey(key: string): string {
-	// 键里只会有 [a-z0-9:_]，再兜一层，绝不拼出越界路径
-	const safe = key.replace(/[^a-zA-Z0-9:_-]/g, "_").slice(0, 120);
-	return `${PREFIX}${safe}.json`;
-}
+const cache = (cacheFile ?? {}) as CacheFile;
 
 export type CachedPull = { result: PullSuccess; ts: number };
 
-export async function readCachedPull(key: string): Promise<CachedPull | null> {
-	if (!key) return null;
-	const oss = ossClient();
-	if (!oss) {
-		lastError = "no-oss-client";
-		return null;
-	}
-	try {
-		const got = await oss.get(objectKey(key), { timeout: 5000 });
-		const raw = got.content.toString("utf8");
-		const parsed = JSON.parse(raw) as CachedPull;
-		if (!parsed?.result?.ok || !parsed.result.images?.length) {
-			lastError = "bad-payload";
-			return null;
-		}
-		if (Date.now() - parsed.ts > MAX_AGE_MS) {
-			lastError = "expired";
-			return null;
-		}
-		lastError = null;
-		return parsed;
-	} catch (error) {
-		// 不存在、超时、解析失败都当作没有缓存，但要记下原因供 debug 查看
-		lastError = error instanceof Error ? error.message : String(error);
-		return null;
-	}
+let lastError: string | null = null;
+
+export function pullCacheDiagnostics(): {
+	entries: number;
+	lastError: string | null;
+} {
+	return { entries: Object.keys(cache).length, lastError };
 }
 
-export async function writeCachedPull(
-	key: string,
-	result: PullSuccess,
-): Promise<void> {
-	if (!key || !result.ok || result.images.length < 2) return; // 只记「好的」结果
-	const oss = ossClient();
-	if (!oss) return;
-	try {
-		await oss.put(
-			objectKey(key),
-			Buffer.from(JSON.stringify({ result, ts: Date.now() }), "utf8"),
-			{
-				timeout: 6000,
-				mime: "application/json",
-				headers: { "cache-control": "private, max-age=3600" },
-			},
-		);
-	} catch (error) {
-		// 写不进去不影响抽取本身，但要在日志里留痕，方便判断缓存有没有在工作
-		console.warn(
-			"[pull-cache] 写入失败:",
-			error instanceof Error ? error.message : String(error),
-		);
+export function readCachedPull(key: string): CachedPull | null {
+	if (!key) return null;
+	const hit = cache[key];
+	if (!hit?.result?.ok || !hit.result.images?.length) {
+		lastError = hit ? "bad-payload" : "miss";
+		return null;
 	}
+	if (Date.now() - hit.ts > MAX_AGE_MS) {
+		lastError = "expired";
+		return null;
+	}
+	lastError = null;
+	return hit;
 }

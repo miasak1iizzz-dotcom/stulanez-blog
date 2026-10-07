@@ -1,9 +1,5 @@
 import type { APIRoute } from "astro";
-import {
-	pullCacheDiagnostics,
-	readCachedPull,
-	writeCachedPull,
-} from "@/server/pull-cache";
+import { pullCacheDiagnostics, readCachedPull } from "@/server/pull-cache";
 import { extractPull } from "@/utils/pull";
 import { pullCacheKey } from "@/utils/pull/cacheKey";
 import type { PullChannelId, PullResult, PullSuccess } from "@/utils/pull/types";
@@ -87,14 +83,11 @@ async function extractWithRetry(
 		await sleep(RETRY_DELAYS_MS[attempt - 1] ?? 2_000);
 	}
 
-	if (best && best.images.length > 1) {
-		// 抽到全量就记到服务端：下次这条帖子再遇到风控，还能拿出全量
-		void writeCachedPull(pullCacheKey(input), best);
-		return best;
-	}
+	// 抽到全量直接给（构建期缓存由本机 seed 脚本刷新，服务端不写）
+	if (best && best.images.length > 1) return best;
 
-	// 没抽到好的：看看服务端有没有这条帖子以前成功过的结果
-	const cached = await readCachedPull(pullCacheKey(input));
+	// 没抽到好的：看看构建期缓存里有没有这条帖子以前成功过的全量
+	const cached = readCachedPull(pullCacheKey(input));
 	if (cached) {
 		return {
 			...cached.result,
