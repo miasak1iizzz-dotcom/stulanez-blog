@@ -14,9 +14,6 @@ const CHANNELS = new Set<PullChannelId>([
 	"weibo",
 ]);
 
-/** 重试的延迟：给渠道一点喘息，别紧接着打第二次 */
-const RETRY_DELAY_MS = 700;
-
 function json(data: unknown, status = 200): Response {
 	return new Response(JSON.stringify(data), {
 		status,
@@ -43,15 +40,19 @@ function withThinWarning(result: PullSuccess): PullSuccess {
 }
 
 /**
- * 抽取的可靠性兜底：抖音对 Vercel 出口 IP 的风控时灵时不灵，
- * 同一条链接上一轮抽到 69 张、下一轮只剩 1 张。所以拿到 ≤1 张时再赌一次，
- * 两次里取图多的那次，并如实告诉用户发生了什么。
- *
- * 只在「又少又快」时重试：快速返回 1 张，像是被风控打残的预览页；
- * 慢速返回说明回退链（note 页 → detail API → iteminfo）已经全跑过一遍，
- * 这帖本来就只有一张图，再赌一次只会让用户白等。
+ * 抽取的可靠性兜底。抖音对出口 IP 的风控时灵时不灵：同一条链接上一轮 6 张、
+ * 下一轮直接抽空或只剩 1 张（抽取层自己的报错里就写着「再点一次提取通常就行」）。
+ * 那就由服务端替用户点这第二下：
+ *  ① 失败 → 多半是风控/抽空，快速失败时再抽一次；两次都失败就把第一次的话还给用户
+ *  ② 成功但 ≤1 张 → 只在「又少又快」时重试（快速返回 1 张像被打残的预览页；
+ *     慢速返回说明回退链 note 页 → detail API → iteminfo 已经全跑过，这帖本来就一张）
  */
 const THIN_FAST_MS = 6_000;
+const FAIL_RETRY_MS = 15_000;
+/** 重试前喘一口，别紧接着打第二下 */
+const RETRY_DELAY_MS = 700;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function extractWithRetry(
 	input: string,
@@ -59,12 +60,23 @@ async function extractWithRetry(
 ): Promise<PullResult> {
 	const startedAt = Date.now();
 	const first = await extractPull(input, channel);
-	// 多图结果、以及本来就失败的结果，都不折腾：失败的原因里没有「再来一次就好」这条
-	if (!first.ok || first.images.length > 1) return first;
 	const firstMs = Date.now() - startedAt;
-	if (firstMs > THIN_FAST_MS) return withThinWarning(first);
 
-	await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+	// 多图成功：直接给，不折腾
+	if (first.ok && first.images.length > 1) return first;
+
+	// ① 失败：快速失败再赌一次
+	if (!first.ok) {
+		if (firstMs > FAIL_RETRY_MS) return first;
+		await sleep(RETRY_DELAY_MS);
+		const retry = await extractPull(input, channel);
+		if (!retry.ok) return first; // 两次都没抽到：把第一次的报错还给用户（更早、更贴切）
+		return retry.images.length > 1 ? retry : withThinWarning(retry);
+	}
+
+	// ② 成功但只有 0/1 张
+	if (firstMs > THIN_FAST_MS) return withThinWarning(first);
+	await sleep(RETRY_DELAY_MS);
 	const second = await extractPull(input, channel);
 	if (second.ok && second.images.length > first.images.length) {
 		return {
