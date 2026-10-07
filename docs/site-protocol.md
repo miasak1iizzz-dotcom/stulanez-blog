@@ -72,7 +72,7 @@ hideCoverInPost: true
 
 ## 七、图库和资产
 
-Serpent 本机数字资源库与站点 `/library` 页已下线。公开展示走站内相册。相册原图、音乐、壁纸放在私有 OSS 桶里（`pnpm oss:sync`），桶不公开。页面只向 `/api/media/` 要短时签名，钥匙只在本机 `.env` 和部署环境变量里，不进仓库。文件清单是 `src/data/media-manifest.json`。桶里分两类：`gallery/`、`assets/music/`、`assets/images/wallpaper/` 是网站正在用的；`archive/rollback/` 里是从 git 拿掉大图之前的整本历史，要回到那一版就下载对应的 `.bundle` 再 `git clone`。账号在 `/account/`，用邮箱和密码，存在阿里云杭州的 MySQL 里，连接串只在 `.env` 和部署环境变量。付款还没接。对外的规则只有一条：站上展示的资产要干净、有来源意识，个人素材和未授权的私货不上站。
+Serpent 本机数字资源库与站点 `/library` 页已下线。公开展示走站内相册。相册原图、音乐、壁纸放在私有 OSS 桶里（`pnpm oss:sync`），桶不公开。页面只向 `/api/media/` 要短时签名，钥匙只在本机 `.env` 和部署环境变量里，不进仓库。文件清单是 `src/data/media-manifest.json`。桶里分两类：`gallery/`、`assets/music/`、`assets/images/wallpaper/` 是网站正在用的；`archive/rollback/` 里是从 git 拿掉大图之前的整本历史，要回到那一版就下载对应的 `.bundle` 再 `git clone`。对外的规则只有一条：站上展示的资产要干净、有来源意识，个人素材和未授权的私货不上站。
 
 ## 更新记录
 
@@ -85,3 +85,4 @@ Serpent 本机数字资源库与站点 `/library` 页已下线。公开展示走
 - **2026-09-25**：旧历史备份放在私有桶 `archive/rollback/`，网站正在用的文件仍在 `gallery/`、`assets/music/`、`assets/images/wallpaper/`。
 - **2026-09-25**：账号库开在阿里云 MySQL。`/account/` 可以注册和登录，付款未接。
 - **2026-10-06**：改版期放宽：全站减法授权，判定为无用、重复、无实义的组件与窗口卡片可径直删除，不逐个请示、不逐条记账；门户与视觉呈现同 Firefly 模板脱钩，布局与装饰组件可推翻重来，firefly 命名按改动逐步清理；常驻效果的性能红线由「禁止全屏模糊」放宽为「实测帧率过关即可用」；视觉方向先试装、定稿后沉淀为根目录 `DESIGN.md` 作为验收基准。
+- **2026-10-07**：账号与登录功能整体下线。站长已释放阿里云 RDS 实例、不再需要这套功能，因此删除 `/account/` 页、`/api/auth/*` 三个接口、`src/server/db.ts` 与 `src/server/accounts.ts`，`DATABASE_URL` 从环境变量与本地 `.env` 一并移除。站长身份仍按第六节的设备认定，不设登录后台。
