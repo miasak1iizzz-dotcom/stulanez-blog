@@ -40,17 +40,21 @@ function withThinWarning(result: PullSuccess): PullSuccess {
 }
 
 /**
- * 抽取的可靠性兜底。抖音对出口 IP 的风控时灵时不灵：同一条链接上一轮 6 张、
- * 下一轮直接抽空或只剩 1 张（抽取层自己的报错里就写着「再点一次提取通常就行」）。
- * 那就由服务端替用户点这第二下：
- *  ① 失败 → 多半是风控/抽空，快速失败时再抽一次；两次都失败就把第一次的话还给用户
- *  ② 成功但 ≤1 张 → 只在「又少又快」时重试（快速返回 1 张像被打残的预览页；
- *     慢速返回说明回退链 note 页 → detail API → iteminfo 已经全跑过，这帖本来就一张）
+ * 抽取的可靠性兜底。抖音对出口 IP 的风控时灵时不灵，而且**没有规律**：
+ * 同一条链接这一轮 6 张、下一轮 1 张、再下一轮直接抽空，慢的时候也会只给 1 张。
+ * （踩过的坑：曾按「返回得快才重试」来判，结果线上第 1 轮正是「1 张 / 11.7s」，
+ * 被判成「这帖本来就一张」，恰好漏掉用户抱怨的那种情况。）
+ * 所以改成：预算内最多抽三次，取图最多的那次。
+ *   - 拿到 ≥2 张就收工；
+ *   - 三次都只有 0/1 张，就把 0/1 张那次带上提示还给用户；
+ *   - 三次全失败，把第一次的报错还回去（它最早、也最贴切）。
  */
-const THIN_FAST_MS = 6_000;
-const FAIL_RETRY_MS = 15_000;
-/** 重试前喘一口，别紧接着打第二下 */
-const RETRY_DELAY_MS = 700;
+const ATTEMPT_BUDGET_MS = 40_000; // maxDuration 60s，留足收尾余量
+const MAX_ATTEMPTS = 3;
+/** 一次都没成功时最多赌两次：链接真的没了（帖子被删）再赌也是白等 */
+const MAX_FAILED_ATTEMPTS = 2;
+/** 递增退避：风控像是按时间窗来的，连着打三下不如隔开打 */
+const RETRY_DELAYS_MS = [800, 2_000];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -59,32 +63,33 @@ async function extractWithRetry(
 	channel?: PullChannelId,
 ): Promise<PullResult> {
 	const startedAt = Date.now();
-	const first = await extractPull(input, channel);
-	const firstMs = Date.now() - startedAt;
+	let best: PullSuccess | null = null;
+	let firstFailure: PullResult | null = null;
 
-	// 多图成功：直接给，不折腾
-	if (first.ok && first.images.length > 1) return first;
+	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+		const result = await extractPull(input, channel);
+		if (result.ok) {
+			if (!best || result.images.length > best.images.length) best = result;
+			if (best.images.length > 1) break; // 拿到多图，收工
+		} else if (!firstFailure) {
+			firstFailure = result;
+		}
 
-	// ① 失败：快速失败再赌一次
-	if (!first.ok) {
-		if (firstMs > FAIL_RETRY_MS) return first;
-		await sleep(RETRY_DELAY_MS);
-		const retry = await extractPull(input, channel);
-		if (!retry.ok) return first; // 两次都没抽到：把第一次的报错还给用户（更早、更贴切）
-		return retry.images.length > 1 ? retry : withThinWarning(retry);
+		if (attempt === MAX_ATTEMPTS) break;
+		if (!best && attempt >= MAX_FAILED_ATTEMPTS) break; // 全失败，见好就收
+		if (Date.now() - startedAt > ATTEMPT_BUDGET_MS) break;
+		await sleep(RETRY_DELAYS_MS[attempt - 1] ?? 2_000);
 	}
 
-	// ② 成功但只有 0/1 张
-	if (firstMs > THIN_FAST_MS) return withThinWarning(first);
-	await sleep(RETRY_DELAY_MS);
-	const second = await extractPull(input, channel);
-	if (second.ok && second.images.length > first.images.length) {
-		return {
-			...second,
-			warning: `第一次只抽到 ${first.images.length} 张，重试后拿到 ${second.images.length} 张。`,
-		};
+	if (best) {
+		return best.images.length > 1 ? best : withThinWarning(best);
 	}
-	return withThinWarning(first);
+	return (
+		firstFailure ?? {
+			ok: false,
+			error: "提取失败。链接失效、要登录，或渠道改了页面。",
+		}
+	);
 }
 
 export const POST: APIRoute = async ({ request }) => {

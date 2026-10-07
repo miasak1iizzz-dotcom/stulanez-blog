@@ -37,12 +37,20 @@ export function clearPullSession(): void {
 
 /**
  * 抽取结果的持久缓存：同一帖子的链接再点一次，直接用上次抽好的结果，
- * 不再跟抖音风控赌运气。只缓存 ≥2 张的成功结果——单图结果可能是被
- * 风控打残的残次品，缓存它等于把坏结果钉死。
+ * 不再跟抖音风控赌运气。
+ *
+ * 两种保鲜期：
+ *  - ≥2 张的多图结果 → 7 天（基本可以确定是好的）
+ *  - 只有 1 张的结果 → 30 分钟。单图**可能**是被风控打残的残次品，也可能是
+ *    这帖本来就一张；服务端已经抽了三次才得出这个结论，所以留一个短缓存，
+ *    让单图帖不用每次都让用户等三十秒，又不会把坏结果钉死一周。
+ * 再点一次「提取图片」会强制重抽（见 PullVault 的 cacheUsedFor）。
  */
 const CACHE_KEY = "pull-extract-cache";
 const CACHE_LIMIT = 40;
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+/** 单图结果的短保鲜期 */
+const CACHE_THIN_MAX_AGE_MS = 30 * 60 * 1000;
 
 type PullCacheEntry = { url: string; result: PullSuccess; ts: number };
 
@@ -58,7 +66,7 @@ function readPullCache(): PullCacheEntry[] {
 				typeof e.url === "string" &&
 				e.result?.ok &&
 				Array.isArray(e.result.images) &&
-				e.result.images.length >= 2,
+				e.result.images.length >= 1,
 		);
 	} catch {
 		return [];
@@ -77,7 +85,7 @@ function writePullCache(list: PullCacheEntry[]): void {
 }
 
 export function savePullCache(url: string, result: PullSuccess): void {
-	if (!result?.ok || !result.images?.length || result.images.length < 2) return;
+	if (!result?.ok || !result.images?.length) return;
 	const list = readPullCache().filter((entry) => entry.url !== url);
 	list.unshift({ url, result, ts: Date.now() });
 	writePullCache(list);
@@ -88,6 +96,8 @@ export function loadPullCache(
 ): { result: PullSuccess; ts: number } | null {
 	const hit = readPullCache().find((entry) => entry.url === url);
 	if (!hit) return null;
-	if (Date.now() - hit.ts > CACHE_MAX_AGE_MS) return null;
+	const ttl =
+		hit.result.images.length >= 2 ? CACHE_MAX_AGE_MS : CACHE_THIN_MAX_AGE_MS;
+	if (Date.now() - hit.ts > ttl) return null;
 	return { result: hit.result, ts: hit.ts };
 }
