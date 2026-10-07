@@ -21,7 +21,9 @@ import {
 import { peelUrl } from "@/utils/pull/peel";
 import {
 	clearPullSession,
+	loadPullCache,
 	loadPullSession,
+	savePullCache,
 	savePullSession,
 } from "@/utils/pull/session";
 import type { PullChannelId, PullSuccess } from "@/utils/pull/types";
@@ -49,6 +51,7 @@ let editName = $state("");
 let activeAlbumId = $state<string | null>(null);
 let pendingDeleteId = $state<string | null>(null);
 let extractSeq = 0;
+let cacheUsedFor = "";
 
 const QUIET_OPEN_KEY = "stulanez:pull-quiet-open";
 
@@ -82,6 +85,30 @@ async function extract(
 		return;
 	}
 	url = quiet ? "" : target;
+	// 缓存命中秒出；同一链接紧接着再点一次提取 = 不信缓存，强制重抽。
+	if (cacheUsedFor === target) {
+		cacheUsedFor = "";
+	} else {
+		const cached = loadPullCache(target);
+		if (cached) {
+			cacheUsedFor = target;
+			const age = Date.now() - cached.ts;
+			const ageText =
+				age < 3_600_000
+					? `${Math.max(1, Math.round(age / 60_000))} 分钟`
+					: age < 86_400_000
+						? `${Math.round(age / 3_600_000)} 小时`
+						: `${Math.round(age / 86_400_000)} 天`;
+			result = {
+				...cached.result,
+				warning: `用的是 ${ageText}前抽好的缓存。想要最新结果，再点一次「提取图片」就会重新抽。`,
+			};
+			loading = false;
+			quietLoading = false;
+			return;
+		}
+		cacheUsedFor = "";
+	}
 	quietLoading = quiet;
 	loading = true;
 	try {
@@ -102,7 +129,9 @@ async function extract(
 			return;
 		}
 		result = data;
+		cacheUsedFor = "";
 		savePullSession({ url: target, result: data });
+		savePullCache(target, data);
 		syncAlbumDraft(data, target);
 		if (activeAlbumId) touchPullAlbum(activeAlbumId);
 		refreshAlbums();
