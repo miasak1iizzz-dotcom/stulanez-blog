@@ -6,6 +6,8 @@ tags: [站点, 开始]
 category: 随笔
 image: /assets/images/posts/hello-stulanez-grok-cover.jpg
 pinned: false
+# 本站第一篇，永远排在文章列表最底部（见 src/utils/content-utils.ts）
+pinnedToBottom: true
 draft: false
 slug: hello-stulanez
 ---

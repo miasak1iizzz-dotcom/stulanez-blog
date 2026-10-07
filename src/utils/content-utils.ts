@@ -14,10 +14,17 @@ async function getRawSortedPosts() {
 		if (a.data.pinned && !b.data.pinned) return -1;
 		if (!a.data.pinned && b.data.pinned) return 1;
 
-		// 如果置顶状态相同，则按发布日期排序
-		const dateA = new Date(a.data.published);
-		const dateB = new Date(b.data.published);
-		return dateA > dateB ? -1 : 1;
+		// 其次按沉底状态排序，标记 pinnedToBottom 的文章永远在最后
+		if (a.data.pinnedToBottom && !b.data.pinnedToBottom) return 1;
+		if (!a.data.pinnedToBottom && b.data.pinnedToBottom) return -1;
+
+		// 其余按发布日期排序，新的在前
+		const dateA = new Date(a.data.published).getTime();
+		const dateB = new Date(b.data.published).getTime();
+		if (dateA !== dateB) return dateB - dateA;
+
+		// 同一天发布的文章按 id 排序，保证每次构建顺序一致
+		return a.id.localeCompare(b.id);
 	});
 	return sorted;
 }

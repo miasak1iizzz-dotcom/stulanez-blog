@@ -14,6 +14,8 @@ type PostData = {
 	category: string | null;
 	lang: string;
 	pinned: boolean;
+	/** 沉底：永远排在列表最后（站点的第一篇用这个） */
+	pinnedToBottom: boolean;
 	author: string;
 	sourceLink: string;
 	licenseName: string;
@@ -55,6 +57,8 @@ const postsCollection: ContentCollection<PostData> = defineCollection({
 		category: z.string().optional().nullable().default(""),
 		lang: z.string().optional().default(""),
 		pinned: z.boolean().optional().default(false),
+		// 沉底：永远排在列表最后（站点的第一篇用这个）
+		pinnedToBottom: z.boolean().optional().default(false),
 		author: z.string().optional().default(""),
 		sourceLink: z.string().optional().default(""),
 		licenseName: z.string().optional().default(""),
