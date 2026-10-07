@@ -212,7 +212,7 @@ function pickMeta(html: string): { title: string; author?: string } {
 }
 
 const SHORT_LINK_ERROR =
-	"这条抖音短链在网页里被送回首页了，抽不到。请把 App「复制链接」的整段口令贴过来，或换一条有效短链。";
+	"这条抖音短链失效了（短链过期或被回收都会这样，帖子本身可能还在）。请在抖音 App 里重新「复制链接」贴过来，或把网页地址栏里的链接贴过来——帖子还在就能抽到。";
 
 async function resolveShare(
 	input: string,
