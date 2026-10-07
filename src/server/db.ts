@@ -23,9 +23,17 @@ export function db(): Pool {
 			uri: databaseUrl(),
 			connectionLimit: 1,
 			enableKeepAlive: true,
+			// serverless 上连不上要快点失败，别把请求挂死到超时（RDS 白名单/地域问题最常见）
+			connectTimeout: 10_000,
 		});
 	}
 	return pool;
+}
+
+/** 清掉已过期的会话行。过期只是查询时过滤的话，sessions 表会只增不减。 */
+export async function pruneExpiredSessions(): Promise<number> {
+	const [result] = await db().query("DELETE FROM sessions WHERE expires_at < UTC_TIMESTAMP()");
+	return (result as { affectedRows?: number }).affectedRows ?? 0;
 }
 
 export function ensureAccounts(): Promise<void> {
@@ -46,7 +54,8 @@ export function ensureAccounts(): Promise<void> {
 					id CHAR(64) NOT NULL PRIMARY KEY,
 					user_id CHAR(36) NOT NULL,
 					expires_at DATETIME NOT NULL,
-					KEY sessions_user (user_id)
+					KEY sessions_user (user_id),
+					KEY sessions_expires (expires_at)
 				)
 			`);
 		})();

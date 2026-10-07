@@ -1,7 +1,7 @@
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import type { AstroCookies } from "astro";
-import { db, ensureAccounts } from "@/server/db";
+import { db, ensureAccounts, pruneExpiredSessions } from "@/server/db";
 
 const scrypt = promisify(scryptCallback);
 const COOKIE = "stulanez_session";
@@ -72,6 +72,8 @@ export async function openSession(
 		"INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))",
 		[sessionId, user.id, SESSION_DAYS],
 	);
+	// 顺手清过期会话：登录是低频写操作，不值得为它单开一个定时任务；失败不影响登录
+	void pruneExpiredSessions().catch(() => undefined);
 	return { ok: true, sessionId };
 }
 
