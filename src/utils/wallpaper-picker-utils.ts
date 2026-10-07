@@ -1,4 +1,5 @@
 import { backgroundWallpaper } from "@/config";
+import { url } from "@/utils/url-utils";
 
 export type WallpaperPickerItem = {
 	index: number;
@@ -23,7 +24,7 @@ function toThumbPath(src: string): string {
 export function getWallpaperPickerItems(): WallpaperPickerItem[] {
 	return desktopWallpaperSrcs().map((src, index) => ({
 		index,
-		src,
-		thumb: toThumbPath(src),
+		src: url(src),
+		thumb: url(toThumbPath(src)),
 	}));
 }
