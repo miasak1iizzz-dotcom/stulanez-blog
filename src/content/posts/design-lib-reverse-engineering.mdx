@@ -15,6 +15,8 @@ minutes: 22
 hideCoverInPost: true
 ---
 
+import DesignLibNav from "@/components/posts/DesignLibNav.astro";
+
 vibecoding 最大的问题不是模型不会写代码，是**你说不出你想要什么**。
 
 "高级感"、"留白多一点"、"动效丝滑一点"——这些词丢给 Agent，它只能给你一个 Bootstrap 味的居中标题。它缺的不是能力，是**参照物**。
@@ -162,169 +164,7 @@ CustomEase.js.map
 
 ### 6.1 XOR 混淆资源路径（02 Obys）
 
-**问题**：Obys 的 HTML 里没有任何可读的资源路径。它有三个内联 `<script>`，把路径用 XOR 加密了。
-
-```javascript
-// 类似这样
-var _0x = ["\x2f\x6a\x73\x2f\x64\x2e\x6a\x73"];  // 实际是 XOR 后的
-```
-
-**硬解 XOR 是下策。** 正确做法是：**让浏览器自己解密。**
-
-我写了一个 CDP 驱动（`obys-dump.js`）：
-
-1. 用 Chrome 打开目标站
-2. 等它自己的解密脚本跑完
-3. **读取解密后的真实路径**
-
-```javascript
-// obys-dump.js 核心
-await send('Page.navigate', {url: 'https://obys.agency'});
-await sleep(5000);
-const result = await send('Runtime.evaluate', {
-  expression: `
-    JSON.stringify({
-      scripts: [...document.querySelectorAll('script')].map(s => s.src),
-      styles: [...document.querySelectorAll('link[rel=stylesheet]')].map(l => l.href)
-    })
-  `
-});
-```
-
-**解密结果：**
-
-```
-/css/d.css?msh4f1r6       ← 14.8 KB
-/js/d.js?msh4f1r6         ← 119 KB
-/d.json?d=d               ← 135 KB（全站数据）
-/font/ObysSans4.woff2
-cms.obys.agency/uploads/*.webp   ← 177 张图
-```
-
-**核心原则：不要跟混淆对抗，让运行时替你解密。**
-
-### 6.2 Cloudflare 拦截（06 Pacôme Pertant）
-
-**问题**：直接 curl 返回的是 CF 挑战页（"One moment, please..."），12KB 左右。
-
-**第一次尝试——伪装请求头。** 加上完整的浏览器请求头：
-
-```bash
-curl -sS --compressed \
-  -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" \
-  -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
-  -H "Accept-Language: en-US,en;q=0.9" \
-  -H "Sec-Fetch-Dest: document" \
-  -H "Sec-Fetch-Mode: navigate" \
-  -H "Sec-Fetch-Site: none" \
-  https://pacomepertant.com/
-```
-
-**结果：HTTP 200，但内容是 brotli 压缩的。** 解压后——**拿到了完整 HTML（57KB）！**
-
-```python
-import brotli
-raw = open('response.bin', 'rb').read()
-html = brotli.decompress(raw)   # 57,341 bytes
-```
-
-**关键坑：`--compressed` 让 curl 自动发 `Accept-Encoding: br`，但它不会自动解 brotli。** 必须手动 `brotli.decompress()`。
-
-**但 CF 只放行了你第一次请求。** 之后请求 `_nuxt/*.js`，又被拦。这时候需要**真实浏览器 + 代理**。
-
-### 6.3 反盗链图片（05 Cipher / 06 Sanity）
-
-**问题**：图像 CDN 检查 `Referer`，直接 curl 返回 403。
-
-**解法：CDP 的 `Network.getResponseBody`。**
-
-```javascript
-// grab-cdp.js 核心
-ws.on('message', async raw => {
-  const m = JSON.parse(raw);
-  if (m.method === 'Network.responseReceived') {
-    const url = m.params.response.url;
-    if (!/cdn\.sanity\.io/.test(url)) return;
-
-    // ★ 关键：向浏览器要响应体
-    const r = await send('Network.getResponseBody', {
-      requestId: m.params.requestId
-    });
-
-    // 响应体就在手里了，绕过了所有防盗链
-    const buf = r.base64Encoded
-      ? Buffer.from(r.body, 'base64')
-      : Buffer.from(r.body, 'utf8');
-    fs.writeFileSync(dest, buf);
-  }
-});
-```
-
-**原理：请求由浏览器发出，Referer / Cookie / TLS 指纹全是真的。你只是在它拿到响应后，把内容复制一份。**
-
-**三个反爬，三种破法，但内核是同一个：**
-
-> **不要跟反爬对抗，让真实浏览器替你把请求发出去，然后截走结果。**
-
----
-
-## 七、阶段④：补全——运行时 404 扫描
-
-这是让复刻从 80% 到 100% 的关键一步。
-
-**问题**：HTML 里只引用了主 bundle。但页面上滑、点、滚的时候，会**懒加载**另外几十个 chunk。这些都不在 HTML 里。
-
-**解法**：跑一遍，抓它的 404。
-
-```javascript
-// find_missing.js — 打开本地版，收集所有 404
-ws.on('message', raw => {
-  const m = JSON.parse(raw);
-  if (m.method === 'Network.loadingFailed' ||
-      (m.method === 'Network.responseReceived' && m.params.response.status === 404)) {
-    missing.add(url);
-  }
-});
-```
-
-跑完 01 Paolo，报出 **13 个缺失的 `_nuxt` chunk**：
-
-```
-meta.ByfimTUW.css
-Parallax.DxvZJDeJ.css
-about.v4cxCjdC.css
-2vzl3mJm.js
-EQ_v3S1F.js
-BVXfqpKY.js
-ByOt4XAg.js
-Strapi.Dr4hsLFC.css
-contact.raMsEkvj.css
-...
-```
-
-**回原站抓下来 → 铺到对应路径 → 再来一遍。** 循环到 404 清零。
-
-**这次九个站的最终 404 成绩：**
-
-```
-01: 1（CF 的 /cdn-cgi/rum 埋点，无内容影响）
-02~09: 0
-```
-
-**零内容缺失。**
-
----
-
-## 八、阶段⑤：本地化——多前缀铺设
-
-**最反直觉的一步。**
-
-抓下来的文件是一堆平铺的（`d.js`、`DbuFv3al.js`、`app.js`）。但原站引用它们时用的是**绝对路径**：
-
-```html
-<script src="/_nuxt/DbuFv3al.js"></script>
-<link rel="stylesheet" href="/static/js/d.css">
-```
+**问题**：Obys 的 HTML 里没有任何可读的资源路径。它有三个内联 `<script>` 标签，把路径用 XOR 加密了。
 
 **如果你改 HTML 里的路径**——那你就改了原站代码，而且容易漏。
 
@@ -494,7 +334,7 @@ R.Fetch({
 })
 ```
 
-**它的架构是"动态取页"**：请求 `/?webp=true&device=d`，服务器返回一个 JSON（含 `{body, cache, routes, data}`），再注入 DOM。
+**它的架构是"动态取页"**：请求 `/?webp=true&device=d`，服务器返回一个 JSON（含 `&#123;body, cache, routes, data&#125;`），再注入 DOM。
 
 **破法（三步）：**
 
@@ -780,6 +620,16 @@ D:\Saki\design-lib\
 **工具在 `D:\Saki\design-lib\`，38 个脚本，全部可复用。**
 
 **这一篇到此。下一个要扒的站，照上面的 SOP 走。**
+
+---
+
+## 对照面板
+
+十个站都跑在本机，一条一条对照着看。
+
+**先启动服务**（`D:\Saki\design-lib\` 下双击 `START-9站.bat`，或跑 `python serve_all.py`），jiejoe 在 `D:\Saki\projects\jiejoe-original\` 下 `npm run dev`。
+
+<DesignLibNav />
 
 ---
 
