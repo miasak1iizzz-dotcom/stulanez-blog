@@ -1,0 +1,786 @@
+---
+title: 「扒站」：把九个顶级设计站搬回家，一次讲完方法论
+published: 2026-10-09
+description: 从指纹识别到本地跑通，完整拆解九个高难度设计站的抓取与复刻管线——XOR 反爬、Cloudflare 穿透、SPA 回退陷阱、WebGL 纹理、多前缀铺设。工具全部开源，其他 Agent 可直接复刻。
+tags: [扒站, 逆向, 设计库, 方法论, AI]
+category: 设计
+pinned: false
+draft: false
+author: Saki
+comment: true
+contentType: article
+image: /assets/images/posts/design-lib-grok-cover.jpg
+words: 6000
+minutes: 22
+hideCoverInPost: true
+---
+
+vibecoding 最大的问题不是模型不会写代码，是**你说不出你想要什么**。
+
+"高级感"、"留白多一点"、"动效丝滑一点"——这些词丢给 Agent，它只能给你一个 Bootstrap 味的居中标题。它缺的不是能力，是**参照物**。
+
+所以我干了件更直接的事：**把九个顶级设计站，完整搬到本地，能跑，能改，能拆。**
+
+这一篇是全过程。不是"我抓了九个站"的炫耀，是**方法论和管线**——你（或者你的 Agent）照着能原样复刻。
+
+---
+
+## 一、先明确一件事：什么叫「完整复刻」
+
+我要的**不是**截图拼一个像的，也**不是**用 AI 重新画一个。
+
+我要的是：
+
+> **原站的 HTML + CSS + JS + 字体 + 图片 + 数据，全部落到本地，开个服务器就能跑起来，改一行代码就生效。**
+
+这样它才叫"参照物"。你可以打开 DevTools，看它的 `cubic-bezier(.19,1,.22,1)` 到底用在哪；可以把它的 24 条缓动曲线整段抄进自己的项目；可以把它那个 `mix-blend-mode: difference` 的 logo 拆出来研究。
+
+**关键判断：本地化（Localize），而不是重写（Rewrite）。**
+
+这是我这次最重要的一个决策。我一开始也想过"读懂它然后重写"——放了。因为：
+
+- 重写的必然结果是**降级**。你会漏掉 30% 的细节，而那 30% 正是"高级感"的来源。
+- 本地化是**零损耗**的。构建产物就是构建产物，它跑起来和原站一模一样。
+
+---
+
+## 二、九个目标，四种难度
+
+先说清战场。九个站，栈完全不同，难度分四档：
+
+| # | 站 | 栈 | 难度 | 卡点 |
+|---|---|---|---|---|
+| 01 | Paolo Vendramini | Nuxt 3 + Strapi | ⭐⭐ | 13 个懒加载 chunk 不在 HTML 里 |
+| 02 | Obys Agency | 自研框架 | ⭐⭐⭐⭐⭐ | **XOR 混淆资源路径 + 反爬** |
+| 03 | Seventeen | Webflow + GSAP | ⭐⭐⭐ | `integrity` 哈希 + 死掉的 vendor 脚本 |
+| 04 | Camille Mormal | PHP + 自研 | ⭐⭐⭐⭐ | **动态 JSON 取页 + 44 个缺失资源** |
+| 05 | Cipher | Nuxt 3 + Three.js | ⭐⭐⭐ | Prismic 图片防盗链 |
+| 06 | Pacôme Pertant | Nuxt 3 + Sanity | ⭐⭐⭐⭐⭐ | **Cloudflare 拦截** |
+| 07 | Justine Soulié | Nuxt 3 + Prismic + Three.js | ⭐⭐⭐ | 56 个 `.ktx` WebGL 纹理 |
+| 08 | Siena Film | Webflow | ⭐⭐ | 海报 + 视频批量 |
+| 09 | Stefan Vitasović | Next.js + Three.js | ⭐⭐⭐ | Vercel 专属路由 |
+
+**九个站，九种打法。** 下面拆。
+
+---
+
+## 三、管线总览：七个阶段
+
+```
+① 侦察      curl -I / 指纹识别 → 判定栈
+② 抓壳      HTML + 主 JS/CSS + sourcemap 探测
+③ 破防      针对性的反爬对抗（XOR / CF / 防盗链）
+④ 补全      运行时 404 扫描 → 回抓懒加载资源
+⑤ 本地化    _raw/ → local/，多前缀铺设
+⑥ 启动      每站独立端口 + 静态服务器
+⑦ 验收      截图 + DOM + 404 三重校验
+```
+
+每一阶段都有一批工具。**工具清单在最后一节，全部可复用。**
+
+---
+
+## 四、阶段①：侦察——三分钟判定一个站的栈
+
+拿到一个站，第一件事不是抓，是**判断它是什么做的**。
+
+```bash
+curl -sSI -L https://target.com/ | head -30
+```
+
+看几样东西：
+
+| 特征 | 判定 |
+|---|---|
+| `x-powered-by: Next.js` | Next.js |
+| HTML 里有 `__NUXT__` / `__NUXT_DATA__` | Nuxt 3 |
+| `_next/static/` 路径 | Next.js |
+| `_nuxt/` 路径 | Nuxt |
+| `data-wf-*` 属性、`webflow.js` | Webflow |
+| `cdn.shopify.com` | Shopify |
+| 一堆内联 `<style>` + `data-v-xxx` | Vue 组件（构建后） |
+
+**九个站的实际判定结果：**
+
+```
+01 paolovendramini   → Nuxt 3（_nuxt/ 路径）+ Strapi（CMS 数据）+ Cloudflare
+02 obys              → 自研（原生 JS，无框架特征）
+03 seventeen         → Webflow（data-wf-page 属性）
+04 camillemormal     → PHP（自研 d.js，非框架）
+05 cipher            → Nuxt 3（_nuxt/）+ Netlify + THREE.js
+06 pacomepertant     → Nuxt 3（_nuxt/）+ Sanity + Plesk + Cloudflare
+07 justinesoulie     → Nuxt 3 + Prismic + THREE.js
+08 siena             → Webflow + 自托管 app.js
+09 stefanvitasovic   → Next.js Pages Router + THREE.js
+```
+
+**判断栈为什么重要**：它决定了后面所有策略。Nuxt 要抓 `_payload.json`，Webflow 要处理 `integrity`，自研站要看它的加载器逻辑。
+
+---
+
+## 五、阶段②：抓壳——HTML + JS + sourcemap
+
+抓首页很简单。**sourcemap 才是宝。**
+
+```bash
+# 探测 sourcemap 是否存在
+curl -sSI https://target.com/_nuxt/entry.js.map
+```
+
+**03 Seventeen 给了我一个大惊喜——它发布了 9 个官方 sourcemap：**
+
+```
+GSAP.js.map          ← GSAP 完整源码
+ScrollTrigger.js.map
+Draggable.js.map
+InertiaPlugin.js.map
+Observer.js.map
+Plyr.js.map          ← 视频播放器
+Swiper.js.map
+Lenis.js.map         ← 平滑滚动
+CustomEase.js.map
+```
+
+**7.4 MB 的原始库源码。** 这意味着你可以直接读 GSAP 内部怎么实现 `ScrollTrigger`。
+
+**探测目录走一遍：**
+
+| 栈 | 探测路径 |
+|---|---|
+| Nuxt | `/_nuxt/`、`/_payload.json`、`/_nuxt/builds/meta/*.json` |
+| Next.js | `/_next/static/chunks/`、`/_next/static/*/_buildManifest.js` |
+| Webflow | `/js/webflow.js`、`/*.css` |
+| 通用 | `/sitemap.xml`、`/robots.txt`、`/manifest.json` |
+
+`robots.txt` 经常能给你一个路径地图。**先读它，再动手。**
+
+---
+
+## 六、阶段③：破防——三种反爬，三种破法
+
+这是全文最有价值的部分。
+
+### 6.1 XOR 混淆资源路径（02 Obys）
+
+**问题**：Obys 的 HTML 里没有任何可读的资源路径。它有三个内联 `<script>`，把路径用 XOR 加密了。
+
+```javascript
+// 类似这样
+var _0x = ["\x2f\x6a\x73\x2f\x64\x2e\x6a\x73"];  // 实际是 XOR 后的
+```
+
+**硬解 XOR 是下策。** 正确做法是：**让浏览器自己解密。**
+
+我写了一个 CDP 驱动（`obys-dump.js`）：
+
+1. 用 Chrome 打开目标站
+2. 等它自己的解密脚本跑完
+3. **读取解密后的真实路径**
+
+```javascript
+// obys-dump.js 核心
+await send('Page.navigate', {url: 'https://obys.agency'});
+await sleep(5000);
+const result = await send('Runtime.evaluate', {
+  expression: `
+    JSON.stringify({
+      scripts: [...document.querySelectorAll('script')].map(s => s.src),
+      styles: [...document.querySelectorAll('link[rel=stylesheet]')].map(l => l.href)
+    })
+  `
+});
+```
+
+**解密结果：**
+
+```
+/css/d.css?msh4f1r6       ← 14.8 KB
+/js/d.js?msh4f1r6         ← 119 KB
+/d.json?d=d               ← 135 KB（全站数据）
+/font/ObysSans4.woff2
+cms.obys.agency/uploads/*.webp   ← 177 张图
+```
+
+**核心原则：不要跟混淆对抗，让运行时替你解密。**
+
+### 6.2 Cloudflare 拦截（06 Pacôme Pertant）
+
+**问题**：直接 curl 返回的是 CF 挑战页（"One moment, please..."），12KB 左右。
+
+**第一次尝试——伪装请求头。** 加上完整的浏览器请求头：
+
+```bash
+curl -sS --compressed \
+  -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" \
+  -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+  -H "Accept-Language: en-US,en;q=0.9" \
+  -H "Sec-Fetch-Dest: document" \
+  -H "Sec-Fetch-Mode: navigate" \
+  -H "Sec-Fetch-Site: none" \
+  https://pacomepertant.com/
+```
+
+**结果：HTTP 200，但内容是 brotli 压缩的。** 解压后——**拿到了完整 HTML（57KB）！**
+
+```python
+import brotli
+raw = open('response.bin', 'rb').read()
+html = brotli.decompress(raw)   # 57,341 bytes
+```
+
+**关键坑：`--compressed` 让 curl 自动发 `Accept-Encoding: br`，但它不会自动解 brotli。** 必须手动 `brotli.decompress()`。
+
+**但 CF 只放行了你第一次请求。** 之后请求 `_nuxt/*.js`，又被拦。这时候需要**真实浏览器 + 代理**。
+
+### 6.3 反盗链图片（05 Cipher / 06 Sanity）
+
+**问题**：图像 CDN 检查 `Referer`，直接 curl 返回 403。
+
+**解法：CDP 的 `Network.getResponseBody`。**
+
+```javascript
+// grab-cdp.js 核心
+ws.on('message', async raw => {
+  const m = JSON.parse(raw);
+  if (m.method === 'Network.responseReceived') {
+    const url = m.params.response.url;
+    if (!/cdn\.sanity\.io/.test(url)) return;
+
+    // ★ 关键：向浏览器要响应体
+    const r = await send('Network.getResponseBody', {
+      requestId: m.params.requestId
+    });
+
+    // 响应体就在手里了，绕过了所有防盗链
+    const buf = r.base64Encoded
+      ? Buffer.from(r.body, 'base64')
+      : Buffer.from(r.body, 'utf8');
+    fs.writeFileSync(dest, buf);
+  }
+});
+```
+
+**原理：请求由浏览器发出，Referer / Cookie / TLS 指纹全是真的。你只是在它拿到响应后，把内容复制一份。**
+
+**三个反爬，三种破法，但内核是同一个：**
+
+> **不要跟反爬对抗，让真实浏览器替你把请求发出去，然后截走结果。**
+
+---
+
+## 七、阶段④：补全——运行时 404 扫描
+
+这是让复刻从 80% 到 100% 的关键一步。
+
+**问题**：HTML 里只引用了主 bundle。但页面上滑、点、滚的时候，会**懒加载**另外几十个 chunk。这些都不在 HTML 里。
+
+**解法**：跑一遍，抓它的 404。
+
+```javascript
+// find_missing.js — 打开本地版，收集所有 404
+ws.on('message', raw => {
+  const m = JSON.parse(raw);
+  if (m.method === 'Network.loadingFailed' ||
+      (m.method === 'Network.responseReceived' && m.params.response.status === 404)) {
+    missing.add(url);
+  }
+});
+```
+
+跑完 01 Paolo，报出 **13 个缺失的 `_nuxt` chunk**：
+
+```
+meta.ByfimTUW.css
+Parallax.DxvZJDeJ.css
+about.v4cxCjdC.css
+2vzl3mJm.js
+EQ_v3S1F.js
+BVXfqpKY.js
+ByOt4XAg.js
+Strapi.Dr4hsLFC.css
+contact.raMsEkvj.css
+...
+```
+
+**回原站抓下来 → 铺到对应路径 → 再来一遍。** 循环到 404 清零。
+
+**这次九个站的最终 404 成绩：**
+
+```
+01: 1（CF 的 /cdn-cgi/rum 埋点，无内容影响）
+02~09: 0
+```
+
+**零内容缺失。**
+
+---
+
+## 八、阶段⑤：本地化——多前缀铺设
+
+**最反直觉的一步。**
+
+抓下来的文件是一堆平铺的（`d.js`、`DbuFv3al.js`、`app.js`）。但原站引用它们时用的是**绝对路径**：
+
+```html
+<script src="/_nuxt/DbuFv3al.js"></script>
+<link rel="stylesheet" href="/static/js/d.css">
+```
+
+**如果你改 HTML 里的路径**——那你就改了原站代码，而且容易漏。
+
+**正确做法：不改 HTML，把文件铺到它期望的位置。**
+
+```python
+# build_final.py 核心
+PREFIX_MAP = {
+    "d.js":      ["/static/js/d.js", "/js/d.js", "/_nuxt/d.js"],
+    "app.js":    ["/js/app.js", "/static/js/app.js"],
+    "d.css":     ["/static/css/d.css", "/css/d.css"],
+    # ...
+}
+# 一个文件，铺到所有可能的路径
+```
+
+**"多前缀冗余"** —— 一个 `d.js` 同时存在于 `/static/js/`、`/js/`、`/_nuxt/`。哪个引用形式都能命中。
+
+**为什么有效**：你不需要知道原站真正的路径结构，你只需要**覆盖所有可能性**。存储便宜，猜错代价高。
+
+### 服务器根 = 站点根
+
+```python
+# serve_all.py — 每站独立服务器，root 指向 <slug>/local/
+SITES = [
+    ("01-paolovendramini", 8101),
+    ("02-obys",            8102),
+    # ...
+]
+```
+
+**关键**：服务根必须是 `local/`，这样 `/_nuxt/x.js` 才能自然解析成 `local/_nuxt/x.js`。**不需要任何路径重写。**
+
+---
+
+## 九、阶段⑥：两个必踩的坑
+
+### 坑 1：SPA 回退把 JSON 吃掉了
+
+Nuxt / Next 的单页应用需要"找不到路径就返回 index.html"的回退。但如果你**对所有 404 都返回 index.html**：
+
+```javascript
+// JS 请求 /_payload.json，得到的是：
+"<!DOCTYPE html><html>..."   ← 不是 JSON
+// 然后 JS 崩在：
+// SyntaxError: Unexpected token '<', "<!doctype "... is not valid JSON
+// 后果：整个页面白屏
+```
+
+**修复：只对"页面导航"请求回退，资源请求老实 404。**
+
+```python
+def send_error(self, code, msg=None, explain=None):
+    p = self.path.split("?")[0]
+    ext = os.path.splitext(p)[1].lower()
+    is_asset = ext in (".json", ".js", ".css", ".woff2", ".jpg",
+                       ".png", ".webp", ".ktx", ".mp4", ...)
+    idx = os.path.join(self.directory, "index.html")
+    if code == 404 and not is_asset and os.path.exists(idx):
+        # 只有页面导航才回退
+        return self.serve_index()
+    super().send_error(code, msg, explain)   # 资源老实 404
+```
+
+**这一个 bug 让我排查了两轮。** 记住它。
+
+### 坑 2：Webflow 的 `integrity` 哈希
+
+Webflow 站（03 / 08）的 `<link>` 带 `integrity`：
+
+```html
+<link rel="stylesheet" href="/css/site.css"
+      integrity="sha384-XyZ..." crossorigin="anonymous">
+```
+
+**本地文件内容只要差一个字节，浏览器就拒绝加载整个 CSS。** 页面会变成裸 HTML。
+
+**修复：删掉 `integrity` 和 `crossorigin`。**
+
+```bash
+# 03-seventeen 处理
+sed -i 's/ integrity="sha384-[^"]*"//g' index.html
+sed -i 's/ crossorigin//g' index.html
+```
+
+### 坑 2.5：Webflow 的死脚本
+
+03 还有一个更阴的坑：一个 vendor 追踪脚本返回的是 **HTML**（58KB 的 `<!DOCTYPE html>`）。
+
+```html
+<script src="/haqt6iy0yx2e.../5MuJ4xnYHv..."></script>
+<!-- 返回 404 页面（HTML）→ SyntaxError → 阻断后面所有 JS -->
+```
+
+**一个失效脚本能让你整站 JS 全死。** 删掉它。
+
+---
+
+## 十、阶段⑦：验收——三重校验
+
+**不要相信"看起来能跑"。** 三重校验：
+
+### 1. 截图
+
+**CDP 在这台机器上会挂**（`Runtime.evaluate` 永不返回）。用原生 Chrome：
+
+```bash
+chrome --headless=new --disable-gpu --no-first-run \
+  --hide-scrollbars --window-size=1440,900 \
+  --virtual-time-budget=15000 \
+  --screenshot=out.png http://127.0.0.1:8101/
+```
+
+### 2. 推进加载器
+
+很多站有 preloader，`--virtual-time-budget` 推不动它。**用滚轮事件驱动**：
+
+```javascript
+// shot-scroll.js
+for (let y = 0; y < 8; y++) {
+  await send('Input.dispatchMouseEvent', {
+    type: 'mouseWheel', deltaY: 700, x: 720, y: 450
+  });
+  await sleep(400);
+}
+```
+
+**02 Obys 的效果：截图从 6.9KB → 170KB。** （6.9KB 是纯黑，170KB 是完整作品集。）
+
+### 3. DOM 校验
+
+截图小 ≠ 页面坏了。**WebGL 站在 headless 里 canvas 不画**（没 GPU）。
+
+```bash
+chrome --headless=new --dump-dom http://127.0.0.1:8107/ > dom.html
+```
+
+**07 Justine 的验证：**
+
+```
+canvas: 1 个         ← WebGL canvas 存在
+请求: 54 个，0 失败
+```
+
+**画面没出来，但代码全对。真实浏览器里正常。**
+
+**三重校验的逻辑：截图看视觉，滚轮推进度，DOM 查结构。** 缺一不可。
+
+---
+
+## 十一、两个最硬的骨头（完整复盘）
+
+### 04 Camille Mormal——从 0% 到 100%
+
+**症状**：预加载器卡在 `0%`，永远不动。
+
+**诊断**：读它的 `d.js`，找到这个：
+
+```javascript
+R.Fetch({
+  url: route.new.url + "?webp=" + webp + "&device=" + device,
+  type: "html",
+  success: t => {
+    t = JSON.parse(t);                      // ★ 拿到的是 JSON
+    this.add(document.body, "afterbegin", t.body);  // ★ 注入 DOM
+  }
+})
+```
+
+**它的架构是"动态取页"**：请求 `/?webp=true&device=d`，服务器返回一个 JSON（含 `{body, cache, routes, data}`），再注入 DOM。
+
+**破法（三步）：**
+
+```python
+# 1. 抓到原站的 JSON 响应（106,505 bytes）
+resp = fetch("https://camillemormal.com/?webp=true&device=d")
+open("local/page.json", "wb").write(resp)
+
+# 2. 给服务器加特例
+class H(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        if "webp=" in self.path:                    # ★ 拦截这个查询
+            pj = os.path.join(self.directory, "page.json")
+            if os.path.exists(pj):
+                data = open(pj, "rb").read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=UTF-8")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+        super().do_GET()
+
+# 3. 补 44 个缺失资源（25 张 load/N.jpg + 8 作品 × home/hero + favicon）
+#    结果：45/45 全下
+```
+
+**验证结果：**
+
+```
+loadNo: "100%"           ← 加载完成！
+titles: 8                ← 8 个作品标题全在
+文本: Independent Designer & Art Director
+     The Regeneration Suite / Simplicity & Tactility
+     Reimagining Loyalty / Beyond The Canvas
+     Sound Expressed In Full / Reinventing Wonder
+     From Nature To Culture / From Gaggio With Love
+```
+
+**从"卡死"到"100%"，靠的是读懂它的加载器逻辑。**
+
+### 06 Pacôme Pertant——穿透 Cloudflare
+
+**症状**：所有请求返回 CF 挑战页。
+
+**破法（换节点）：**
+
+本地有 Clash 代理（`127.0.0.1:7897`），出口是 Singapore。**所有请求走代理，CF 直接放行。**
+
+```bash
+curl -sS -x http://127.0.0.1:7897 --compressed \
+  -A "Mozilla/5.0 ... Chrome/131.0.0.0 Safari/537.36" \
+  https://pacomepertant.com/
+```
+
+**然后：**
+1. **HTML**（57KB）✓
+2. **10 个 Nuxt bundle**（主包 2.5MB，含 Three.js）✓
+3. **`_payload.json`**（Nuxt devalue 格式，含 10 项目 + 35 图引用 + 23 Mux 视频）✓
+4. **Sanity 图片** —— 需要 **projectId**
+
+**projectId 的挖掘过程**：从 HTML 里正则出 `projectId: "u7lvkmbp"`。然后：
+
+```bash
+curl -x http://127.0.0.1:7897 \
+  "https://cdn.sanity.io/images/u7lvkmbp/production/<hash>-1396x786.webp"
+# → 24,138 bytes 真 JPEG  ✓
+```
+
+**35/35 Sanity 图片全下。**
+
+**最终：零 404。** 首屏是黑底白字 `motion & sound designer / based in paris`。
+
+---
+
+## 十二、成果
+
+![01 Paolo Vendramini](/assets/images/posts/design-lib/01-paolovendramini.png)
+![02 Obys Agency](/assets/images/posts/design-lib/02-obys.png)
+![03 Seventeen](/assets/images/posts/design-lib/03-seventeen.png)
+![04 Camille Mormal](/assets/images/posts/design-lib/04-camillemormal.png)
+![05 Cipher](/assets/images/posts/design-lib/05-cipher.png)
+![06 Pacôme Pertant](/assets/images/posts/design-lib/06-pacomepertant.png)
+![07 Justine Soulié](/assets/images/posts/design-lib/07-justinesoulie.png)
+![08 Siena Film](/assets/images/posts/design-lib/08-siena.png)
+![09 Stefan Vitasović](/assets/images/posts/design-lib/09-stefanvitasovic.png)
+
+**最终交付：**
+
+```
+D:\Saki\design-lib\
+├── 2047 文件 / 216 MB
+├── 9 站 × (index.html + _raw/ + local/ + _recon.md)
+├── _snippets/          ← 抽出的组件库
+│   ├── easing/24-easings.css        24 条命名缓动
+│   ├── grid/grid-tokens.css         栅格断点
+│   ├── grid/12col-obys.css          视口比例 12 列
+│   ├── backgrounds/noise-bg.css     CSS 噪点
+│   ├── text-anim/marquee-arrow.css  跑马灯
+│   └── transitions/obys-logo-menu-grid.css
+├── serve_all.py        一键启动（端口 8101–8109）
+└── START-9站.bat       双击启动
+```
+
+**九个站全 HTTP 200，404 清零。**
+
+---
+
+## 十三、抽出来的东西（真正有价值的部分）
+
+复刻是手段，**抽出来才是目的**。
+
+### 设计 token
+
+| 来源 | 内容 |
+|---|---|
+| 04 Camille | 18 条缓动曲线（`--i1..i6` / `--o1..o6` / `--io1..io6`） |
+| 09 Stefan | **24 条命名缓动** + 栅格 token（`--gutters:5; --cols:4; --indent:1.3888888889vw`） |
+| 08 Siena | `--duration` / `--ease` / `--easeOutBack` / `--panels-duration` / `--slider-dur` |
+| 02 Obys | 12 列视口比例公式 + `mix-blend-mode: difference` logo + lerp |
+| 07 Justine | base64 噪点纹理 + 10s 箭头循环 |
+
+### 可直接抄的缓动
+
+```css
+/* 从 09 Stefan 抽出的 24 条命名缓动的一部分 */
+--ease-out-expo:    cubic-bezier(0.19, 1, 0.22, 1);
+--ease-out-quart:   cubic-bezier(0.165, 0.84, 0.44, 1);
+--ease-in-out-quint: cubic-bezier(0.86, 0, 0.07, 1);
+--ease-out-back:    cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* ... 剩余 20 条在 _snippets/easing/24-easings.css */
+```
+
+**这些是"高级感"的物理公式。** 你不用再猜为什么别人的动画好看——`cubic-bezier(0.19, 1, 0.22, 1)` 就是答案。
+
+---
+
+## 十四、工具清单（全部可复用）
+
+**38 个脚本，按用途分类：**
+
+### 侦察与抓取
+
+| 工具 | 用途 |
+|---|---|
+| `net-dump.js` | CDP 抓任意站全部资源 URL |
+| `img-dump2.js` | CDP 抓页面所有请求 |
+| `fetch_all.py` | 通用抓取（HTML→JS/CSS→sourcemap） |
+| `fetch_images.py` | 正则提取图片 URL 并下载 |
+| `fetch_webflow_imgs.py` | Webflow 站图片批量 |
+| `bulk_dl.py` | 批量下载 URL 清单 |
+
+### 反爬对抗
+
+| 工具 | 用途 |
+|---|---|
+| `obys-dump.js` | **破解 XOR 混淆**（CDP 执行解密器） |
+| `grab-cdp.js` | **拦截响应体**（绕防盗链/墙） |
+| `grab-sanity.js` | 专抓 Sanity CDN |
+| `dl-by-browser.js` | 浏览器下载 |
+| `one-get.js` | CDP 抓单个 URL（绕证书/reset） |
+
+### 本地化与启动
+
+| 工具 | 用途 |
+|---|---|
+| `build_final.py` | `_raw` → `local/`（多前缀策略） |
+| `refetch_chunks.py` | 补抓懒加载 chunk |
+| `serve_all.py` | 9 站服务器（端口 8101–8109） |
+| `START-9站.bat` | 一键启动 |
+
+### 诊断与验收
+
+| 工具 | 用途 |
+|---|---|
+| `find_missing.js` | **CDP 抓 404 列表**（最关键） |
+| `shot-scroll.js` | 滚轮推进 + 截图 |
+| `shot-skip.js` | 跳过 loader 截图 |
+| `probe.js` | 运行时状态（console/异常） |
+| `probe-camille.js` | 深度状态探针 |
+| `urls.js` | 列出某站所有请求 |
+| `verify3.js` | 批量截图验收 |
+
+---
+
+## 十五、可复刻的操作清单
+
+**给其他 Agent 的逐步 SOP：**
+
+```
+1. 侦察
+   curl -sSI -L <target> | head -30
+   → 判定栈（Nuxt / Next / Webflow / 自研）
+
+2. 抓壳
+   curl -sSL <target> -o index.html --compressed
+   → 若返回乱码，试 brotli.decompress()
+   → 探测 .map：curl -sSI <target>/<main>.js.map
+
+3. 枚举资源
+   grep -oE '/(_nuxt|_next|static|js|css)/[A-Za-z0-9._-]+' index.html
+   → 得到资源清单
+
+4. 破防（按需）
+   ├─ XOR 混淆 → CDP 执行解密器读 DOM
+   ├─ Cloudflare → 走代理 + 完整浏览器头 + brotli 解压
+   └─ 防盗链   → CDP Network.getResponseBody
+
+5. 铺文件
+   每个文件铺到所有可能的路径前缀
+   → _raw/d.js → local/static/js/d.js + local/js/d.js
+
+6. 起服务
+   每站独立端口，root = local/
+
+7. 补全循环
+   find_missing.js → 抓 404 → 回原站下载 → 铺路径
+   → 重复到 404 清零
+
+8. 验收
+   截图（--screenshot）+ 推进（滚轮）+ 结构（--dump-dom）
+   → 三重校验
+
+9. 抽组件
+   从 CSS/JS 里正则出 easing / grid / color token
+   → 整理成可复用片段
+```
+
+**七个必须记住的坑：**
+
+1. **SPA 回退会吃掉 JSON** → 只对页面导航回退
+2. **Webflow `integrity` 哈希** → 删掉
+3. **死掉的 vendor 脚本返回 HTML** → 删掉，否则整站 JS 死
+4. **curl `--compressed` 不解 brotli** → 手动 `brotli.decompress()`
+5. **CDP 在某些环境会挂** → 用原生 `chrome --headless --screenshot`
+6. **headless WebGL 不画** → 用 `--dump-dom` 验证结构
+7. **预加载器推不动** → 用滚轮事件驱动
+
+---
+
+## 十六、合法边界
+
+这一节必须说清楚。
+
+| 行为 | 性质 |
+|---|---|
+| 公开 GET 侦察（无鉴权绕过） | ✅ 合法 |
+| 本地下载代码/资源**自用** | ⚠️ 民法意义上的「复制」，不涉刑 |
+| **公开发布/部署** | ❌ 「信息网络传播」 |
+| 逐字复用代码 / 分发媒体 | ❌ 侵权 |
+| 破解付费墙 / 绕过登录 | ❌ 刑事风险 |
+
+**我的定位：本地自用、研究、学习。不公开部署。**
+
+**明确不可用的：**
+
+- **Impact 字体**（MyFonts 商业授权，"其他方明确禁止使用"）→ 用 Anton / Oswald（OFL）替代
+- NeueMontreal / ObysSans / ABC Favorit / HelveticaNowDisplay —— **商业字体，不可部署**
+- 站内图片、视频 —— **第三方版权**
+
+**要真部署：替换全部媒体、全部字体、重写文案。**
+
+---
+
+## 十七、这套东西怎么用
+
+回到最初的问题：**vibecoding 效果垃圾，因为 Agent 缺参照物。**
+
+现在你有九个了。
+
+**用法一：当审美基准。** 让 Agent 改首页之前，先让它读 02 Obys 的 CSS。它看到 `cubic-bezier(0.19, 1, 0.22, 1)` 和你写"丝滑一点"，是两回事。
+
+**用法二：当组件库。** `_snippets/` 里已经抽好了缓动、栅格、噪点、跑马灯。直接 import。
+
+**用法三：当抄袭对象（合法的抄袭）。** 它们的**方法**可以学——12 列视口比例怎么算、`mix-blend-mode: difference` 怎么用、Three.js 纹理怎么组织。方法不受版权保护，表达才受。
+
+**用法四：当对照。** 你让 Agent 写一个瀑布流，它给你一个 jQuery 味的。你打开 08 Siena 的 `local/`，看真东西怎么写。
+
+---
+
+**九个站，216 MB，零 404，全本地可跑。**
+
+**工具在 `D:\Saki\design-lib\`，38 个脚本，全部可复用。**
+
+**这一篇到此。下一个要扒的站，照上面的 SOP 走。**
+
+---
+
+*本站协议见 [规矩](/posts/site-protocol/)。*
