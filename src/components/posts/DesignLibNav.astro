@@ -17,6 +17,9 @@ const SITES = [
   { n: "09", name: "Stefan Vitasović", local: "http://127.0.0.1:8109/", live: "https://stefanvitasovic.dev", stack: "Next.js + Three.js" },
   { n: "00", name: "jiejoe", local: "http://127.0.0.1:8081/", live: "https://www.jiejoe.com", stack: "Vue 2 + GSAP + Lenis" },
 ];
+// 本地端口由 serve_all.py 的 REPLICA_PORT_BASE 决定：
+//   常驻档 8101–8109（默认）· 验收档 8201–8209（REPLICA_PORT_BASE=8201）
+// 换了端口，把上面每个 local 的后四位一起改。
 ---
 
 <div class="site-nav">

@@ -1,7 +1,8 @@
 ---
 title: 「扒站」：把九个顶级设计站搬回家，一次讲完方法论
 published: 2026-10-09
-description: 从指纹识别到本地跑通，完整拆解九个高难度设计站的抓取与复刻管线——XOR 反爬、Cloudflare 穿透、SPA 回退陷阱、WebGL 纹理、多前缀铺设。工具全部开源，其他 Agent 可直接复刻。
+updated: 2026-10-19
+description: 从指纹识别到本地跑通，完整拆解九个高难度设计站的抓取与复刻管线——XOR 反爬、Cloudflare 穿透、SPA 回退陷阱、WebGL 纹理、字体度量陷阱、懒加载兜底。工具全部开源，其他 Agent 可直接复刻。
 tags: [扒站, 逆向, 设计库, 方法论, AI]
 category: 设计
 pinned: false
@@ -10,8 +11,8 @@ author: Saki
 comment: true
 contentType: article
 image: /assets/images/posts/design-lib-grok-cover.jpg
-words: 6000
-minutes: 22
+words: 9000
+minutes: 34
 hideCoverInPost: true
 ---
 
@@ -55,11 +56,11 @@ vibecoding 最大的问题不是模型不会写代码，是**你说不出你想�
 | 01 | Paolo Vendramini | Nuxt 3 + Strapi | ⭐⭐ | 13 个懒加载 chunk 不在 HTML 里 |
 | 02 | Obys Agency | 自研框架 | ⭐⭐⭐⭐⭐ | **XOR 混淆资源路径 + 反爬** |
 | 03 | Seventeen | Webflow + GSAP | ⭐⭐⭐ | `integrity` 哈希 + 死掉的 vendor 脚本 |
-| 04 | Camille Mormal | PHP + 自研 | ⭐⭐⭐⭐ | **动态 JSON 取页 + 44 个缺失资源** |
-| 05 | Cipher | Nuxt 3 + Three.js | ⭐⭐⭐ | Prismic 图片防盗链 |
+| 04 | Camille Mormal | PHP + 自研 | ⭐⭐⭐⭐ | **动态 JSON 取页 + 44 个缺失资源 + 懒加载失效** |
+| 05 | Cipher | Nuxt 3 + Three.js | ⭐⭐⭐ | Prismic 图片防盗链 + Netlify 图片端点 |
 | 06 | Pacôme Pertant | Nuxt 3 + Sanity | ⭐⭐⭐⭐⭐ | **Cloudflare 拦截** |
 | 07 | Justine Soulié | Nuxt 3 + Prismic + Three.js | ⭐⭐⭐ | 56 个 `.ktx` WebGL 纹理 |
-| 08 | Siena Film | Webflow | ⭐⭐ | 海报 + 视频批量 |
+| 08 | Siena Film | Webflow | ⭐⭐ | 海报 + 视频批量 + 硬编码 `localhost:8000` |
 | 09 | Stefan Vitasović | Next.js + Three.js | ⭐⭐⭐ | Vercel 专属路由 |
 
 **九个站，九种打法。** 下面拆。
@@ -71,14 +72,16 @@ vibecoding 最大的问题不是模型不会写代码，是**你说不出你想�
 ```
 ① 侦察      curl -I / 指纹识别 → 判定栈
 ② 抓壳      HTML + 主 JS/CSS + sourcemap 探测
-③ 破防      针对性的反爬对抗（XOR / CF / 防盗链）
+③ 破防      针对性的反爬对抗（XOR / CF / 防盗链）+ 服务器端补端点
 ④ 补全      运行时 404 扫描 → 回抓懒加载资源
 ⑤ 本地化    _raw/ → local/，多前缀铺设
 ⑥ 启动      每站独立端口 + 静态服务器
-⑦ 验收      截图 + DOM + 404 三重校验
+⑦ 验收      截图看视觉 · 逐条比对看结构 · 代理记账看缺口
 ```
 
-每一阶段都有一批工具。**工具清单在最后一节，全部可复用。**
+七个阶段走完，**还要过三道收尾核查**：字体字节、死链残留、懒加载兜底。漏了任何一道，页面"能跑"但"不对"。
+
+每一步都有一批工具。**工具清单在第十四章，全部可复用。**
 
 ---
 
@@ -190,13 +193,99 @@ PREFIX_MAP = {
 ```python
 # serve_all.py — 每站独立服务器，root 指向 <slug>/local/
 SITES = [
-    ("01-paolovendramini", 8101),
-    ("02-obys",            8102),
-    # ...
+    ("01-paolovendramini", "https://www.paolovendramini.com"),
+    ("02-obys",            "https://obys.agency"),
+    # ... 共 9 站
 ]
+# 端口不写死，从环境变量取基准值：
+base = int(os.environ.get("REPLICA_PORT_BASE", "8101"))
+# → 01 → base+0 … 09 → base+8
+
+# 日常验证走 8201–8209，避免和常驻的 8101–8109 打架
+REPLICA_PORT_BASE=8201 python serve_all.py
 ```
 
 **关键**：服务根必须是 `local/`，这样 `/_nuxt/x.js` 才能自然解析成 `local/_nuxt/x.js`。**不需要任何路径重写。**
+
+### 6.2 服务器端还得会「装」
+
+原站的一些端点，本地根本不存在。两个例子：
+
+**05 Cipher 的 Netlify 图片端点。** 页面请求的是：
+
+```
+/.netlify/images?w=474&h=144&url=%2Fcommon%2Flogo.webp
+```
+
+本地没有 Netlify 这个服务，请求落到 SPA 兜底，返回 **0 字节 HTML** → `<img>` 加载失败。**19 个页面每页一张坏图。**
+
+修法：在服务器里补这个端点，把 `url` 参数解出来，读本地那张完好图，直接吐回去。
+
+```python
+def netlify_images(self):
+    """本地实现 /.netlify/images?w=&h=&url=<原始路径>"""
+    if not self.path.startswith("/.netlify/images"):
+        return False
+    q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+    src = (q.get("url") or [""])[0]
+    p = self.resolve(src)
+    if not os.path.exists(p):
+        return False
+    data = open(p, "rb").read()
+    self.send_response(200)
+    self.send_header("Content-Type", "image/webp")
+    self.send_header("Content-Length", str(len(data)))
+    self.end_headers()
+    self.wfile.write(data)
+    return True
+```
+
+**08 Siena 的 webp 图片。** 同理 —— 页面挂的是 `?webp=1` 之类，本地要么忽略查询串，要么按参数转格式。
+
+**结论：复刻不只是「把文件摆过去」。** 原站可能把一部分「后端行为」也算进了前端逻辑里，服务器得配合演。
+
+---
+
+## 七、阶段④：补全——运行时 404 扫描
+
+壳抓完了，资源还是缺的。**因为很多资源只有页面跑起来才会请求。**
+
+两个办法，一旧一新：
+
+**旧：CDP 抓 404 列表，回原站补，重复到清零。**
+
+```bash
+node find_missing.js <slug>
+# → 输出该站跑一遍后所有 404 路径
+```
+
+**新：让服务器自己记账（更准，见第十章「三代：反向补全」）。**
+
+```bash
+REPLICA_PROXY=1 python serve_all.py
+# 本地没有的请求 → 临时去原站取 → 写进 proxy/<slug>.jsonl
+node complete-loop.mjs --report-only
+# 读日志 → 得到权威缺口清单
+```
+
+---
+
+## 八、阶段⑤：本地化——`_raw/` → `local/`
+
+抓下来的原始文件在 `_raw/`，要变成能跑的 `local/`。
+
+核心就一条：**一个文件，铺到所有可能的路径前缀。**
+
+```python
+PREFIX_MAP = {
+    "d.js":   ["/static/js/d.js", "/js/d.js", "/_nuxt/d.js"],
+    "d.css":  ["/static/css/d.css", "/css/d.css"],
+}
+```
+
+**为什么这么做**：你不需要知道原站真正的路径结构，你只需要**覆盖所有可能性**。存储便宜，猜错代价高。
+
+**反面教训：** 路径铺得全，不等于文件内容对。**字体就是活例子** —— 三个路径都铺了，三个路径里放的却都是错的那一版（见第十一章）。
 
 ---
 
@@ -263,11 +352,15 @@ sed -i 's/ crossorigin//g' index.html
 
 ---
 
-## 十、阶段⑦：验收——三重校验
+## 十、阶段⑦：验收——不要相信「看起来能跑」
+
+验收有两代做法。**第一代靠截图，第二代靠比对。** 两代都要会，但主力应该是第二代。
+
+### 一代：三重校验（视觉层）
 
 **不要相信"看起来能跑"。** 三重校验：
 
-### 1. 截图
+#### 1. 截图
 
 **CDP 在这台机器上会挂**（`Runtime.evaluate` 永不返回）。用原生 Chrome：
 
@@ -313,11 +406,80 @@ canvas: 1 个         ← WebGL canvas 存在
 
 **三重校验的逻辑：截图看视觉，滚轮推进度，DOM 查结构。** 缺一不可。
 
+### 二代：逐条比对（结构层）
+
+截图的根本弱点：**它告诉你「像不像」，不告诉你「差在哪」。** 而且它会被动画中间态骗。
+
+第二代验收器把两边**同时渲染**，逐条路由比对四样东西：
+
+| 比什么 | 怎么比 | 能抓什么 |
+|---|---|---|
+| **DOM 骨架哈希** | 只取 `tag + class`，滤掉动画包装层/状态类/第三方 UI | 结构缺失、组件没挂载 |
+| **词多重集合** | 收集可见叶子节点的词，排序后求差集 | 少字、多字（能指出少哪个词） |
+| **视口级高度序列** | 只取 ≥900px 的容器，相对容差 0.8% | 布局块变形 |
+| **坏图计数** | `img.complete && naturalWidth === 0` | 资源缺失 |
+
+```javascript
+// verify.mjs — 一遍扫全部路由，站点级 × 路由级双层并发
+node verify.mjs                 // 全部 9 站
+node verify.mjs 01,02           // 指定站
+node verify.mjs --conc=2 --sitepar=1   // 保守档，机器弱时用
+```
+
+**判据的坑：必须先「等页面稳定」再采数。**
+
+真实教训：04 站前 1.4 秒骨架只有 25 个节点，2.1 秒才涨到 902。采早了，就是拿半成品比成品 —— 会报出一堆根本不存在的差异。
+
+```javascript
+// SETTLE：连续 4 次读数一致才返回，间隔 700ms
+export function SETTLE(rounds = 4, gap = 700, maxRounds = 26) {
+  const snap = () => document.documentElement.scrollHeight + '|'
+                  + document.querySelectorAll('*').length + '|' + /* ... */';
+  // 连续 rounds 次相同 → 稳定
+}
+```
+
+**验收器判的每一级，含义必须写死：**
+
+| 级别 | 含义 | 是不是真缺陷 |
+|---|---|---|
+| `OK` | 骨架 + 词集 + 高度全同 | — |
+| `TEXT` | 结构同、少词 | ✅ 真内容差异 |
+| `SIZE` | 词同、高度差 | ✅ 布局/资源差异 |
+| `DOM` | 结构不同、词同 | ⚠️ 要看差多少字 |
+| `CHAR` | 结构不同、词同、字数差 ≤2 | ❌ 多半是采样时刻 |
+| `IMG` | 有坏图 | ✅ 真缺陷 |
+
+### 三代：反向补全（缺口层）
+
+前两代都在**找差异**。第三代反过来问：**服务器自己认为缺什么？**
+
+```python
+# serve_all.py 的代理模式：本地没有的请求，临时去原站取，并记账
+PROXY_ON = os.environ.get("REPLICA_PROXY", "1") != "0"
+LOG_DIR  = "E:/AI/_audit/fix/out/proxy"     # 每站一个 <slug>.jsonl
+```
+
+```javascript
+// complete-loop.mjs — 跑一遍全站，读代理日志，得到权威缺口清单
+node complete-loop.mjs --report-only
+//   ── 01-paolovendramini  路由 22
+//      本地缺失（代理成功取回）: 0 条 · 原站也没有: 0 条
+//   ── 02-obys  路由 21
+//      本地缺失: 0 条
+//   ...
+//   总计缺失 0 条
+```
+
+**这个方法的价值：它不猜。** 服务器去原站取了一次，就说明本地真的没有这个文件。日志一行行摆在那里，不需要任何判据。
+
+九个站 138 条路由跑完，**缺失 0 条** —— 资源层到此为止是干净的。
+
 ---
 
-## 十一、两个最硬的骨头（完整复盘）
+## 十一、最难啃的四块骨头（完整复盘）
 
-### 04 Camille Mormal——从 0% 到 100%
+### 04 Camille Mormal——从 0% 到 100%，再到「图全挂」
 
 **症状**：预加载器卡在 `0%`，永远不动。
 
@@ -376,6 +538,128 @@ titles: 8                ← 8 个作品标题全在
 
 **从"卡死"到"100%"，靠的是读懂它的加载器逻辑。**
 
+#### 但是后来发现：加载器通了，图还是全挂
+
+"100%" 只说明预加载跑完了，**不说明图片显示出来了**。实际打开页面是：32 张 `<img>`，全空的。
+
+原因有**两层叠在一起**：
+
+**第一层——懒加载没被触发。** 图片路径不在 `src` 里，在 `data-src` 里：
+
+```html
+<img class="_lz"
+     src="data:,"
+     data-src="/static/media/d/work/sennheiser/section/large/S0.jpg?1"
+     alt="Homepage carrousel of the Sennheiser flagship store">
+```
+
+原站靠一个滚动进度值驱动 `loop()`，把 `data-src` 搬到 `src`：
+
+```javascript
+loop() {
+  const step = _A.e.s._[this.url].step;      // ★ 这个值本地永远是 0
+  for (let t = 0; t < this.lzL; t++) {
+    const i = this.img[t];
+    step > i.limit.decode && !i.decode && (this.decode(t), i.decode = true);
+  }
+}
+decode(t) {
+  const e = this.img[t].dom, i = this.img[t].src;
+  this.imgI[t] = new Image();
+  this.imgI[t].src = i;
+  this.imgI[t].decode().then(() => { e.src = i; delete e.dataset.src; });
+}
+```
+
+**本地没跑起来那个 ticker，`step` 恒为 0，所以一张都不搬。**
+
+**第二层——文件根本没下载。** 就算搬了也白搭：整个 `static/media` 目录下只有 41 个文件，而页面要 277 张。
+
+**修法（两步，都要做）：**
+
+```bash
+# 1. 暴力补图：把所有 data-src 里的路径，从原站逐个拉回本地同名位置
+node grab-04-media.mjs
+#   ✓   112635B  /static/media/d/work/sennheiser/section/large/S0.jpg?1
+#   ✓    67289B  /static/media/d/work/sennheiser/section/large/S1.jpg?1
+#   ...
+#   完成：成功 236 · 失败 0
+```
+
+```html
+<!-- 2. 页面里补一刀：把 data-src 扶正为 src，滚动时也补 -->
+<script>
+(function(){function p(){document.querySelectorAll("[data-src]").forEach(function(e){
+  var v=e.getAttribute("data-src");if(!v)return;
+  if(e.tagName==="IMG"&&e.src==="data:,"){e.src=v}
+  e.removeAttribute("data-src")})}
+  document.addEventListener("DOMContentLoaded",p);
+  window.addEventListener("scroll",function(){requestAnimationFrame(p)},{passive:true});
+})();</script>
+```
+
+**结果：236 张图，0 张坏的。** 10 个页面全绿。
+
+**这两步的教训**：预加载器跑完 ≠ 页面正确。`100%` 是**加载进度**，不是**渲染结果**。分清楚。
+
+### 01 Paolo Vendramini——字体抓错了，整站排版全歪
+
+**症状**：`/about` 页的客户名列表，本地排 7 行，原站 6 行。每个词量出来宽了 8~13%。
+
+**最开始的误判**：以为是动画库没还原。查了半天 SplitText 的 `autoSplit`。
+
+**真相**：字体文件本身抓错了。
+
+```bash
+# 原站真正在用的
+curl -sIL https://www.paolovendramini.com/fonts/NeueMontreal-Regular.woff2
+#   Content-Length: 23764
+
+# 本地那份
+ls -la fonts/NeueMontreal-Regular.woff2
+#   51424 bytes   ← 一倍多
+```
+
+**为什么抓错**：同一份字体在站上有多个路径（`/fonts/`、`/font/`、`/static/font/`），抓的时候按相对路径解析，命中了另一个版本的副本。**文件名一样，字形度量不一样。**
+
+**量出来的差异（同一段 CSS，40px NeueMontreal-Regular）：**
+
+| 词 | 本地 | 原站 | 偏差 |
+|---|---|---|---|
+| British | 118.469 | 108.813 | +8.87% |
+| Netflix | 122.563 | 108.375 | +13.09% |
+| Hyundai | 156.141 | 140.563 | +11.08% |
+
+**每个词都宽十分之一**，所以一行少挤一个词，列表从 6 行变 7 行。
+
+```bash
+# 修法：从原站正在使用的 URL 重下，覆盖所有副本
+node pull-fonts.mjs 01,05,09
+
+# 复验：逐词宽度差归零
+node font-metric.mjs
+#   British   本地 108.813  原站 108.813  差 0  (0.00%)
+```
+
+**顺手扫全站，发现 5 个站都抓错了：**
+
+| 站 | 修前 → 修后 |
+|---|---|
+| 01 | 51424 → 23764（woff2）、53328 → 23920（Bold） |
+| **05 Cipher** | 变量字体抓成了静态子集：**28576 → 238104（差 8 倍）** |
+| 09 Stefan | 53328 → 50408、53016 → 49964 |
+| 02 Obys | 17792 → 6272 |
+| 04 Camille | 21424 → 11228 |
+
+**教训：字体必须按字节核对，不能按文件名。** 写个 `font-audit.mjs`，把本地每个字体文件与原站同路径的 `Content-Length` 比一遍，几秒钟的事。
+
+```javascript
+// font-audit.mjs —— 本地字节 vs 原站字节
+const localSize  = statSync(f).size;
+const remoteSize = await headSize(`${site.origin}/fonts/${name}`);
+const verdict = remoteSize === localSize ? 'OK' : `尺寸不符 (原站 ${remoteSize})`;
+```
+
 ### 06 Pacôme Pertant——穿透 Cloudflare
 
 **症状**：所有请求返回 CF 挑战页。
@@ -408,6 +692,40 @@ curl -x http://127.0.0.1:7897 \
 
 **最终：零 404。** 首屏是黑底白字 `motion & sound designer / based in paris`。
 
+**但 `_payload.json` 后来又坏过一次**：本地那份变成了 12,075 字节的 Cloudflare 拦截页（"One moment, please..."），而真 payload 是 27,764 字节。症状是首页的 Lottie 动画报 `Cannot read properties of undefined (reading 'data')`，容器渲染 0 个 SVG（原站 2 个）。
+
+**教训**：抓下来的 JSON 也可能是假的。**拦到的是拦截页，不是数据。** 抓完立刻验大小和首字节。
+
+### 08 Siena——15 个页面写死了 `localhost:8000`
+
+**症状**：`/work` 页正文 0 字（原站 2171 字）。React 树根本没挂载。
+
+**诊断**：页面里引用的是别人的开发机地址。
+
+```html
+<script src="http://localhost:8000/app.js"></script>   <!-- ← 原样抄下来了 -->
+<link rel="stylesheet" href="styles/out.css">
+```
+
+**浏览器加载不到 `localhost:8000`，脚本报错，后面全死。**
+
+**而且不止首页** —— 全站扫一遍发现 **15 个页面**都带这种死链：
+
+```bash
+grep -rlE 'localhost:[0-9]+|\.vercel\.app' --include='*.html' local/
+```
+
+**修法**：重写成正确的本地路径。
+
+```javascript
+// fix-s08-work.mjs
+'http://localhost:8000/app.js'  →  '/js/app.js'
+'styles/out.css'               →  '/css/out.css'
+'main.css'                     →  '/css/main.css'
+```
+
+**教训：抓站的产物里可能残留原作者的开发环境地址。** 抓完先 grep 一遍 `localhost` 和 `127.0.0.1`。
+
 ---
 
 ## 十二、成果
@@ -422,24 +740,85 @@ curl -x http://127.0.0.1:7897 \
 ![08 Siena Film](/assets/images/posts/design-lib/08-siena.png)
 ![09 Stefan Vitasović](/assets/images/posts/design-lib/09-stefanvitasovic.png)
 
+### 复刻度实测（2026-10-19）
+
+七个可比站，106 条路由：
+
+| 站 | 通过 | 真缺陷 | 噪声 | 复刻度 |
+|---|---|---|---|---|
+| 06 Pacôme | 2/2 | 0 | 0 | **100%** |
+| 03 Seventeen | 5/17 | 0 | 12 | **100%** |
+| 04 Camille | 8/10 | 0 | 2 | **100%** |
+| 02 Obys | 20/21 | 0 | 1 | **100%** |
+| 05 Cipher | 18/19 | 1 | 0 | **95%** |
+| 01 Paolo | 20/22 | 2 | 0 | **91%** |
+| 08 Siena | 13/15 | 2 | 0 | **87%** |
+
+**合计 86/106 = 81.1%（严判）· 95.3%（剔除噪声后）**
+
+> **什么是「噪声」**：滚动数字计数器（03 页脚从 1 滚到 17，两边采样时刻不同）、时区词（`AM CET` vs `CEST PM`，客户端时钟差）、动画中间态。这些在**同一页面上永远对不齐**，但内容零差异。
+>
+> **04 站从 80% 跳到 100%** 就是因为这个 —— 之前报的 10 条「差 1 个字符」，全是采样时刻问题。暴力法（两边全量落盘、逐字节 diff）证明：HTML 4741 字节逐字节相同，文本 231 字逐字节相同。
+
+**剩下 5 条真缺陷：**
+
+| 站 | 页面 | 问题 |
+|---|---|---|
+| 08 | `/work` | 本地少 2142 字（整块内容没加载） |
+| 05 | `/works/the-circle` | 本地多 328 字（弹窗没关） |
+| 01 | `/works/enel-x` | 1 张坏图 |
+| 01 | `/works/la-viarte` | 1 张坏图 |
+| 08 | `/films/savoy` | 1 张坏图 |
+
+**九个站全 HTTP 200，资源缺口清零（138 条路由 × 0 条缺失）。**
+
+### 原站还活着吗
+
+验收前先确认这件事，否则会拿「连不上」当成「有差异」。
+
+**07 / 09 的域名叫错，会让你以为站死了：**
+
+| 站 | 正确域名 | 错误域名 | 错误域名的诊断结果 |
+|---|---|---|---|
+| 07 Justine | `justinesoulie.fr` ✅ 200 | `justinesoulie.com` | SERVFAIL（NS 罢工，域名其实 active 到 2027） |
+| 09 Stefan | `stefanvitasovic.dev` ✅ 200 | `stefanvitasovic.com` | **NXDOMAIN**（这条域名确实已删） |
+
+```bash
+# 用公共 DNS 查，别信本地缓存
+curl -s -H 'accept: application/dns-json' \
+  'https://cloudflare-dns.com/dns-query?name=stefanvitasovic.dev&type=A'
+#   {"Status":0,...}   ← 0 = 存在；3 = NXDOMAIN（真没了）；2 = SERVFAIL（DNS 故障）
+```
+
+**教训：域名对了站就活着，域名错了你会以为站死了。** 查站前先查 DNS。
+
 **最终交付：**
 
 ```
-D:\Saki\design-lib\
-├── 2047 文件 / 216 MB
+E:/AI/replica-workspace/10-SITES/
 ├── 9 站 × (index.html + _raw/ + local/ + _recon.md)
+│     01  50 MB / 283 文件 / 22 页
+│     02  53 MB / 399 文件 / 21 页
+│     03  14 MB / 150 文件 / 17 页
+│     04  19 MB / 351 文件 / 10 页
+│     05   6 MB / 135 文件 / 19 页
+│     06  21 MB /  93 文件 /  2 页
+│     07  14 MB / 235 文件 / 10 页
+│     08  16 MB / 107 文件 / 15 页
+│     09   9 MB / 155 文件 / 22 页
+│     ─────────────────────────────
+│     合计 202 MB / 1908 文件 / 138 页
 ├── _snippets/          ← 抽出的组件库
 │   ├── easing/24-easings.css        24 条命名缓动
 │   ├── grid/grid-tokens.css         栅格断点
 │   ├── grid/12col-obys.css          视口比例 12 列
 │   ├── backgrounds/noise-bg.css     CSS 噪点
 │   ├── text-anim/marquee-arrow.css  跑马灯
-│   └── transitions/obys-logo-menu-grid.css
-├── serve_all.py        一键启动（端口 8101–8109）
-└── START-9站.bat       双击启动
+│   ├── transitions/obys-logo-menu-grid.css
+│   └── loaders/xor-loader.md        XOR 加载器说明
+└── serve_all.py        一键启动（端口由 REPLICA_PORT_BASE 决定）
 ```
 
-**九个站全 HTTP 200，404 清零。**
 
 ---
 
@@ -474,9 +853,9 @@ D:\Saki\design-lib\
 
 ## 十四、工具清单（全部可复用）
 
-**38 个脚本，按用途分类：**
+工具分成两代。**第一代在原目录，第二代在审计目录。** 两代都在用。
 
-### 侦察与抓取
+### 一代：侦察与抓取
 
 | 工具 | 用途 |
 |---|---|
@@ -487,7 +866,7 @@ D:\Saki\design-lib\
 | `fetch_webflow_imgs.py` | Webflow 站图片批量 |
 | `bulk_dl.py` | 批量下载 URL 清单 |
 
-### 反爬对抗
+### 一代：反爬对抗
 
 | 工具 | 用途 |
 |---|---|
@@ -497,16 +876,15 @@ D:\Saki\design-lib\
 | `dl-by-browser.js` | 浏览器下载 |
 | `one-get.js` | CDP 抓单个 URL（绕证书/reset） |
 
-### 本地化与启动
+### 一代：本地化与启动
 
 | 工具 | 用途 |
 |---|---|
 | `build_final.py` | `_raw` → `local/`（多前缀策略） |
 | `refetch_chunks.py` | 补抓懒加载 chunk |
-| `serve_all.py` | 9 站服务器（端口 8101–8109） |
-| `START-9站.bat` | 一键启动 |
+| `serve_all.py` | 9 站服务器（端口由 `REPLICA_PORT_BASE` 决定） |
 
-### 诊断与验收
+### 一代：诊断与验收
 
 | 工具 | 用途 |
 |---|---|
@@ -517,6 +895,29 @@ D:\Saki\design-lib\
 | `probe-camille.js` | 深度状态探针 |
 | `urls.js` | 列出某站所有请求 |
 | `verify3.js` | 批量截图验收 |
+
+### 二代：比对与修复（`E:\AI\_audit\h\`）
+
+第二代是这次新增的，专门解决「一代只能告诉你像不像，说不清差在哪」。
+
+| 工具 | 用途 |
+|---|---|
+| `lib.mjs` | **判据核心**：骨架哈希 / 词多重集合 / 高度序列 / 稳定判定 |
+| `verify.mjs` | **并行验收器**（`--conc` `--sitepar`） |
+| `complete-loop.mjs` | **反向补全**：代理记账 → 权威缺口清单 |
+| `brute-diff.mjs` | 暴力法：两边全量落盘 innerText + HTML，逐字符定位 |
+| `brute-stable.mjs` | 多轮时序采样，看骨架是否抖动 |
+| `dom-diff.py` | 骨架逐节点对齐，输出差异路径 |
+| `font-audit.mjs` | **字体字节核对**（本地 vs 原站） |
+| `font-metric.mjs` | 量同一段文字在两边的渲染宽度 |
+| `pull-fonts.mjs` | 从原站重下字体，覆盖所有副本 |
+| `grab-04-media.mjs` | 按 `data-src` 暴力补图 |
+| `fix-04-lazy.mjs` | 懒加载兜底（`data-src` → `src`） |
+| `fix-s08-work.mjs` | 修 `localhost:8000` 死链 |
+| `fix-06-payload.mjs` | 重抓被 CF 污染的 `_payload.json` |
+| `final-score.mjs` | 复刻度测算（区分真缺陷 / 噪声） |
+
+**两代的区别：** 一代把站「搬下来」，二代把站「校对准」。
 
 ---
 
@@ -554,16 +955,26 @@ D:\Saki\design-lib\
    find_missing.js → 抓 404 → 回原站下载 → 铺路径
    → 重复到 404 清零
 
+7.5 反向补全（更准）
+   REPLICA_PROXY=1 python serve_all.py     ← 代理模式，本地缺的去原站取并记账
+   node complete-loop.mjs --report-only    ← 读日志，得到权威缺口清单
+
 8. 验收
    截图（--screenshot）+ 推进（滚轮）+ 结构（--dump-dom）
    → 三重校验
+   node verify.mjs --conc=2 --sitepar=1    ← 逐条比对（骨架/词集/高度/坏图）
 
 9. 抽组件
    从 CSS/JS 里正则出 easing / grid / color token
    → 整理成可复用片段
+
+10. 三件收尾核查（漏了会白干）
+    ├─ 字体：node font-audit.mjs       ← 字节核对，同名不同版是常态
+    ├─ 死链：grep -rE 'localhost:[0-9]+|\.vercel\.app' local/
+    └─ 懒加载：页面里还有多少 [data-src] 没被搬到 src
 ```
 
-**七个必须记住的坑：**
+**十个必须记住的坑：**
 
 1. **SPA 回退会吃掉 JSON** → 只对页面导航回退
 2. **Webflow `integrity` 哈希** → 删掉
@@ -572,6 +983,9 @@ D:\Saki\design-lib\
 5. **CDP 在某些环境会挂** → 用原生 `chrome --headless --screenshot`
 6. **headless WebGL 不画** → 用 `--dump-dom` 验证结构
 7. **预加载器推不动** → 用滚轮事件驱动
+8. **字体同名不同版** → **按字节核对，不按文件名**（01 宽 10%、05 差 8 倍）
+9. **懒加载的图不在 `src` 里** → 查 `data-src`，且文件可能压根没下载
+10. **验收采早了** → 等骨架连续 4 次不变再采，否则拿半成品比成品
 
 ---
 
@@ -615,9 +1029,9 @@ D:\Saki\design-lib\
 
 ---
 
-**九个站，216 MB，零 404，全本地可跑。**
+**九个站，202 MB，资源缺口清零，全本地可跑。**
 
-**工具在 `D:\Saki\design-lib\`，38 个脚本，全部可复用。**
+**工具分两代：一代在 `E:/AI/replica-workspace/10-SITES/`（搬运），二代在 `E:/AI/_audit/h/`（校准），全部可复用。**
 
 **这一篇到此。下一个要扒的站，照上面的 SOP 走。**
 
@@ -627,7 +1041,20 @@ D:\Saki\design-lib\
 
 十个站都跑在本机，一条一条对照着看。
 
-**先启动服务**（`D:\Saki\design-lib\` 下双击 `START-9站.bat`，或跑 `python serve_all.py`），jiejoe 在 `D:\Saki\projects\jiejoe-original\` 下 `npm run dev`。
+**先启动服务：**
+
+```bash
+cd E:/AI/replica-workspace/10-SITES
+REPLICA_PORT_BASE=8101 python serve_all.py     # 常驻档
+```
+
+**验收时换一套端口，避免和常驻的打架：**
+
+```bash
+REPLICA_PORT_BASE=8201 REPLICA_PROXY=0 python serve_all.py
+```
+
+`jiejoe` 在 `D:\Saki\projects\jiejoe-original\` 下 `npm run dev`。
 
 <DesignLibNav />
 
