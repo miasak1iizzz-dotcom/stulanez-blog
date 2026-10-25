@@ -194,6 +194,22 @@ function picsFromSeoHtml(html: string): string[] {
 	);
 }
 
+/**
+ * 图文帖兜底：抖音给爬虫 UA 的 note 页不写 RENDER_DATA，但会把整套图直接排在
+ * HTML 里（`…~tplv-dy-aweme-images:q75.webp`，每张在 p3/p9 两个 CDN 上各一份）。
+ * 2026-10 的「冷霜与焰阳」那种 28 图套装就是靠这条捞回来的 —— 之前只解析
+ * RENDER_DATA / biz_tag，于是被判成"视频帖"只拿到封面。
+ */
+function picsFromNoteHtml(html: string): string[] {
+	const urls = collectHttpUrls(html).filter(
+		(url) =>
+			/tplv-dy-aweme-images/i.test(url) ||
+			/tplv-dy-aweme-ima/i.test(url) ||
+			/biz_tag=aweme_images/i.test(url),
+	);
+	return uniqueNotePics(urls);
+}
+
 function pickMeta(html: string): { title: string; author?: string } {
 	const title =
 		html
@@ -301,6 +317,10 @@ function collectFromHtml(html: string, id?: string | null): string[] {
 
 	const seo = uniqueNotePics([...picsFromLd(html), ...picsFromSeoHtml(html)]);
 	if (seo.length > pics.length) return seo;
+
+	// 图文帖：整套图直接排在 HTML 里（没有 RENDER_DATA），优先级高于单图兜底
+	const notePics = picsFromNoteHtml(html);
+	if (notePics.length > pics.length) return notePics;
 
 	if (!pics.length) {
 		pics.push(...collectHttpUrls(html).filter(keepDouyinPic));
