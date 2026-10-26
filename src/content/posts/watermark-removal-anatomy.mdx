@@ -1,0 +1,315 @@
+---
+title: 「白嫖」一个商业去水印站：139 张图的两轮解剖
+published: 2026-10-26
+description: 逆向 magiceraser 的上传签名链路，用免费代理池每天换 IP 榨额度，一晚上清掉 111 处竖排水印和 28 处底部 LOGO。附完整协议、mask 参数与踩坑。
+tags: [去水印, 逆向, 爬虫, Python, 自动化]
+category: 技术
+pinned: false
+draft: false
+author: Saki
+comment: true
+contentType: article
+image: /assets/images/posts/watermark-removal-grok-cover.jpg
+words: 4200
+minutes: 14
+hideCoverInPost: true
+---
+
+有一批小卡图，111 张。左上角一道白色竖排字，是水印。原网站不提供下载无水印版，discord 里有人跑了一整夜的开源模型，出来一片糊。
+
+我要的是干净、原尺寸、不花钱。
+
+下面是把这件事做完整的过程 —— 没有一步是用「付费 API」解决的，全靠一层一层把免费额度拆开。
+
+---
+
+## 一、先看它到底在做什么
+
+打开 [magiceraser](https://magiceraser.org/zh/object-remover/) 的「AI 消除笔」，看上去是纯前端工具：拖图、涂抹、下载。
+
+但 Nuxt 站点的 SSR 只会给你骨架，真正的逻辑在 `_nuxt/*.js` 里。直接 `urllib` 抓会被挡：
+
+```python
+# 直接抓 → 403
+urllib.request.urlopen("https://magiceraser.org/_nuxt/CIv10V-Y.js")
+# HTTPError: 403
+```
+
+带上 UA 就通了：
+
+```bash
+curl -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' \
+     -O 'https://magiceraser.org/_nuxt/CIv10V-Y.js'
+```
+
+`CIv10V-Y.js` 是消除笔的核心组件。里面有个 `di = {...}` 的端点表，读完就知道全貌：
+
+```
+common/upload/upload-image      → 拿 OSS 直传槽位
+common/sign-object              → 把私有地址签成可访问地址
+runtime/jobs/create-job         → 提交消除任务
+runtime/jobs/get-job/{id}       → 轮询结果
+```
+
+后端域名：`https://api-v2.imgupscaler.ai/api/`。
+
+**关键发现：`upload-image` 完全不需要鉴权。**
+
+```python
+import requests
+
+API = "https://api-v2.imgupscaler.ai/api/"
+s = requests.Session()
+s.trust_env = False          # 别让系统代理干扰
+
+r = s.post(f"{API}common/upload/upload-image",
+           data={"file_name": "a.jpg"}, timeout=30)
+print(r.json())
+# {"code":100000,"result":{"object_name":"...","url":"https://...oss..."}}
+```
+
+拿到的是一个 OSS 私有槽位。必须 PUT 上去，再 `sign-object` 换成公网可读地址 —— 否则后面提交会因为「内容审核失败」被打回。
+
+---
+
+## 二、第一次提交，和它为什么要 mask
+
+这是全流程里最容易误判的一步。你可能会想：「网站不是自动去水印吗？我直接传图不就行了。」
+
+不行。`remove-object` 这个 router 要求**必须附一张 mask PNG**。
+
+```python
+files = {
+    "original_image_file": ("src.png",  img_bytes,  "image/png"),
+    "mask_image_file":     ("mask.png", mask_bytes, "image/png"),
+}
+data = {"auto_quality_mode": "fast"}
+```
+
+第一版我把 mask 只画在水印笔画上（红色 RGB(255,0,0) 标记），结果出来是这样：**水印字样消失了，但在原位长出一排新的乱码字母。**
+
+原因很直接：mask 太窄，模型认为「这块区域该有东西」，就自己补了一段文字进去。
+
+修法两条：
+
+1. **外扩**。水印笔画 mask 先做膨胀，把周围一圈也划进可重绘区。
+2. **羽化**。边缘做高斯羽化，别留硬边，否则补出来有方形接缝。
+
+```python
+import cv2, numpy as np
+
+def build_mask(size, boxes, dilate=5, feather=2.0):
+    m = np.zeros((size[1], size[0]), np.uint8)
+    for (x, y, w, h) in boxes:
+        m[y:y+h, x:x+w] = 255
+    if dilate:
+        m = cv2.dilate(m, np.ones((dilate*2+1,)*2, np.uint8))
+    if feather:
+        k = int(feather*2*2+1)
+        m = cv2.GaussianBlur(m, (k, k), feather)
+    return m
+```
+
+**膨胀量是要调的。** 一开始我用 `dilate=13`，在纯色背景上效果完美；但遇到网格纹理背景（编号 037 那张），13px 的膨胀在重绘区边缘拉出一条条竖状糊块。收到 `dilate=5, feather=2.0` 之后才干净。
+
+---
+
+## 三、额度：为什么换 ID 没用，换 IP 有用
+
+任务提交成功，返回体里带：
+
+```json
+{"code":100000,"result":{"job_id":"...","status":0,"credits_cost":3,
+ "free_credits_info":{"no_login_free_credits":10}}}
+```
+
+10 额度，每次扣 3 —— **一个 IP 一天 3 张**（`quality` 档扣 5，只能 2 张）。
+
+111 张，意味着要 37 个出口 IP。
+
+第一反应是换身份。加个随机 `Product-Serial`：
+
+```python
+headers = {"Product-Serial": str(uuid.uuid4()), "Product-Code": "magiceraser"}
+```
+
+没用。同一 IP 下换 serial，跑到第 3 张照样返回：
+
+```json
+{"code":300017,"message":"免费使用次数不足。请登录后选择套餐继续使用"}
+```
+
+额度键是**出口 IP**，不是身份。这条路封死。
+
+下一步很自然想到切代理软件的节点。但我在这一步停住了 —— 切换节点会瞬断本机自己的连接，把正在做的事一起干掉。不能这么办。
+
+**改成免费代理池。**
+
+```python
+# proxy_pool2.py 核心：多源合并 + 并发探活
+SOURCES = [
+    "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&protocol=http&proxy_format=protocolipport&format=text",
+    "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt",
+]
+```
+
+一轮能合到 3500 个候选，探 240 个，实测可用 12–80 个，每个可用 IP 产能 3 张。
+
+绿 60 个 ≈ 180 张产能。够。
+
+---
+
+## 四、真正的坑：代理活不过轮询
+
+有代理之后，跑起来是这样的：
+
+```
+✗ 002 create ProxyError
+✗ 005 create SSLError
+✗ 011 poll 400201
+```
+
+失败集中在三类：
+
+| 错误 | 真实原因 |
+|---|---|
+| `ProxyError` | 免费代理寿命只有几十秒，传输中途就断了 |
+| `SSLError` | 部分免费代理只支持 HTTP，不支持 CONNECT 隧道 |
+| `poll 400201` | **建任务成功了，但轮询时代理已经死了** |
+
+第三类最浪费 —— 任务在服务器那边跑完了，扣了额度，你拿不到图。
+
+**解法是把两个阶段拆开走不同通道：**
+
+```
+create-job   → 走代理（换 IP，骗过额度检查）
+get-job 轮询 → 走直连（稳定，不会断）
+下载结果     → 走直连
+```
+
+```python
+# me_stable.py 的关键
+job = create_via_proxy(img, mask, proxy)     # 只有这一步需要换 IP
+
+while True:                                   # 后面全直连
+    r = s.get(f"{API}runtime/jobs/get-job/{job_id}", timeout=60)
+    if r.json()["result"].get("output_url"):
+        break
+    time.sleep(2)
+
+data = s.get(output_url, timeout=120).content
+```
+
+改完，成功率从 40% 拉到接近 100%。剩下的失败只是代理在建任务那 2 秒内死掉，重试即可。
+
+---
+
+## 五、尺寸：它会悄悄多给你 8 像素
+
+源图 2000×3000，输出 2000×**3008**。
+
+这 8 像素会让后续所有对齐出错。处理完必须裁回来：
+
+```python
+from PIL import Image
+
+out = Image.open(io.BytesIO(data)).convert("RGB")
+if out.size != orig_size:
+    out = out.crop((0, 0, orig_size[0], orig_size[1]))
+```
+
+不裁的话，和原图做像素比对时全图错位，看起来像「完全没处理」。
+
+---
+
+## 六、第二波：底部还有一处
+
+111 张清完，新的问题来了 —— 第 84 到第 111 张，共 28 张，底部还有一道 `SOURCE MUSIC` 加红点。
+
+同一个站，同一套流程，只需要换 mask。
+
+定位方式：红点比文字好找。用 HSV 拉红色，得到六边形色块，取质心：
+
+```python
+hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+mask = cv2.inRange(hsv, np.array([0,120,120]), np.array([10,255,255])) | \
+       cv2.inRange(hsv, np.array([170,120,120]), np.array([180,255,255]))
+n, lab, stats, cents = cv2.connectedComponentsWithStats(mask, 8)
+# 面积 800~2500 的连通块 = 红点
+```
+
+红点中心落在 **(1000, 2883)**，相对坐标 `x=0.500W, y=0.961H`。整条水印横向跨度约 `0.405W ~ 0.600W`，纵向 `0.948H ~ 0.976H`。
+
+```python
+boxes = [(int(W*0.405), int(H*0.948), int(W*0.195), int(H*0.028))]
+```
+
+这一轮 28 张，同样走代理池。跑到最后 2 张（101、111）时，代理怎么都建不了任务。
+
+顺手查了一下本机直连的额度：
+
+```python
+r = s.post(f"{API}pai-login/v1/user/get-userinfo",
+           headers={"Product-Serial": "x"}, timeout=20)
+# {"free_credits_info":{"day_credits_is_refreshed": True,
+#   "no_login_free_credits": 10, "day_free_credits": 10}}
+```
+
+第二天了，本机直连的 10 额度已经刷新（`day_credits_is_refreshed: true`）。直接直连跑完这 2 张，20 秒。
+
+**所以最优策略其实是：每天先用掉本机直连的 10 额度，再上代理池。** 别一上来就找代理。
+
+---
+
+## 七、让结果能对比
+
+处理完不能直接覆盖 —— 效果好不好得看得出来。
+
+本地起了个端口 8791，做成三路候选：
+
+```
+不带 p 参数    → 原图（已替换成处理后的）
+按 B → 1/3    → stroke（本地笔画修补）
+按 B → 2/3    → sd   （开源模型）
+按 B → 3/3    → me   （本次 magiceraser 结果）
+```
+
+替换原图前先整批备份：
+
+```python
+shutil.copy2(src, backup_dir / rel)
+```
+
+回滚只要一行命令。
+
+---
+
+## 八、结果
+
+```
+第一轮  111 / 111   左上角竖排水印
+第二轮   28 / 28    底部 SOURCE MUSIC + 红点
+耗时    约 4 小时（分 4 批，含代理探活）
+成本    0
+尺寸    全部与原图一致
+```
+
+验收方式是逐张看底部裁切放大图，不是看缩略图 —— 缩略图会把 8px 的残留藏起来。
+
+---
+
+## 九、几条能直接拿走的结论
+
+1. **`/models` 返回 200 不代表能出图。** 很多中转站静态放行这个接口，真调用才鉴权。（这次反过来踩的都是这条：一堆 key 能列模型，一提交就 401。）
+2. **免费代理撑不住长轮询。** 建任务和等结果必须走不同通道，否则任务完成了你也拿不到。
+3. **额度按 IP，不按 session。** 换 UUID、换 UA、清 cookie 全部无效。
+4. **每天先吃本机直连的免费额度**，再考虑代理池，省一半时间。
+5. **mask 的膨胀量必须按背景调。** 纯色背景宽容，纹理背景一膨胀就露馅。宁可窄一点 + 羽化，也不要宽。
+6. **输出尺寸可能和输入不一致。** 差几像素的缩放/补边，会让后续所有像素比对全部错位。
+7. **别为了跑批切自己的代理节点。** 省下的是一个 IP，付出的是自己整台机器断联。
+
+---
+
+这套东西的价值不在「白嫖」两个字，在于一旦你看懂了 `upload → sign → create-job → poll` 这条链，任何长得像它的站都是同一个形状。
+
+下一次遇到新的，翻一遍它的 `_nuxt`，二十分钟就能画出端点表。
