@@ -369,6 +369,8 @@ export default defineConfig({
 		}),
 	},
 	vite: {
+		// OSS 签名依赖随服务端打包，避免部署函数漏带 ali-oss。
+		ssr: { noExternal: ["ali-oss"] },
 		plugins: [tailwindcss()],
 		server: {
 			watch: {
